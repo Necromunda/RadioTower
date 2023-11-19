@@ -1,0 +1,201 @@
+FrameWidgetClass rootFrame {
+ color 0.2784 0.2784 0.2784 1
+ position 28.16 -33.2161
+ size 1067.10999 660.40002
+ halign center_ref
+ valign center_ref
+ hexactpos 1
+ vexactpos 1
+ hexactsize 1
+ vexactsize 1
+ scaled 1
+ {
+  PanelWidgetClass Background {
+   inheritalpha 0
+   ignorepointer 0
+   color 0.2784 0.2784 0.2784 1
+   size 1050.37 643.64795
+   halign center_ref
+   valign center_ref
+   hexactpos 1
+   vexactpos 1
+   hexactsize 1
+   vexactsize 1
+   style rover_sim_colorable
+   {
+    PanelWidgetClass CraftablePanel {
+     ignorepointer 1
+     position 4.52801 66.032
+     size 301.79202 555.58502
+     hexactpos 1
+     vexactpos 1
+     hexactsize 1
+     vexactsize 1
+     style editor_quad
+     {
+      ScrollWidgetClass CraftableScrollWidget {
+       visible 1
+       ignorepointer 1
+       size 283.944 539.776
+       halign center_ref
+       valign center_ref
+       hexactpos 1
+       vexactpos 1
+       hexactsize 1
+       vexactsize 1
+       "Scrollbar H" 1
+       "Scrollbar V" 1
+       "Scrollbar V Left" 1
+      }
+      TextListboxWidgetClass m_craftablesList {
+       position 10 10
+       size 285.49298 539.104
+       hexactpos 1
+       vexactpos 1
+       hexactsize 1
+       vexactsize 1
+       "title visible" 0
+       colums "Title1;100"
+       lines 55
+      }
+     }
+    }
+    PanelWidgetClass TitlePanel {
+     ignorepointer 1
+     position 0.95999 0.056
+     size 1047.82007 57.944
+     hexactpos 1
+     vexactpos 1
+     hexactsize 1
+     vexactsize 1
+     style editor_quad
+     {
+      TextWidgetClass m_Title {
+       ignorepointer 1
+       size 1018.66998 48
+       halign center_ref
+       hexactpos 1
+       vexactpos 1
+       hexactsize 1
+       vexactsize 1
+       style Normal
+       text "Crafting"
+       font "gui/fonts/MetronLight-Italic28"
+       "exact text" 0
+       "text halign" center
+       "text valign" center
+      }
+     }
+    }
+    PanelWidgetClass PreviewPanel {
+     ignorepointer 1
+     position 53.768 72.072
+     size 569.664 477
+     halign right_ref
+     hexactpos 1
+     vexactpos 1
+     hexactsize 1
+     vexactsize 1
+     style editor_quad
+     {
+      TextWidgetClass m_incredient0 {
+       ignorepointer 1
+       position 12.4454 409.27502
+       size 202.70399 23.2836
+       hexactpos 1
+       vexactpos 1
+       hexactsize 1
+       vexactsize 1
+       text "m_incredient0"
+       font "gui/fonts/Metron-Italic16"
+       "text valign" center
+      }
+      TextWidgetClass m_incredient1 {
+       ignorepointer 1
+       position 12.904 433.42599
+       size 202 24.3582
+       hexactpos 1
+       vexactpos 1
+       hexactsize 1
+       vexactsize 1
+       text "m_incredient1"
+       font "gui/fonts/Metron-Italic16"
+       "text valign" center
+      }
+      ItemPreviewWidgetClass m_itemPreviewWindow {
+       ignorepointer 0
+       position 69.84 23.6009
+       size 436.07999 281.20001
+       hexactpos 1
+       vexactpos 1
+       hexactsize 1
+       vexactsize 1
+      }
+     }
+    }
+    ProgressBarWidgetClass craftingProgressBar {
+     ignorepointer 1
+     position 428.21301 597.81403
+     size 360.78601 21.9053
+     hexactpos 1
+     vexactpos 1
+     hexactsize 1
+     vexactsize 1
+     current 0
+    }
+   }
+  }
+  ButtonWidgetClass btn_craft {
+   position 0.10791 0.01601
+   size 83.84 48
+   halign right_ref
+   valign bottom_ref
+   hexactpos 0
+   vexactpos 0
+   hexactsize 1
+   vexactsize 1
+   style MenuDefault
+   text "Craft"
+  }
+  ButtonWidgetClass btn_exit {
+   position 10.304 10.304
+   size 83.84 48
+   halign right_ref
+   valign bottom_ref
+   hexactpos 1
+   vexactpos 1
+   hexactsize 1
+   vexactsize 1
+   style MenuDefault
+   "no focus" 0
+   text "Exit"
+  }
+  TextWidgetClass CraftingTimeLabel {
+   ignorepointer 1
+   position 788.03101 493.23001
+   size 71.3267 48
+   hexactpos 1
+   vexactpos 1
+   hexactsize 1
+   vexactsize 1
+   text "Time:"
+   font "gui/fonts/Metron-Italic16"
+   "text halign" center
+   "text valign" center
+  }
+  TextWidgetClass craftingtime {
+   ignorepointer 1
+   position 860.62799 493.13699
+   size 48 48
+   hexactpos 1
+   vexactpos 1
+   hexactsize 1
+   vexactsize 1
+   style Bold
+   text "0"
+   font "gui/fonts/Metron-Italic16"
+   "text halign" center
+   "text valign" center
+  }
+ }
+}
