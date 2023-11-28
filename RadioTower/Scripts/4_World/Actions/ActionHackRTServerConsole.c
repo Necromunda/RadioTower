@@ -3,6 +3,10 @@ class ActionHackRTServerConsoleCB : ActionContinuousBaseCB
 	override void CreateActionComponent()
 	{
 		float hackTime = RTConstants.RT_TIMETOHACK_DEFAULT;
+		if (g_RadioTowerBase)
+		{
+			hackTime = g_RadioTowerBase.m_Config.locations[0].timeToHack;
+		}
 
 		m_ActionData.m_ActionComponent = new CAContinuousTime(hackTime);
 	}

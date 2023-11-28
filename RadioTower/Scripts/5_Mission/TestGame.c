@@ -41,7 +41,7 @@ modded class MissionServer
     {
         m_TestGame = new ref TestGame();
 
-        Print( "HLYL - Loaded Server Mission" );
+        // Print( "HLYL - Loaded Server Mission" );
     }
 };
 
@@ -53,7 +53,7 @@ modded class MissionGameplay
     {
         m_TestGame = new ref TestGame();
 
-        Print( "HLYL - Loaded Client Mission" );
+        // Print( "HLYL - Loaded Client Mission" );
     }
 
     override void OnKeyPress( int key )

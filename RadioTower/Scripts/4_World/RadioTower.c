@@ -10,8 +10,7 @@ class RadioTowerBase
 	{
 		m_Config = RadioTowerSettings.Load();
 		
-		GetGame().GetCallQueue(CALL_CATEGORY_SYSTEM).CallLater(PlaceServer, 20000); 
-		GetRPCManager().AddRPC("RadioTower", "FncInvokeDataResponse", this, SingleplayerExecutionType.Client);
+		GetGame().GetCallQueue(CALL_CATEGORY_SYSTEM).CallLater(PlaceServer, 20000);		
 	}
     
     void PlaceServer()
@@ -30,39 +29,6 @@ class RadioTowerBase
 		}
 		GetGame().GetCallQueue(CALL_CATEGORY_SYSTEM).RemoveByName(this, "PlaceServer");
     }
-	
-	void TestRPCFunction( CallType type, ref ParamsReadContext ctx, ref PlayerIdentity sender, ref Object target )
-    {
-        Param1< string > data;
-        if ( !ctx.Read( data ) ) return;
-        
-        if( type == CallType.Server )
-        {
-            Print( "HLynge Server function called!" );
-			Print("Data: " + data);
-        }
-        else
-        {
-            Print( "HLynge Client function called!" );
-            Print("Data: " + data);
-        }
-    }
-	
-	void FncInvokeDataResponse(CallType type, ParamsReadContext ctx, PlayerIdentity sender, Object target)
-	{
-    	//if this function is trigger anywhere but on client, we return without continuing.
-		if(type != CallType.Client)
-			return;
-
-		Param1<string> data;
-   		//if the data is not retrieved we return to avoid issue
-		if (!ctx.Read(data)) 
-			return;
-	    
-	    string clientResponse = data.param1;
-	
-	    Print(clientResponse);
-	}
 }
 
 static ref RadioTowerBase g_RadioTowerBase;
