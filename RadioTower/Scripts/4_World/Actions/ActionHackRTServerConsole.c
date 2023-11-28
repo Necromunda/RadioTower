@@ -2,12 +2,8 @@ class ActionHackRTServerConsoleCB : ActionContinuousBaseCB
 {
 	override void CreateActionComponent()
 	{
-		// GetDayZGame().Get_RT_Server_Config().GetRTServerLocationArray().locations[0].title;
-		RadioTowerConfig config = GetDayZGame().Get_RT_Server_Config();
-		
-		string title = config.GetRTServerLocationArray().locations[0].title;
-		float hackTime = config.GetRTServerHackTime(title);
-		
+		float hackTime = RTConstants.RT_TIMETOHACK_DEFAULT;
+
 		m_ActionData.m_ActionComponent = new CAContinuousTime(hackTime);
 	}
 }
@@ -43,12 +39,13 @@ class ActionHackRTServerConsole: ActionContinuousBase
 	{
 		if( !target ) return false;
 
-		if(!IsInReach(player, target, RTConstants.RT_DISTANCE_DEFAULT)) return false;
+		// if(!IsInReach(player, target, RTConstants.RT_DISTANCE_DEFAULT)) return false;
 
-		string selection = target.GetObject().GetActionComponentName(target.GetComponentIndex());
+		// string selection = target.GetObject().GetActionComponentName(target.GetComponentIndex());
+		// Print("[RadioTower] selection: " + selection);
 
-		if(selection && selection != "component02")
-			return false;	
+		// if(selection && selection != "component02")
+			// return false;	
 		
 		RT_Server server = RT_Server.Cast(target.GetObject());
 		

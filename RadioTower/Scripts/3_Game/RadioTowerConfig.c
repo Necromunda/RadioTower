@@ -1,69 +1,60 @@
-class RadioTowerConfig
-{
-	protected static string m_Dir = "RadioTower";
-	protected static string m_DirPath = "$profile:" + m_Dir;
-	protected static string m_ConfigPath = m_DirPath + "\\RTServerLocations.json";
-	
-	protected ref RTServerLocations m_RTServerLocationArray;
-	
-	void RadioTowerConfig()
+class RadioTowerSettings
+{	
+	static ref RTServerConfig Load()
 	{
-		Print("[RadioTower] Init");
-		if (GetGame().IsServer())
-		{
-			if (FileExist(m_ConfigPath))
-			{
-				Print("[RadioTower] Loading config");
-			    Load();
-			}
-			else
-			{
-				Print("[RadioTower] Creating config");
-				Create();
-			}
-		}
-	};
-	
-	void Load()
-	{
-		JsonFileLoader<RTServerLocations>.JsonLoadFile(m_ConfigPath, m_RTServerLocationArray);
-	}
-	
-	void Create()
-	{	
-		m_RTServerLocationArray = new RTServerLocations();
-		m_RTServerLocationArray.locations = new ref array<RTServerLocation>();
-		ref RTServerLocation serverLocation = new RTServerLocation();
-		m_RTServerLocationArray.locations.Insert(serverLocation);
+		ref RTServerConfig m_Config = new RTServerConfig();
 		
-        MakeDirectory(m_DirPath);
-		JsonFileLoader<RTServerLocations>.JsonSaveFile(m_ConfigPath, m_RTServerLocationArray);
-	};
-	
-	RTServerLocations GetRTServerLocationArray()
-	{
-		return m_RTServerLocationArray;
-	}
-	
-	float GetRTServerHackTime(string title)
-	{
-		if (m_RTServerLocationArray)
+		// Check if RadioTower folder exists in Profiles
+		if (!FileExist(RTConstants.RT_DIRPATH))
 		{
-			foreach (RTServerLocation o: m_RTServerLocationArray.locations)
-			{
-				if (o.title == title)
-				{
-					return o.timeToHack;
-				}
-			}
+			MakeDirectory(RTConstants.RT_DIRPATH);
+			Print("[RadioTower] Settings folder created");
 		}
-		return RTConstants.RT_TimeToHack_DEFAULT;
-	}
+		
+		// Check if RadioTower/Logs folder exists in Profiles
+		if (!FileExist(RTConstants.RT_LOGPATH))
+		{
+			MakeDirectory(RTConstants.RT_LOGPATH);
+			Print("[RadioTower] Logs folder created");
+		}
+		
+		// Check if RadioTower/RadioTowerSettings.json file exists in Profiles
+		if (FileExist(RTConstants.RT_CONFIGPATH))
+		{
+			// Load it
+			JsonFileLoader<RTServerConfig>.JsonLoadFile(RTConstants.RT_CONFIGPATH, m_Config);
+			Print("[RadioTower] Settings file loaded");
+		}
+		else
+		{
+			// Create default settings
+			m_Config.Defaults();
+			// Save it (with updated & reformatted values)
+			JsonFileLoader<RTServerConfig>.JsonSaveFile(RTConstants.RT_CONFIGPATH, m_Config);
+			// Log the folders & settings creation
+			Print("[RadioTower] Settings created & defaults loaded.");
+		}
+		
+		return m_Config;
+	};
 };
 
-class RTServerLocations
+class RTServerConfig
 {
-    ref array<RTServerLocation> locations;
+    ref array<ref RTServerLocation> locations;
+	
+	void Defaults()
+	{	
+		locations = new array<ref RTServerLocation>();
+		ref RTServerLocation serverLocation = new RTServerLocation();
+
+		serverLocation.title = "Green mountain";		
+		serverLocation.timeToHack = RTConstants.RT_TIMETOHACK_DEFAULT;
+		serverLocation.coordinates_xyz = {3706.91, 402.01, 5982.06};
+		serverLocation.orientation_ypr = {70, 0, 0};
+		
+		locations.Insert(serverLocation);
+	};
 };
 
 class RTServerLocation
@@ -71,5 +62,5 @@ class RTServerLocation
     string title;
 	float timeToHack;
     vector coordinates_xyz;
-    vector orientation_rpy;
+    vector orientation_ypr;
 }
