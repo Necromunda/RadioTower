@@ -3,9 +3,9 @@ class ActionHackRTServerConsoleCB : ActionContinuousBaseCB
 	override void CreateActionComponent()
 	{
 		float hackTime = RTConstants.RT_TIMETOHACK_DEFAULT;
-		if (g_RadioTowerBase)
+		if (g_RTBase)
 		{
-			hackTime = g_RadioTowerBase.m_Config.locations[0].timeToHack;
+			hackTime = g_RTBase.m_Config.eventTimeToHack;
 		}
 
 		m_ActionData.m_ActionComponent = new CAContinuousTime(hackTime);
@@ -41,17 +41,18 @@ class ActionHackRTServerConsole: ActionContinuousBase
 
 	override bool ActionCondition( PlayerBase player, ActionTarget target, ItemBase item )
 	{
-		if( !target ) return false;
+		if (!target) 
+			return false;
 
-		// if(!IsInReach(player, target, RTConstants.RT_DISTANCE_DEFAULT)) return false;
+		if (!IsInReach(player, target, RTConstants.RT_DISTANCE_DEFAULT)) 
+			return false;
 
-		// string selection = target.GetObject().GetActionComponentName(target.GetComponentIndex());
-		// Print("[RadioTower] selection: " + selection);
+		string selection = target.GetObject().GetActionComponentName(target.GetComponentIndex());
 
-		// if(selection && selection != "component02")
-			// return false;	
+		if (selection && selection != "component02")
+			return false;	
 		
-		RT_Server server = RT_Server.Cast(target.GetObject());
+		RTServer server = RTServer.Cast(target.GetObject());
 		
 		if(server)			
 			return server.IsOpen();
@@ -62,11 +63,14 @@ class ActionHackRTServerConsole: ActionContinuousBase
 	override void OnFinishProgressServer( ActionData action_data ) 
 	{
 		Print("[RadioTower] Debug: Hack action OnFinishProgressServer()");
-		// RT_Server server = RT_Server.Cast(action_data.m_Target.GetObject());
-		// if(server)		
-		// {	
-			// server.Close();
-			// return;
-		// }		
+		//vector pos = action_data.m_Target.GetObject().GetPosition();
+		RTServer server = RTServer.Cast(action_data.m_Target.GetObject());
+		if(server)
+		{
+			server.Hack();
+			server.Close();	
+		}
+		g_RTBase.StartEvent();
+		//GetGame().CreateObject("CaptureArea", pos);	
 	}	
 };

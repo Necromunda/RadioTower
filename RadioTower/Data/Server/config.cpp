@@ -4,7 +4,7 @@ class CfgPatches
 	{
 		units[]=
 		{
-			"RT_Server"
+			"RTServer"
 		};
 		weapons[]={};
 		requiredVersion=0.1;
@@ -17,11 +17,11 @@ class CfgPatches
 class CfgVehicles
 {
 	class Container_Base;
-	class RT_Server: Container_Base
+	class RTServer: Container_Base
 	{
 		scope=2;
 		displayName="Server";
-		descriptionShort="Looks like a server to me.";
+		descriptionShort="Hack the server to start the event.";
 		model="RadioTower\RadioTower\Data\Server\server.p3d";
 		rotationFlags=2;
 		itemBehaviour=0;

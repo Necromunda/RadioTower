@@ -20,30 +20,38 @@ class ActionOpenRTServerConsole: ActionInteractBase
 
 	override bool ActionCondition( PlayerBase player, ActionTarget target, ItemBase item )
 	{
-		if( !target ) return false;
+		if ( !target ) 
+			return false;
 
-		if(!IsInReach(player, target, RTConstants.RT_DISTANCE_DEFAULT)) return false;
+		if (!IsInReach(player, target, RTConstants.RT_DISTANCE_DEFAULT)) 
+			return false;
 
 		string selection = target.GetObject().GetActionComponentName(target.GetComponentIndex());
 
-		if(selection && selection != "component02")
+		if (selection && selection != "component02")
 			return false;	
 		
-		RT_Server server = RT_Server.Cast(target.GetObject());
+		RTServer server = RTServer.Cast(target.GetObject());
 		
-		if(server)			
-			return !server.IsOpen();
+		if (server)
+		{
+			if (server.IsHacked())
+			{
+				return false;
+			}
+			else 
+			{
+				return !server.IsOpen();
+			}
+		}			
 			
 		return false;
 	}
 
 	override void OnStartServer( ActionData action_data )
 	{
-		RT_Server server = RT_Server.Cast(action_data.m_Target.GetObject());
+		RTServer server = RTServer.Cast(action_data.m_Target.GetObject());
 		if(server)		
-		{	
 			server.Open();
-			return;
-		}
 	}
 };

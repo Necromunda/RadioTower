@@ -1,17 +1,21 @@
 // class RT_Server extends ItemBase
-class RT_Server extends Container_Base
+class RTServer extends Container_Base
 // class RT_Server extends Building
 {
 	protected bool m_IsOpened;
 	protected bool m_IsOpenedLocal;
+	protected bool m_IsHacked;
 	
-	void RT_Server()
+	void RTServer()
 	{		
 		RegisterNetSyncVariableBool("m_IsSoundSynchRemote");
 		RegisterNetSyncVariableBool("m_IsOpened");
+		RegisterNetSyncVariableBool("m_IsHacked");
 	}
 	
-	void ~RT_Server() { }
+	void ~RTServer() 
+	{ 
+	}
 	
 	override void EEInit()
 	{
@@ -43,6 +47,16 @@ class RT_Server extends Container_Base
 	override bool IsOpen()
 	{
 		return m_IsOpened;
+	}
+	
+	void Hack()
+	{
+		m_IsHacked = true;
+	}
+	
+	bool IsHacked()
+	{
+		return m_IsHacked;
 	}
 
 	override void OnVariablesSynchronized()

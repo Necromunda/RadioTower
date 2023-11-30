@@ -30,7 +30,7 @@ class ActionCloseRTServerConsole: ActionInteractBase
 		if(selection && selection != "component02")
 			return false;	
 		
-		RT_Server server = RT_Server.Cast(target.GetObject());
+		RTServer server = RTServer.Cast(target.GetObject());
 		if(server)			
 			return server.IsOpen();
 			
@@ -39,11 +39,8 @@ class ActionCloseRTServerConsole: ActionInteractBase
 
 	override void OnStartServer( ActionData action_data )
 	{
-		RT_Server server = RT_Server.Cast(action_data.m_Target.GetObject());
+		RTServer server = RTServer.Cast(action_data.m_Target.GetObject());
 		if(server)		
-		{	
 			server.Close();
-			return;
-		}
 	}
 };
