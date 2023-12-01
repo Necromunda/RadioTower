@@ -53,16 +53,17 @@ class CaptureArea: Trigger
 		m_Lifetime = g_RTBase.m_Config.eventLifetime;
 		m_Capture_Tickrate = g_RTBase.m_Config.eventCapturetime / 100;
 		
-		float radius = 5.0;
-		float height = 10.0
+		float radius = 25.0;
+		float height = 25.0;
 		SetCollisionCylinder(radius, height);
 		m_Timer1.Run(LIFETIME_TICKRATE, this, "Tick", NULL, true);
 	}
 	
 	void Tick()
 	{
-		string date = CF_Date.Now().Format("D-MM-YYYY h:mm:ss");
-		Print(date + " CaptureArea lifetime " + m_Lifetime);
+		string date = CF_Date.Now().Format("DD-MM-YYYY hh:mm:ss");
+		if (m_Lifetime.ToString().ToInt() % 60 == 0)
+			Print(date + " CaptureArea lifetime " + m_Lifetime);
 		m_Lifetime -= LIFETIME_TICKRATE;
 		if (m_Lifetime < 0)
 		{
@@ -71,15 +72,6 @@ class CaptureArea: Trigger
 		}
 	}
 	
-	
-	/*override void EOnInit(IEntity other, int extra)
-	{
-		float radius = 5.0;
-		float height = 10.0
-		SetCollisionCylinder(radius, height);
-		m_Timer1.Run(LIFETIME_TICKRATE, this, "Tick", NULL, true);
-	}*/
-	
 	override void OnEnterClientEvent(TriggerInsider insider)
 	{
 		super.OnEnterClientEvent(insider);
@@ -87,7 +79,8 @@ class CaptureArea: Trigger
 		PlayerBase player;
 		if( Class.CastTo( player, insider.GetObject()))
 		{
-			Print(player.GetIdentity().GetPlainName() + " entered capture area");
+			Print("CLIENT: " + player.GetIdentity().GetPlainName() + " entered capture area");
+			g_RTBase.SetIsInCaptureZone(true);
 		}
 	}
 	
@@ -96,9 +89,10 @@ class CaptureArea: Trigger
 		super.OnLeaveClientEvent(insider);
 		
 		PlayerBase player;
-		if( Class.CastTo( player, insider.GetObject()))
+		if(Class.CastTo( player, insider.GetObject()))
 		{
-			Print(player.GetIdentity().GetPlainName() + " left capture area");
+			Print("CLIENT: " + player.GetIdentity().GetPlainName() + " left capture area");
+			g_RTBase.SetIsInCaptureZone(false);
 		}
 	}
 	
@@ -120,16 +114,38 @@ class CaptureArea: Trigger
 			}
 		} 
 	}
-
-	/*
-	override void EOnFrame(IEntity other, float timeSlice)
+	
+	override void OnEnterServerEvent(TriggerInsider insider)
 	{
-		super.EOnFrame(other, timeSlice);
+		super.OnEnterServerEvent(insider);
 		
-		if ( !GetGame().IsServer() )
-			return;
+		PlayerBase player;
+		if( Class.CastTo( player, insider.GetObject()))
+		{
+			Print("SERVER: " + player.GetIdentity().GetPlainName() + " entered capture area");
+			g_RTBase.SetInsiderCount(GetInsiders().Count());
+		}
+	}
+	
+	override void OnLeaveServerEvent(TriggerInsider insider)
+	{
+		super.OnLeaveServerEvent(insider);
 		
-		m_TimeAccuStay += timeSlice;
+		PlayerBase player;
+		if(Class.CastTo( player, insider.GetObject()))
+		{
+			Print("SERVER: " + player.GetIdentity().GetPlainName() + " left capture area");
+			//GetRPCManager().SendRPC("RadioTower", "SetInsiderCount", new Param1<int>(GetInsiders().Count()), true, identity);
+			//g_RTBase.SetInsiderCount(GetInsiders().Count());
+			//g_RTBase.SetIsInCaptureZone(false);
+		}
+	}
+	
+	override void OnStayServerEvent(TriggerInsider insider, float deltaTime)
+	{
+		super.OnStayServerEvent(insider, deltaTime);
+		
+		m_TimeAccuStay += deltaTime;
 		if (m_TimeAccuStay > m_Capture_Tickrate)
 		{
 			m_TimeAccuStay = 0;
@@ -141,37 +157,6 @@ class CaptureArea: Trigger
 				m_CapturePct += 1;
 				Print("Area captured " + m_CapturePct + "%");
 			}
-		}
+		} 
 	}
-
-	//! When an Object enters the trigger add it to Insiders
-	override void EOnEnter(IEntity other, int extra)
-	{
-		super.EOnEnter(other, extra);
-		
-		if ( GetGame().IsServer() )
-		{
-			PlayerBase player;
-			if( Class.CastTo( player, other ))
-			{
-				Print(player.GetIdentity().GetPlainName() + " entered capture area");
-			}
-		}
-	}
-
-	//! When an Object exits the trigger remove it from Insiders
-	override void EOnLeave(IEntity other, int extra)
-	{
-		super.EOnEnter(other, extra);
-		
-		if ( GetGame().IsServer() )
-		{
-			PlayerBase player;
-			if( Class.CastTo( player, other ))
-			{
-				Print(player.GetIdentity().GetPlainName() + " left capture area");
-			}
-		}
-	}	
-	*/
 }

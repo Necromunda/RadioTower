@@ -13,7 +13,7 @@ modded class MissionServer
 			Print(RTConstants.RT_LOG_PREFIX + " MissionServer init g_RTBase");
 			g_RTBase = null;
 			GetRTBase();
-		}
+		}	
 	}
 	
 	void ~MissionServer()
@@ -31,32 +31,57 @@ modded class MissionServer
 
 modded class MissionGameplay
 {
-	/*
-	private ref ExampleUI m_ExampleUI;
-    
-    override void OnUpdate(float timeslice)
-    {
-        super.OnUpdate(timeslice);
-
-        if ( GetGame().IsClient() )
-        {
-            // My conditions to enable the UI here !
-            // For example on button pressed
-            m_ExampleUI = new ExampleUI();
-        }
-    }
-	*/
+	private ref CaptureAreaUI m_CaptureAreaUI;	
 	
 	void MissionGameplay()
 	{
-		if (GetGame().IsServer())
+		if ( GetGame().IsClient())
+        {
+        	m_CaptureAreaUI = new CaptureAreaUI();
+        }
+		/*if (GetGame().IsServer())
 		{
 			Print(RTConstants.RT_LOG_PREFIX + " MissionGameplay init g_RTBase");
 			g_RTBase = null;
 			GetRTBase();
-		}
+		}*/
 		GetRPCManager().AddRPC("RadioTower", "SendConfigToClient", this, SingleplayerExecutionType.Client);	
+		GetRPCManager().AddRPC("RadioTower", "UpdateInsiderCount", this, SingleplayerExecutionType.Client);
 	}
+	
+	void UpdateProgressBar() { }
+	void UpdateInsiderCount(int count)
+	{
+		if (m_CaptureAreaUI)
+		{
+			m_CaptureAreaUI.m_ProgressBarWidget.Set
+			TextWidget.SetText
+		}
+	}
+	
+	override void OnUpdate(float timeslice)
+    {
+        super.OnUpdate(timeslice);
+
+		if (GetGame().GetInput().LocalPress("RTShowCaptureUIDebug"))
+		{
+			m_CaptureAreaUI.ToggleCaptureUI();
+		}
+		
+		if (g_RTBase)
+		{
+			if (g_RTBase.IsInCaptureZone())
+			{
+				if (!m_CaptureAreaUI.IsCaptureUIVisible())
+					m_CaptureAreaUI.ToggleCaptureUI();
+			}
+			else
+			{
+				if (m_CaptureAreaUI.IsCaptureUIVisible())
+					m_CaptureAreaUI.ToggleCaptureUI();
+			}
+		}
+    }
 	
 	void SendConfigToClient(CallType type, ParamsReadContext ctx, PlayerIdentity sender, Object target)
 	{

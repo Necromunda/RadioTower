@@ -4,12 +4,12 @@ class RTEvent
 	
 	void ~RTEvent()
 	{
-		Print(RTConstants.RT_LOG_PREFIX + " RTEvent destructor");
+		Print(RTConstants.RT_LOG_PREFIX + " RTEvent dtor");
 	}
 	
 	void RTEvent()
 	{
-		Print(RTConstants.RT_LOG_PREFIX + " RTEvent constructor");
+		Print(RTConstants.RT_LOG_PREFIX + " RTEvent ctor");
 		
 		m_EventProgress = 0;
 	}
@@ -20,20 +20,39 @@ class RTBase
 	ref RTEventConfig m_Config;
 	ref RTEvent m_RTEvent;
 	vector m_ServerPos;
+	bool m_IsInCaptureZone;
+	int m_InsiderCount;
 	
 	void ~RTBase()
 	{
+		Print(RTConstants.RT_LOG_PREFIX + " RTBase dtor");
 	}
 	
 	void RTBase()
 	{
-		Print(RTConstants.RT_LOG_PREFIX + " RTBase constructor");
+		Print(RTConstants.RT_LOG_PREFIX + " RTBase ctor");
 		m_RTEvent = null;
 		m_Config = RTSettings.Load();
+		m_IsInCaptureZone = false;
+		m_InsiderCount = 0;
 				
 		GetGame().GetCallQueue(CALL_CATEGORY_SYSTEM).CallLater(CreateEvent, 20000);	
 	}
     
+	bool IsInCaptureZone()
+	{
+		return m_IsInCaptureZone;
+	}
+	
+	void SetIsInCaptureZone(bool value)
+	{
+		m_IsInCaptureZone = value;
+	}
+	
+	void SetInsiderCount(int value)
+	{
+		m_InsiderCount = value;
+	}
 	
     void CreateEvent()
     {
@@ -79,8 +98,6 @@ class RTBase
 		
 		GetGame().GetCallQueue(CALL_CATEGORY_SYSTEM).RemoveByName(this, "CreateEvent");
     }
-	
-	
 	
 	void StartEvent()
 	{

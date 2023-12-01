@@ -1,10 +1,9 @@
-// class RT_Server extends ItemBase
 class RTServer extends Container_Base
-// class RT_Server extends Building
 {
 	protected bool m_IsOpened;
 	protected bool m_IsOpenedLocal;
 	protected bool m_IsHacked;
+	protected bool m_IsHackedLocal;
 	
 	void RTServer()
 	{		
@@ -52,6 +51,7 @@ class RTServer extends Container_Base
 	void Hack()
 	{
 		m_IsHacked = true;
+		SetSynchDirty();
 	}
 	
 	bool IsHacked()
@@ -75,6 +75,11 @@ class RTServer extends Container_Base
 				SoundClosePlay();
 			}	
 			m_IsOpenedLocal = m_IsOpened;
+		}
+		
+		if (m_IsHacked != m_IsHackedLocal)
+		{
+			m_IsHackedLocal = m_IsHacked;
 		}
 		
 		UpdateVisualState();
