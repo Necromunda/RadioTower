@@ -1,0 +1,22 @@
+Default config
+Remove comments before use
+{
+	"eventLifetime": 1800, // seconds
+	"eventCapturetime": 600, // seconds
+	"eventTimeToHack": 2, // seconds
+    "eventLocations": [
+        {
+            "title": "Green mountain",
+            "coordinates_xyz": [
+                3706.909912109375,
+                402.010009765625,
+                5982.06005859375
+            ],
+            "orientation_ypr": [
+                -110.0,
+                0.0,
+                0.0
+            ]
+        }
+    ]
+}

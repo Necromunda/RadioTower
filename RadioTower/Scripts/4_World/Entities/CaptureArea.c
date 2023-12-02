@@ -43,13 +43,16 @@ class CaptureArea: Trigger
 	protected float m_CollisionCylinderRadius;
 	protected float m_CollisionCylinderHeight;
 	
-	protected float m_Capture_Tickrate;
+	protected float m_Event_Capturetime;
 	protected float m_TimeAccuStay;
 	protected float m_CapturePct;
+	protected float m_CaptureSlice;
+	protected float m_UpdateInterval;
+	protected float m_TotalCapturePct;
 	
 	protected const float LIFETIME_TICKRATE = 1; // seconds
 	protected ref Timer m_Timer1;
-	protected float m_Lifetime; 		 // seconds
+	protected float m_Event_Lifetime;
 	
 	protected int m_InsiderCount;
 	
@@ -59,18 +62,21 @@ class CaptureArea: Trigger
 		m_CollisionCylinderRadius = 250;
 		m_CollisionCylinderHeight = 250;
 		
-		m_Capture_Tickrate = RTConstants.RT_CAPTURE_TICK_RATE_DEFAULT;
+		m_Event_Capturetime = RTConstants.RT_EVENT_CAPTURETIME_DEFAULT;
 		m_TimeAccuStay = 0;
 		m_CapturePct = 0;
+		m_UpdateInterval = RTConstants.RT_EVENT_UPDATE_PROGRESS_INTERVAL_DEFAULT;
+		m_TotalCapturePct = RTConstants.RT_EVENT_TOTAL_CAPTURE_PCT_DEFAULT;
 		
 		m_Timer1 = new Timer;
-		m_Lifetime = 900;
+		m_Event_Lifetime = RTConstants.RT_EVENT_LIFETIME_DEFAULT;
 		
 		if (g_RTBase)
 		{
-			m_Capture_Tickrate = g_RTBase.m_Config.eventCapturetime / 100;
-			m_Lifetime = g_RTBase.m_Config.eventLifetime;
+			m_Event_Capturetime = g_RTBase.m_Config.eventCapturetime;
+			m_Event_Lifetime = g_RTBase.m_Config.eventLifetime;
 		}
+		m_CaptureSlice = (m_TotalCapturePct / m_Event_Capturetime) * m_UpdateInterval;
 		
 		SetCollisionCylinder(m_CollisionCylinderRadius, m_CollisionCylinderHeight);
 		m_Timer1.Run(LIFETIME_TICKRATE, this, "Tick", NULL, true);
@@ -79,13 +85,12 @@ class CaptureArea: Trigger
 	void Tick()
 	{
 		string date = CF_Date.Now().Format("DD-MM-YYYY hh:mm:ss");
-		if (m_Lifetime.ToString().ToInt() % 60 == 0)
-			Print(date + " CaptureArea lifetime " + m_Lifetime);
-		m_Lifetime -= LIFETIME_TICKRATE;
-		if (m_Lifetime < 0)
+		if (m_Event_Lifetime.ToString().ToInt() % 60 == 0)
+			Print(date + " CaptureArea lifetime " + m_Event_Lifetime);
+		m_Event_Lifetime -= LIFETIME_TICKRATE;
+		if (m_Event_Lifetime < 0)
 		{
-			DeleteSafe();
-			Print("Capture area deleted");
+			OnEventFinish();
 		}
 	}
 	
@@ -98,6 +103,20 @@ class CaptureArea: Trigger
 			m_InsiderCountLocal = m_InsiderCount;
 		}
 	}*/
+	
+	void OnEventCapture()
+	{
+		m_Event_Lifetime = 0;
+		string title = g_RTBase.GetRTEvent().GetEventTitle();
+		Print(title + " captured");
+	}
+	
+	void OnEventFinish()
+	{
+		DeleteSafe();
+		Print("Capture area deleted");
+		g_RTBase.SetIsClientInCaptureZone(false);
+	}
 	
 	override void OnEnterClientEvent(TriggerInsider insider)
 	{
@@ -155,7 +174,8 @@ class CaptureArea: Trigger
 			PlayerIdentity identity = player.GetIdentity();
 			Print("SERVER: " + identity.GetPlainName() + " entered capture area");
 			m_InsiderCount = GetInsiders().Count();
-			GetRPCManager().SendRPC("RadioTower", "UpdateInsiderCount", new Param1<int>(m_InsiderCount), true, player.GetIdentity());
+			//GetRPCManager().SendRPC("RadioTower", "UpdateInsiderCount", new Param1<int>(m_InsiderCount), true, identity);
+			GetRPCManager().SendRPC("RadioTower", "ClientEnteredCaptureZone", new Param2<int, float>(m_InsiderCount, m_CapturePct), true, identity);
 		}
 	}
 	
@@ -167,7 +187,7 @@ class CaptureArea: Trigger
 		if(Class.CastTo( player, insider.GetObject()))
 		{
 			PlayerIdentity identity = player.GetIdentity();
-			Print("SERVER: " + identity.GetPlainName() + " left capture area");
+			//Print("SERVER: " + identity.GetPlainName() + " left capture area");
 			m_InsiderCount = GetInsiders().Count();
 			GetRPCManager().SendRPC("RadioTower", "UpdateInsiderCount", new Param1<int>(m_InsiderCount), true, identity);
 		}
@@ -178,14 +198,14 @@ class CaptureArea: Trigger
 		super.OnStayServerEvent(insider, deltaTime);
 		
 		m_TimeAccuStay += deltaTime;
-		if (m_TimeAccuStay > m_Capture_Tickrate)
+		if (m_TimeAccuStay > m_UpdateInterval)
 		{
 			m_TimeAccuStay = 0;
-
-			Print("Insider count: " + m_InsiderCount)
-			if (m_InsiderCount > 0 && m_CapturePct <= 100)
+			Print("deltatime: " + deltaTime);
+			//Print("Insider count: " + m_InsiderCount)
+			if (m_InsiderCount > 0 && m_CapturePct <= m_TotalCapturePct)
 			{
-				m_CapturePct += 1;
+				m_CapturePct += m_CaptureSlice;
 				Print("Area captured " + m_CapturePct + "%");
 				PlayerBase player;
 				if(Class.CastTo( player, insider.GetObject()))
@@ -196,8 +216,7 @@ class CaptureArea: Trigger
 			}
 			else
 			{
-				string title = g_RTBase.GetRTEvent().GetEventTitle();
-				Print(title + " captured");
+				OnEventCapture();
 			}
 		} 
 	}

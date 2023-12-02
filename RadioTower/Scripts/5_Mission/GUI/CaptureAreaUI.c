@@ -40,9 +40,10 @@ class CaptureAreaUI: UIScriptedMenu
 		m_PlayersInCaptureZoneTextWidget.SetText(text);
 	}
 	
-	void AddCaptureProgress(float value)
+	void SetCaptureProgress(float value)
 	{
-		float oldValue = m_ProgressBarWidget.GetCurrent();
-		m_ProgressBarWidget.SetCurrent(oldValue + value);
+		//float oldValue = m_ProgressBarWidget.GetCurrent();
+		//m_ProgressBarWidget.SetCurrent(oldValue + value);
+		m_ProgressBarWidget.SetCurrent(value);
 	}
 };
