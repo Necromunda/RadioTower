@@ -39,24 +39,10 @@ modded class MissionGameplay
         {
         	m_CaptureAreaUI = new CaptureAreaUI();
         }
-		/*if (GetGame().IsServer())
-		{
-			Print(RTConstants.RT_LOG_PREFIX + " MissionGameplay init g_RTBase");
-			g_RTBase = null;
-			GetRTBase();
-		}*/
+
 		GetRPCManager().AddRPC("RadioTower", "SendConfigToClient", this, SingleplayerExecutionType.Client);	
 		GetRPCManager().AddRPC("RadioTower", "UpdateInsiderCount", this, SingleplayerExecutionType.Client);
-	}
-	
-	void UpdateProgressBar() { }
-	void UpdateInsiderCount(int count)
-	{
-		if (m_CaptureAreaUI)
-		{
-			m_CaptureAreaUI.m_ProgressBarWidget.Set
-			TextWidget.SetText
-		}
+		GetRPCManager().AddRPC("RadioTower", "UpdateCaptureProgress", this, SingleplayerExecutionType.Client);
 	}
 	
 	override void OnUpdate(float timeslice)
@@ -70,7 +56,7 @@ modded class MissionGameplay
 		
 		if (g_RTBase)
 		{
-			if (g_RTBase.IsInCaptureZone())
+			if (g_RTBase.IsClientInCaptureZone())
 			{
 				if (!m_CaptureAreaUI.IsCaptureUIVisible())
 					m_CaptureAreaUI.ToggleCaptureUI();
@@ -82,6 +68,40 @@ modded class MissionGameplay
 			}
 		}
     }
+	
+	void UpdateCaptureProgress(CallType type, ParamsReadContext ctx, PlayerIdentity sender, Object target) 
+	{
+		//if this function is trigger anywhere but on client, we return without continuing.
+		if(type != CallType.Client)
+			return;
+
+		Param1<float> data;
+		//if the data is not retrieved we return to avoid issue
+		if (!ctx.Read(data)) 
+			return;
+		
+		if (m_CaptureAreaUI)
+		{
+			m_CaptureAreaUI.AddCaptureProgress(data.param1);
+		}
+	}
+	
+	void UpdateInsiderCount(CallType type, ParamsReadContext ctx, PlayerIdentity sender, Object target)
+	{
+		//if this function is trigger anywhere but on client, we return without continuing.
+		if(type != CallType.Client)
+			return;
+
+		Param1<int> data;
+		//if the data is not retrieved we return to avoid issue
+		if (!ctx.Read(data)) 
+			return;
+		
+		if (m_CaptureAreaUI)
+		{
+			m_CaptureAreaUI.SetInsiderCount(data.param1.ToString());
+		}
+	}
 	
 	void SendConfigToClient(CallType type, ParamsReadContext ctx, PlayerIdentity sender, Object target)
 	{

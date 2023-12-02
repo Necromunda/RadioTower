@@ -1,6 +1,6 @@
 class RTEvent
 {
-	float m_EventProgress;
+	protected string m_LocationTitle;
 	
 	void ~RTEvent()
 	{
@@ -10,18 +10,25 @@ class RTEvent
 	void RTEvent()
 	{
 		Print(RTConstants.RT_LOG_PREFIX + " RTEvent ctor");
-		
-		m_EventProgress = 0;
+	}
+	
+	void SetEventTitle(string title)
+	{
+		m_LocationTitle = title;
+	}
+	
+	string GetEventTitle()
+	{
+		return m_LocationTitle;
 	}
 }
 
 class RTBase
 {
 	ref RTEventConfig m_Config;
-	ref RTEvent m_RTEvent;
-	vector m_ServerPos;
-	bool m_IsInCaptureZone;
-	int m_InsiderCount;
+	protected ref RTEvent m_RTEvent;
+	protected vector m_ServerPos;
+	protected bool m_IsClientInCaptureZone;
 	
 	void ~RTBase()
 	{
@@ -31,47 +38,30 @@ class RTBase
 	void RTBase()
 	{
 		Print(RTConstants.RT_LOG_PREFIX + " RTBase ctor");
-		m_RTEvent = null;
 		m_Config = RTSettings.Load();
-		m_IsInCaptureZone = false;
-		m_InsiderCount = 0;
+		m_RTEvent = null;
+		m_IsClientInCaptureZone = false;
 				
 		GetGame().GetCallQueue(CALL_CATEGORY_SYSTEM).CallLater(CreateEvent, 20000);	
 	}
+	
+	RTEvent GetRTEvent()
+	{
+		return m_RTEvent;
+	}
     
-	bool IsInCaptureZone()
+	bool IsClientInCaptureZone()
 	{
-		return m_IsInCaptureZone;
+		return m_IsClientInCaptureZone;
 	}
 	
-	void SetIsInCaptureZone(bool value)
+	void SetIsClientInCaptureZone(bool value)
 	{
-		m_IsInCaptureZone = value;
-	}
-	
-	void SetInsiderCount(int value)
-	{
-		m_InsiderCount = value;
+		m_IsClientInCaptureZone = value;
 	}
 	
     void CreateEvent()
     {
-		/*
-		foreach (RTEventLocation o: m_Config.eventLocations)
-		{
-			RTEventLocation o: m_Config.eventLocation
-			vector position = o.coordinates_xyz;
-			vector orientation = o.orientation_ypr;
-			
-			RTServer s = RTServer.Cast(GetGame().CreateObjectEx("RTServer", position, ECE_KEEPHEIGHT));
-			s.SetPosition(position);
-			s.SetOrientation(orientation);
-			
-			s.SetFlags(EntityFlags.STATIC, false);
-			s.Update();
-			//m_ServerPos = s.GetPosition();
-		}
-		*/
 		int eventLocationCount = m_Config.eventLocations.Count();
 		if (eventLocationCount == 0)
 			return;
@@ -86,6 +76,8 @@ class RTBase
 			RTServer item;
 			if (RTServer.CastTo(item, GetGame().CreateObjectEx("RTServer", position, ECE_KEEPHEIGHT))
 			{
+				m_RTEvent = new RTEvent();
+				m_RTEvent.SetEventTitle(eventLocation.title);
 				item.SetPosition(position);
 				item.SetOrientation(orientation);
 				item.SetFlags(EntityFlags.STATIC, false);
@@ -101,26 +93,8 @@ class RTBase
 	
 	void StartEvent()
 	{
-		//vector pos = m_ActiveRTServer.GetPosition();
 		GetGame().CreateObject("CaptureArea", m_ServerPos);
 	}
-	
-
-	/*
-	void StartEvent()
-	{
-		m_RTEvent.StartEvent();
-	}
-	
-	void CreateEvent()
-	{
-		int eventLocationCount = m_Config.eventLocations.Count();
-		int eventLocationIndex = Math.RandomInt(0, eventLocationCount);
-		ref RTServerLocation location = m_Config.eventLocations[eventLocationIndex];
-		
-		m_RTEvent = new RTEvent(location);
-	}
-	*/
 }
 
 static ref RTBase g_RTBase;

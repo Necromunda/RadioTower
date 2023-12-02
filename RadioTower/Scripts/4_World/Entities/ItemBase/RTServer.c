@@ -30,7 +30,6 @@ class RTServer extends Container_Base
 		m_IsOpened = true;
 		SoundSynchRemote();
 		UpdateVisualState();
-		// GetInventory().UnlockInventory(HIDE_INV_FROM_SCRIPT);
 		super.Open();
 	}
 
@@ -40,7 +39,6 @@ class RTServer extends Container_Base
 		m_IsOpened = false;
 		SoundSynchRemote();
 		UpdateVisualState();
-		// GetInventory().LockInventory(HIDE_INV_FROM_SCRIPT);
 	}	
 
 	override bool IsOpen()
