@@ -59,8 +59,8 @@ class CaptureArea: Trigger
 	void CaptureArea()
 	{
 		Print("[RadioTower] Capture area ctor");
-		m_CollisionCylinderRadius = 250;
-		m_CollisionCylinderHeight = 250;
+		m_CollisionCylinderRadius = RTConstants.RT_EVENT_TRIGGER_RADIUS_DEFAULT;
+		m_CollisionCylinderHeight = RTConstants.RT_EVENT_TRIGGER_HEIGHT_DEFAULT;
 		
 		m_Event_Capturetime = RTConstants.RT_EVENT_CAPTURETIME_DEFAULT;
 		m_TimeAccuStay = 0;
@@ -78,8 +78,13 @@ class CaptureArea: Trigger
 		}
 		m_CaptureSlice = (m_TotalCapturePct / m_Event_Capturetime) * m_UpdateInterval;
 		
-		SetCollisionCylinder(m_CollisionCylinderRadius, m_CollisionCylinderHeight);
+		//SetCollisionCylinder(m_CollisionCylinderRadius, m_CollisionCylinderHeight);
 		m_Timer1.Run(LIFETIME_TICKRATE, this, "Tick", NULL, true);
+	}
+	
+	override void EOnInit(IEntity other, int extra)
+	{
+		SetCollisionCylinder(m_CollisionCylinderRadius, m_CollisionCylinderHeight);
 	}
 	
 	void Tick()
@@ -93,16 +98,6 @@ class CaptureArea: Trigger
 			OnEventFinish();
 		}
 	}
-	
-	/*override void OnVariablesSynchronized()
-	{
-		super.OnVariablesSynchronized();
-		
-		if (m_InsiderCount != m_InsiderCountLocal)
-		{
-			m_InsiderCountLocal = m_InsiderCount;
-		}
-	}*/
 	
 	void OnEventCapture()
 	{
@@ -145,29 +140,12 @@ class CaptureArea: Trigger
 	override void OnStayClientEvent(TriggerInsider insider, float deltaTime) 
 	{
 		super.OnStayClientEvent(insider, deltaTime);
-		
-		/*m_TimeAccuStay += deltaTime;
-		if (m_TimeAccuStay > m_Capture_Tickrate)
-		{
-			m_TimeAccuStay = 0;
-			Print("CLIENT: Server insiderCount " + m_InsiderCountLocal);
-			
-			int insiderCount = GetInsiders().Count();
-			Print("Insider count: " + insiderCount)
-			//Print("Insider count: " + insiderCount);
-			if (insiderCount > 0)
-			{
-				m_CapturePct += 1;
-				Print("Area captured " + m_CapturePct + "%");
-			}
-		    
-		} */
 	}
 	
 	override void OnEnterServerEvent(TriggerInsider insider)
 	{
 		super.OnEnterServerEvent(insider);
-		
+		//Print(GetCollisionBox());
 		PlayerBase player;
 		if( Class.CastTo( player, insider.GetObject()))
 		{

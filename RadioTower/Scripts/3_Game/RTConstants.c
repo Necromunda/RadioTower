@@ -7,7 +7,9 @@ class RTConstants
 	const float RT_EVENT_LIFETIME_DEFAULT = 1800;
 	const float RT_EVENT_TOTAL_CAPTURE_PCT_DEFAULT = 100;
 	const float RT_EVENT_UPDATE_PROGRESS_INTERVAL_DEFAULT = 1;
-    const float RT_TIMETOHACK_DEFAULT = 3;
+    const float RT_EVENT_TRIGGER_HEIGHT_DEFAULT = 25;
+	const float RT_EVENT_TRIGGER_RADIUS_DEFAULT = 25;
+	const float RT_TIMETOHACK_DEFAULT = 3;
 	/* PATHS */
 	const string RT_DIRPATH = "$profile:RadioTower/";
     const string RT_CONFIGPATH = "$profile:RadioTower/RadioTowerSettings.json";

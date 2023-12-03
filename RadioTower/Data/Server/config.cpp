@@ -132,4 +132,14 @@ class CfgVehicles
 			// };
 		// };
 	};
+	// class Lamp: Container_Base
+	// {
+		// scope=0;
+		// model="RadioTower\RadioTower\Data\Server\lamp.p3d";
+		// hiddenSelections[]=
+		// {
+			// "led_on",
+			// "led_off"
+		// };
+	// };
 };
