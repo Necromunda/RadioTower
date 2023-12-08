@@ -3,8 +3,6 @@ modded class MissionServer
 	void MissionServer()
 	{
 		#ifdef GAMELABS
-		// GetGameLabs().AddMonitoredAction("ActionOpenRTServerConsole");
-        // GetGameLabs().AddMonitoredAction("ActionCloseRTServerConsole");
         GetGameLabs().AddMonitoredAction("ActionHackRTServerConsole");
 		#endif
 		
@@ -35,7 +33,7 @@ modded class MissionGameplay
 	
 	void MissionGameplay()
 	{
-		if ( GetGame().IsClient())
+		if ( GetGame().IsClient() )
         {
         	m_CaptureAreaUI = new CaptureAreaUI();
         }

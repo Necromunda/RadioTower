@@ -5,7 +5,7 @@ class ActionHackRTServerConsoleCB : ActionContinuousBaseCB
 		float hackTime = RTConstants.RT_TIMETOHACK_DEFAULT;
 		if (g_RTBase)
 		{
-			hackTime = g_RTBase.m_Config.eventTimeToHack;
+			hackTime = g_RTBase.m_Config.eventHacktime;
 		}
 
 		m_ActionData.m_ActionComponent = new CAContinuousTime(hackTime);

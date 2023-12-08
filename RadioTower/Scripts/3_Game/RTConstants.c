@@ -3,6 +3,7 @@ class RTConstants
 	/* ACTION CONDITION DEFAULTS */
 	const float RT_DISTANCE_DEFAULT = 2.0;
 	/* EVENT DEFAULTS */
+	const float RT_EVENT_SPAWN_INTERVAL_DEFAULT = 60;
 	const float RT_EVENT_CAPTURETIME_DEFAULT = 600;
 	const float RT_EVENT_LIFETIME_DEFAULT = 1800;
 	const float RT_EVENT_TOTAL_CAPTURE_PCT_DEFAULT = 100;
@@ -16,4 +17,6 @@ class RTConstants
 	const string RT_LOGPATH = "$profile:RadioTower/Logs/";
 	/* LOGGING */
 	const string RT_LOG_PREFIX = "[RadioTower]";
+	/* ICONS */
+	const string RT_ICON = "RadioTower/RadioTower/Data/Icons/rt_logo.paa";
 };

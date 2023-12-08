@@ -6,5 +6,7 @@ modded class ActionConstructor
         actions.Insert(ActionOpenRTServerConsole);
         actions.Insert(ActionCloseRTServerConsole);
         actions.Insert(ActionHackRTServerConsole);
+		
+		actions.Insert(ActionDebugLog);
     };
 };

@@ -4,7 +4,8 @@ class CfgPatches
 	{
 		units[]=
 		{
-			"RTServer"
+			"RTServer",
+			"RTDebug_Server"
 		};
 		weapons[]={};
 		requiredVersion=0.1;
@@ -17,11 +18,11 @@ class CfgPatches
 class CfgVehicles
 {
 	class Container_Base;
-	class RTServer: Container_Base
+	class RTServer_Base: Container_Base
 	{
-		scope=2;
-		displayName="Server";
-		descriptionShort="Hack the server to start the event.";
+		scope=0;
+		displayName="";
+		descriptionShort="";
 		model="RadioTower\RadioTower\Data\Server\server.p3d";
 		rotationFlags=2;
 		itemBehaviour=0;
@@ -34,6 +35,8 @@ class CfgVehicles
 				animPeriod=1;
 			};
 		};
+		soundImpactType="metal";
+		physLayer="item_large";
 		// slopeTolerance=0.40000001;
 		// yawPitchRollLimit[]={45,45,45};
 		// weight=45000;
@@ -132,14 +135,16 @@ class CfgVehicles
 			// };
 		// };
 	};
-	// class Lamp: Container_Base
-	// {
-		// scope=0;
-		// model="RadioTower\RadioTower\Data\Server\lamp.p3d";
-		// hiddenSelections[]=
-		// {
-			// "led_on",
-			// "led_off"
-		// };
-	// };
+	class RTServer: RTServer_Base
+	{
+		scope=2;
+		displayName="Server";
+		descriptionShort="Hack the server to start the event.";
+	};
+	class RTDebug_Server: RTServer_Base
+	{
+		scope=2;
+		displayName="Debug Server";
+		descriptionShort="DEBUG USE ONLY! Place on the ground and press F to log coordinates and orientation.";
+	};
 };

@@ -37,7 +37,7 @@ FrameWidgetClass rootFrame {
        vexactpos 1
        hexactsize 0
        vexactsize 0
-       text "Capture progress"
+       text "0% captured"
        "size to text h" 0
        "size to text v" 0
        "text halign" center

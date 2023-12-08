@@ -1,9 +1,3 @@
-/*enum RTServerLedState
-{
-	OFF = 0,
-	LIT,
-}*/
-
 class RTServer extends Container_Base
 {
 	protected bool m_IsOpened;
@@ -11,46 +5,16 @@ class RTServer extends Container_Base
 	protected bool m_IsHacked;
 	protected bool m_IsHackedLocal;
 	
-	//const string COLOR_LED_OFF 		= "#(argb,8,8,3)color(0,0,0,1.0,co)";
-	//const string COLOR_LED_LIT 		= "#(argb,8,8,3)color(1,0,0,1.0,co)";
-	//const string SELECTION_NAME_LED_ON = "led_on";
-	//const string SELECTION_NAME_LED_OFF = "led_off";
-	
-	//protected RTServerLedState m_LastLEDState;
-	
 	void RTServer()
-	{		
+	{	
 		RegisterNetSyncVariableBool("m_IsSoundSynchRemote");
 		RegisterNetSyncVariableBool("m_IsOpened");
 		RegisterNetSyncVariableBool("m_IsHacked");
-		//RegisterNetSyncVariableInt("m_LastLEDState", 0, EnumTools.GetEnumSize(RTServerLedState));
-		
-		//UpdateLED(m_LastLEDState);
 	}
 	
 	void ~RTServer() 
 	{ 
 	}
-	
-	/*void UpdateLED(RTServerLedState pState)
-	{
-		int selectionIdxLedOn = GetHiddenSelectionIndex(SELECTION_NAME_LED_ON);
-		int selectionIdxLedOff = GetHiddenSelectionIndex(SELECTION_NAME_LED_OFF);
-
-		switch (pState)
-		{
-		case RTServerLedState.LIT:
-			SetObjectTexture(selectionIdxLedOn, COLOR_LED_LIT);
-			SetObjectTexture(selectionIdxLedOff, COLOR_LED_OFF);
-		break;
-		default:
-			SetObjectTexture(selectionIdxLedOn, COLOR_LED_OFF);
-			SetObjectTexture(selectionIdxLedOff, COLOR_LED_LIT);
-		}
-		
-		m_LastLEDState = pState;
-		SetSynchDirty();
-	}*/
 	
 	override void EEInit()
 	{
@@ -117,7 +81,6 @@ class RTServer extends Container_Base
 		}
 		
 		UpdateVisualState();
-		//UpdateLED(m_LastLEDState);
 	}
 	
 	override void OnStoreSave( ParamsWriteContext ctx )
@@ -195,4 +158,4 @@ class RTServer extends Container_Base
 		AddAction(ActionCloseRTServerConsole);
 		AddAction(ActionHackRTServerConsole);
 	}
-};
+}
