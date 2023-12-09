@@ -1,19 +1,30 @@
-// modded class DayZGame
-// {  
-    // protected ref RadioTowerConfig m_RT_Server_Config;
+modded class DayZGame
+{  
+    protected ref RTSettings m_Settings;
+	protected bool m_IsClientInCaptureZone;
     
-    // RadioTowerConfig Get_RT_Server_Config()
-    // {
-        // return m_RT_Server_Config;
-    // }
+    RTSettings GetRTSettings()
+    {
+        return m_Settings;
+    }
 
-    // void ServerSet_RT_Server_Config(RadioTowerConfig config)
-    // {
-        // if(GetGame().IsClient())
-        // {
-            // Error("[RadioTower] ERROR: ServerSet_RT_Server_Config can only be called on server");
-            // return;
-        // }
-        // m_RT_Server_Config = config;
-    // }
-// };
+    void ClientSetRTSettings(RTSettings settings)
+    {
+        if ( GetGame().IsServer() || !GetGame().IsClient() )
+        {
+            Error("[RadioTower] ERROR: ClientSetRTSettings can only be called on client");
+            return;
+        }
+        m_Settings = settings;
+    }
+	
+	bool IsClientInCaptureZone()
+	{
+		return m_IsClientInCaptureZone;
+	}
+	
+	void SetIsClientInCaptureZone(bool value)
+	{
+		m_IsClientInCaptureZone = value;
+	}
+};

@@ -3,9 +3,20 @@ class ActionHackRTServerConsoleCB : ActionContinuousBaseCB
 	override void CreateActionComponent()
 	{
 		float hackTime = RTConstants.RT_TIMETOHACK_DEFAULT;
-		if (g_RTBase)
+
+		/*if (g_RTBase)
 		{
 			hackTime = g_RTBase.m_Config.eventHacktime;
+		}*/
+		if (g_RTBase && GetGame().IsServer())
+		{
+			hackTime = g_RTBase.m_Settings.eventHacktime;
+		}
+		else
+		{
+			RTSettings settings = g_Game.GetRTSettings();
+			if (settings && GetGame().IsClient())
+				hackTime = settings.eventHacktime;
 		}
 
 		m_ActionData.m_ActionComponent = new CAContinuousTime(hackTime);

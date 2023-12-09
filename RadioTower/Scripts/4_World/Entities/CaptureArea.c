@@ -51,7 +51,7 @@ class CaptureArea: Trigger
 	protected float m_TotalCapturePct;
 	
 	protected const float LIFETIME_TICKRATE = 1; // seconds
-	protected ref Timer m_Timer1;
+	protected ref Timer m_LifetimeTimer;
 	protected float m_Event_Lifetime;
 	
 	protected int m_InsiderCount;
@@ -68,17 +68,17 @@ class CaptureArea: Trigger
 		m_UpdateInterval = RTConstants.RT_EVENT_UPDATE_PROGRESS_INTERVAL_DEFAULT;
 		m_TotalCapturePct = RTConstants.RT_EVENT_TOTAL_CAPTURE_PCT_DEFAULT;
 		
-		m_Timer1 = new Timer;
+		m_LifetimeTimer = new Timer;
 		m_Event_Lifetime = RTConstants.RT_EVENT_LIFETIME_DEFAULT;
 		
 		if (g_RTBase)
 		{
-			m_Event_Capturetime = g_RTBase.m_Config.eventCapturetime;
-			m_Event_Lifetime = g_RTBase.m_Config.eventLifetime;
+			m_Event_Capturetime = g_RTBase.m_Settings.eventCapturetime;
+			m_Event_Lifetime = g_RTBase.m_Settings.eventLifetime;
 		}
 		m_CaptureSlice = (m_TotalCapturePct / m_Event_Capturetime) * m_UpdateInterval;
 		
-		m_Timer1.Run(LIFETIME_TICKRATE, this, "Tick", NULL, true);
+		m_LifetimeTimer.Run(LIFETIME_TICKRATE, this, "Tick", NULL, true);
 	}
 	
 	override void EOnInit(IEntity other, int extra)
@@ -104,6 +104,7 @@ class CaptureArea: Trigger
 		g_RTBase.SpawnEventLootCrate();
 		string title = g_RTBase.GetRTEvent().GetEventTitle();
 		string msg = title + " has been captured!";
+		RTMsgHandler.RTSendChatMessage(msg);
 		RTMsgHandler.RTSendClientAlert(RTConstants.RT_ICON, msg, 3);
 	}
 	
@@ -111,7 +112,7 @@ class CaptureArea: Trigger
 	{
 		DeleteSafe();
 		Print("[RadioTower] Capture area deleted");
-		g_RTBase.SetIsClientInCaptureZone(false);
+		g_Game.SetIsClientInCaptureZone(false);
 	}
 	
 	override void OnEnterClientEvent(TriggerInsider insider)
@@ -119,10 +120,10 @@ class CaptureArea: Trigger
 		super.OnEnterClientEvent(insider);
 		
 		PlayerBase player;
-		if( Class.CastTo( player, insider.GetObject() ) )
+		if (Class.CastTo( player, insider.GetObject()))
 		{
-			Print("CLIENT: " + player.GetIdentity().GetPlainName() + " entered capture area");
-			g_RTBase.SetIsClientInCaptureZone(true);
+			//Print("CLIENT: " + player.GetIdentity().GetPlainName() + " entered capture area");
+			g_Game.SetIsClientInCaptureZone(true);
 		}
 	}
 	
@@ -131,16 +132,12 @@ class CaptureArea: Trigger
 		super.OnLeaveClientEvent(insider);
 		
 		PlayerBase player;
-		if(Class.CastTo( player, insider.GetObject() ) )
+		if (Class.CastTo(player, insider.GetObject()))
 		{
-			Print("CLIENT: " + player.GetIdentity().GetPlainName() + " left capture area");
-			g_RTBase.SetIsClientInCaptureZone(false);
+			
+			//Print("CLIENT: " + player.GetIdentity().GetPlainName() + " left capture area");
+			g_Game.SetIsClientInCaptureZone(false);
 		}
-	}
-	
-	override void OnStayClientEvent(TriggerInsider insider, float deltaTime) 
-	{
-		super.OnStayClientEvent(insider, deltaTime);
 	}
 	
 	override void OnEnterServerEvent(TriggerInsider insider)
@@ -148,7 +145,7 @@ class CaptureArea: Trigger
 		super.OnEnterServerEvent(insider);
 
 		PlayerBase player;
-		if( Class.CastTo( player, insider.GetObject()))
+		if (Class.CastTo(player, insider.GetObject()))
 		{
 			PlayerIdentity identity = player.GetIdentity();
 			Print("SERVER: " + identity.GetPlainName() + " entered capture area");
@@ -162,10 +159,10 @@ class CaptureArea: Trigger
 		super.OnLeaveServerEvent(insider);
 		
 		PlayerBase player;
-		if(Class.CastTo( player, insider.GetObject()))
+		if (Class.CastTo(player, insider.GetObject()))
 		{
 			PlayerIdentity identity = player.GetIdentity();
-			//Print("SERVER: " + identity.GetPlainName() + " left capture area");
+			Print("SERVER: " + identity.GetPlainName() + " left capture area");
 			m_InsiderCount = GetInsiders().Count();
 			GetRPCManager().SendRPC("RadioTower", "UpdateInsiderCount", new Param1<int>(m_InsiderCount), true, identity);
 		}
@@ -179,7 +176,7 @@ class CaptureArea: Trigger
 		if (m_TimeAccuStay > m_UpdateInterval)
 		{
 			m_TimeAccuStay = 0;
-			if (m_InsiderCount > 0 && m_CapturePct <= m_TotalCapturePct)
+			if (m_InsiderCount > 0 && m_CapturePct < m_TotalCapturePct)
 			{
 				m_CapturePct += m_CaptureSlice;
 				Print("Area captured " + m_CapturePct + "%");

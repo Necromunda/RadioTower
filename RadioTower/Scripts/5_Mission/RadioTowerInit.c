@@ -23,13 +23,14 @@ modded class MissionServer
 	{
 		super.InvokeOnConnect(player,identity);
     
-    	GetRPCManager().SendRPC("RadioTower", "SendConfigToClient", new Param1<RTBase>(g_RTBase), true, identity); 
+    	//GetRPCManager().SendRPC("RadioTower", "SendConfigToClient", new Param1<RTBase>(g_RTBase), true, identity); 
+		GetRPCManager().SendRPC("RadioTower", "SendConfigToClient", new Param1<RTSettings>(g_RTBase.m_Settings), true, identity); 
   	}
 };
 
 modded class MissionGameplay
 {
-	private ref CaptureAreaUI m_CaptureAreaUI;	
+	private ref CaptureAreaUI m_CaptureAreaUI;
 	
 	void MissionGameplay()
 	{
@@ -37,7 +38,7 @@ modded class MissionGameplay
         {
         	m_CaptureAreaUI = new CaptureAreaUI();
         }
-
+		
 		GetRPCManager().AddRPC("RadioTower", "SendConfigToClient", this, SingleplayerExecutionType.Client);	
 		GetRPCManager().AddRPC("RadioTower", "UpdateInsiderCount", this, SingleplayerExecutionType.Client);
 		GetRPCManager().AddRPC("RadioTower", "UpdateCaptureProgress", this, SingleplayerExecutionType.Client);
@@ -47,24 +48,16 @@ modded class MissionGameplay
 	override void OnUpdate(float timeslice)
     {
         super.OnUpdate(timeslice);
-
-		if (GetGame().GetInput().LocalPress("RTShowCaptureUIDebug"))
-		{
-			m_CaptureAreaUI.ToggleCaptureUI();
-		}
 		
-		if (g_RTBase)
+		if (g_Game.IsClientInCaptureZone())
 		{
-			if (g_RTBase.IsClientInCaptureZone())
-			{
-				if (!m_CaptureAreaUI.IsCaptureUIVisible())
-					m_CaptureAreaUI.ToggleCaptureUI();
-			}
-			else
-			{
-				if (m_CaptureAreaUI.IsCaptureUIVisible())
-					m_CaptureAreaUI.ToggleCaptureUI();
-			}
+			if (!m_CaptureAreaUI.IsCaptureUIVisible())
+				m_CaptureAreaUI.ToggleCaptureUI();
+		}	
+		else
+		{
+			if (m_CaptureAreaUI.IsCaptureUIVisible())
+				m_CaptureAreaUI.ToggleCaptureUI();
 		}
     }
 	
@@ -126,14 +119,14 @@ modded class MissionGameplay
 		if(type != CallType.Client)
 			return;
 
-		Param1<RTBase> data;
+		Param1<RTSettings> data;
 		//if the data is not retrieved we return to avoid issue
 		if (!ctx.Read(data)) 
 			return;
 
-		RTBase clientResponse = data.param1;
-		g_RTBase = clientResponse;
+		RTSettings clientResponse = data.param1;
+		g_Game.ClientSetRTSettings(clientResponse);
 
-		Print(RTConstants.RT_LOG_PREFIX + " Client received config " + clientResponse);
+		Print(RTConstants.RT_LOG_PREFIX + " Client received settings " + clientResponse);
 	}
 };

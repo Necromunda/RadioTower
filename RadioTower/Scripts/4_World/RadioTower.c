@@ -2,7 +2,7 @@ class RTEvent
 {
 	protected RTServer m_Server;
 	protected Trigger m_CaptureArea;
-	protected RTEventLocation m_EventLocation;
+	protected RTLocation m_EventLocation;
 	
 	void ~RTEvent()
 	{
@@ -18,6 +18,18 @@ class RTEvent
 		m_EventLocation = null;
 	}
 	
+	void Cleanup()
+	{
+		if (m_Server)
+			m_Server.Delete();
+		
+		if (m_CaptureArea)
+			m_CaptureArea.Delete();
+		
+		m_Server = null;
+		m_CaptureArea = null;
+	}
+	
 	void SetEventServer(RTServer server)  		
 	{ 
 		m_Server = server; 
@@ -28,7 +40,7 @@ class RTEvent
 		m_CaptureArea = trigger; 
 	}
 	
-	void SetEventLocation(RTEventLocation location)		
+	void SetEventLocation(RTLocation location)		
 	{ 
 		m_EventLocation = location; 
 	}
@@ -40,7 +52,7 @@ class RTEvent
 	
 	string GetLootcrateTitle() 					
 	{ 
-		return m_EventLocation.eventLootcrate; 
+		return m_EventLocation.lootcrate; 
 	}
 	
 	RTServer GetEventServer() 					
@@ -53,7 +65,7 @@ class RTEvent
 		return m_CaptureArea; 
 	}
 	
-	RTEventLocation GetEventLocation()
+	RTLocation GetEventLocation()
 	{ 
 		return m_EventLocation; 
 	}
@@ -61,10 +73,12 @@ class RTEvent
 
 class RTBase
 {
-	ref RTEventConfig m_Config;
+	ref RTSettings m_Settings;
+	ref RTLocations m_Locations;
+	ref RTProps m_Props;
 	protected ref RTEvent m_RTEvent;
-	protected bool m_IsClientInCaptureZone;
-	protected ref Timer m_EventSpawnTimer;
+	ref Timer m_EventSpawnTimer;
+	array<ref RTEvent> m_Events;
 	
 	void ~RTBase()
 	{
@@ -74,55 +88,43 @@ class RTBase
 	void RTBase()
 	{
 		Print(RTConstants.RT_LOG_PREFIX + " RTBase ctor");
-		m_Config = RTSettings.Load();
+		m_Settings = RTSettings.Load();
+		m_Props = RTProps.Load();
+		m_Locations = RTLocations.Load();
 		m_RTEvent = null;
-		m_IsClientInCaptureZone = false;
-		//m_EventSpawnTimer = new Timer;
+		m_EventSpawnTimer = new Timer;
+		m_Events = new array<ref RTEvent>();
 		
 		float spawnInterval = RTConstants.RT_EVENT_SPAWN_INTERVAL_DEFAULT;
-		if (m_Config)
+		if (m_Settings)
 		{
-			spawnInterval = m_Config.eventSpawnInterval;
+			spawnInterval = m_Settings.eventSpawnInterval;
 		}
-		//m_EventSpawnTimer.Run(spawnInterval, this, "CreateEvent", NULL, true);
-				
-		//GetGame().GetCallQueue(CALL_CATEGORY_SYSTEM).CallLater(CreateEvent, 30000);	
+		m_EventSpawnTimer.Run(spawnInterval, this, "CreateEvent", NULL, true);	
 	}
 	
 	RTEvent GetRTEvent()
 	{
 		return m_RTEvent;
 	}
-    
-	bool IsClientInCaptureZone()
-	{
-		return m_IsClientInCaptureZone;
-	}
-	
-	void SetIsClientInCaptureZone(bool value)
-	{
-		m_IsClientInCaptureZone = value;
-	}
 	
     void CreateEvent()
     {
-		if (!GetGame().IsServer() || !GetGame().IsMultiplayer())
-			return;
-		
-		int eventLocationCount = m_Config.eventLocations.Count();
+		Print("[RadioTower] Creating event");
+		int eventLocationCount = m_Locations.eventLocations.Count();
 		if (eventLocationCount == 0)
 			return;
 		
 		int eventLocationIndex = Math.RandomInt(0, eventLocationCount);
-		RTEventLocation eventLocation;
-		if (Class.CastTo(eventLocation, m_Config.eventLocations[eventLocationIndex]))
+		RTLocation eventLocation;
+		if (Class.CastTo(eventLocation, m_Locations.eventLocations[eventLocationIndex]))
 		{
 			m_RTEvent = new RTEvent();
 			m_RTEvent.SetEventLocation(eventLocation);
 			
-			vector position = eventLocation.coordinates_xyz;
-			vector orientation = eventLocation.orientation_ypr;
-			vector lootcratePosition = eventLocation.lootcrate_coordinates_xyz;
+			vector position = eventLocation.locationCoordinatesXYZ;
+			vector orientation = eventLocation.locationOrientationYPR;
+			vector lootcratePosition = eventLocation.lootcrateCoordinatesXYZ;
 			
 			array<Object> objects = new array<Object>;
 			GetGame().GetObjectsAtPosition(position, 1, objects, null);
@@ -140,7 +142,7 @@ class RTBase
 			}
 			
 			RTServer item;
-			if (RTServer.CastTo(item, GetGame().CreateObjectEx("RTServer", position, ECE_KEEPHEIGHT))
+			if (RTServer.CastTo(item, GetGame().CreateObjectEx("RTServer", position, ECE_KEEPHEIGHT)))
 			{
 				item.SetPosition(position);
 				item.SetOrientation(orientation);
@@ -150,12 +152,11 @@ class RTBase
 				m_RTEvent.SetEventServer(item);
 			}
 			string msg = "Server has been located in " + eventLocation.title + "!";
-			//RTMsgHandler.RTSendChatMessage("Server has been located in " + eventLocation.title + "!");
+			RTMsgHandler.RTSendChatMessage(msg);
 			RTMsgHandler.RTSendClientAlert(RTConstants.RT_ICON, msg, 3);
 			Print(RTConstants.RT_LOG_PREFIX + " Server placed");
+			m_Events.Insert(m_RTEvent);
 		}
-		
-		//GetGame().GetCallQueue(CALL_CATEGORY_SYSTEM).RemoveByName(this, "CreateEvent");
     }
 	
 	void StartEvent()
@@ -172,20 +173,17 @@ class RTBase
 	
 	void SpawnEventLootCrate()
 	{
-		if (!GetGame().IsServer() || !GetGame().IsMultiplayer())
-			return;
-		
-		Print("Spawning loot crate");
+		Print("[RadioTower] Spawning lootcrate");
 		
 		string title = m_RTEvent.GetLootcrateTitle();
-		vector pos = m_RTEvent.GetEventLocation().lootcrate_coordinates_xyz;
-		vector orientation = m_RTEvent.GetEventLocation().lootcrate_orientation_ypr;
+		vector pos = m_RTEvent.GetEventLocation().lootcrateCoordinatesXYZ;
+		vector orientation = m_RTEvent.GetEventLocation().lootcrateOrientationYPR;
 		
 		RTLootcrate_Base crate;
 		if (RTLootcrate_Base.CastTo(crate, GetGame().CreateObject(title, pos, ECE_LOCAL | ECE_KEEPHEIGHT)))
 		{
 			crate.SetOrientation(orientation);
-			array<ref RTEventLoot> loot = m_RTEvent.GetEventLocation().loot;
+			array<ref RTLoot> loot = m_RTEvent.GetEventLocation().loot;
 			for (int i = 0; i < loot.Count(); i++)
 			{
 				ItemBase item;
