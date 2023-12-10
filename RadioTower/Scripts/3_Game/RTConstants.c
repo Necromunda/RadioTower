@@ -11,6 +11,8 @@ class RTConstants
     const float RT_EVENT_TRIGGER_HEIGHT_DEFAULT = 25;
 	const float RT_EVENT_TRIGGER_RADIUS_DEFAULT = 25;
 	const float RT_TIMETOHACK_DEFAULT = 1;
+	const bool RT_ALLOW_SAME_EVENT_SPAWN_IN_A_ROW = true;
+	const bool RT_ENABLE_LOGGING = false;
 	/* PATHS */
 	const string RT_ROOTPATH = "$profile:RadioTower/";
 	const string RT_LOGPATH = "$profile:RadioTower/Logs/";

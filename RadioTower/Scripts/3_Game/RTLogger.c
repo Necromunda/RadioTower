@@ -19,7 +19,7 @@ class RTLogger
 	
 	void LogMessage(string message)
 	{
-		if (createLogs != 1) return;
+		if (!createLogs) return;
 		
 		FileHandle fileHandle = OpenFile(logFilePath, FileMode.APPEND);
 		
@@ -30,7 +30,7 @@ class RTLogger
 		}
 	}
 	
-	void SetCreateLogs(int value)
+	void SetCreateLogs(bool value)
 	{
 		createLogs = value;
 	}

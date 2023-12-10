@@ -31,27 +31,22 @@ modded class MissionServer
 modded class MissionGameplay
 {
 	private ref CaptureAreaUI m_CaptureAreaUI;
-	//private PlayerBase m_RTPlayer;
 	
 	void MissionGameplay()
 	{
-		if ( GetGame().IsClient() )
-        {
+		if (GetGame().IsClient())
         	m_CaptureAreaUI = new CaptureAreaUI();
-			//PlayerBase.CastTo(m_RTPlayer, g_Game.GetPlayer());
-        }
 		
 		GetRPCManager().AddRPC("RadioTower", "SendConfigToClient", this, SingleplayerExecutionType.Client);	
-		GetRPCManager().AddRPC("RadioTower", "UpdateInsiderCount", this, SingleplayerExecutionType.Client);
-		GetRPCManager().AddRPC("RadioTower", "UpdateCaptureProgress", this, SingleplayerExecutionType.Client);
-		GetRPCManager().AddRPC("RadioTower", "ClientEnteredCaptureZone", this, SingleplayerExecutionType.Client);
+		//GetRPCManager().AddRPC("RadioTower", "UpdateInsiderCount", this, SingleplayerExecutionType.Client);
+		//GetRPCManager().AddRPC("RadioTower", "UpdateCaptureProgress", this, SingleplayerExecutionType.Client);
+		//GetRPCManager().AddRPC("RadioTower", "ClientEnteredCaptureZone", this, SingleplayerExecutionType.Client);
 	}
 	
 	override void OnUpdate(float timeslice)
     {
         super.OnUpdate(timeslice);
 		
-		//if (g_Game.IsClientInCaptureZone())
 		PlayerBase player;
 		if (PlayerBase.CastTo(player, GetGame().GetPlayer()) && player.GetIsInsideCaptureArea())
 		{
@@ -68,7 +63,24 @@ modded class MissionGameplay
 		}
     }
 	
-	void ClientEnteredCaptureZone(CallType type, ParamsReadContext ctx, PlayerIdentity sender, Object target)
+	void SendConfigToClient(CallType type, ParamsReadContext ctx, PlayerIdentity sender, Object target)
+	{
+		//if this function is trigger anywhere but on client, we return without continuing.
+		if(type != CallType.Client)
+			return;
+
+		Param1<RTSettings> data;
+		//if the data is not retrieved we return to avoid issue
+		if (!ctx.Read(data)) 
+			return;
+
+		RTSettings clientResponse = data.param1;
+		g_Game.ClientSetRTSettings(clientResponse);
+
+		Print(RTConstants.RT_LOG_PREFIX + " Client received settings " + clientResponse);
+	}
+	
+	/*void ClientEnteredCaptureZone(CallType type, ParamsReadContext ctx, PlayerIdentity sender, Object target)
 	{
 		//if this function is trigger anywhere but on client, we return without continuing.
 		if(type != CallType.Client)
@@ -118,22 +130,5 @@ modded class MissionGameplay
 		{
 			m_CaptureAreaUI.SetInsiderCount(data.param1.ToString());
 		}
-	}
-	
-	void SendConfigToClient(CallType type, ParamsReadContext ctx, PlayerIdentity sender, Object target)
-	{
-		//if this function is trigger anywhere but on client, we return without continuing.
-		if(type != CallType.Client)
-			return;
-
-		Param1<RTSettings> data;
-		//if the data is not retrieved we return to avoid issue
-		if (!ctx.Read(data)) 
-			return;
-
-		RTSettings clientResponse = data.param1;
-		g_Game.ClientSetRTSettings(clientResponse);
-
-		Print(RTConstants.RT_LOG_PREFIX + " Client received settings " + clientResponse);
-	}
-};
+	}*/
+}

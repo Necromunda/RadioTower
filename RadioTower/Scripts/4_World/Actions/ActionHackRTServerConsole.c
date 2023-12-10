@@ -4,10 +4,6 @@ class ActionHackRTServerConsoleCB : ActionContinuousBaseCB
 	{
 		float hackTime = RTConstants.RT_TIMETOHACK_DEFAULT;
 
-		/*if (g_RTBase)
-		{
-			hackTime = g_RTBase.m_Config.eventHacktime;
-		}*/
 		if (g_RTBase && GetGame().IsServer())
 		{
 			hackTime = g_RTBase.m_Settings.eventHacktime;

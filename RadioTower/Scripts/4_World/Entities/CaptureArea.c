@@ -44,7 +44,7 @@ class CaptureArea: Trigger
 	protected float m_CollisionCylinderHeight;
 	
 	protected float m_Event_Capturetime;
-	protected float m_TimeAccuStay;
+	//protected float m_TimeAccuStay;
 	protected float m_CapturePct;
 	protected float m_CapturePctLocal;
 	protected float m_CaptureSlice;
@@ -70,7 +70,7 @@ class CaptureArea: Trigger
 		m_CollisionCylinderHeight = RTConstants.RT_EVENT_TRIGGER_HEIGHT_DEFAULT;
 		
 		m_Event_Capturetime = RTConstants.RT_EVENT_CAPTURETIME_DEFAULT;
-		m_TimeAccuStay = 0;
+		//m_TimeAccuStay = 0;
 		m_CapturePct = 0;
 		m_UpdateInterval = RTConstants.RT_EVENT_UPDATE_PROGRESS_INTERVAL_DEFAULT;
 		m_TotalCapturePct = RTConstants.RT_EVENT_TOTAL_CAPTURE_PCT_DEFAULT;
@@ -81,8 +81,18 @@ class CaptureArea: Trigger
 		
 		if (g_RTBase)
 		{
-			m_Event_Capturetime = g_RTBase.m_Settings.eventCapturetime;
-			m_Event_Lifetime = g_RTBase.m_Settings.eventLifetime;
+			if (g_RTBase.m_Settings)
+			{
+				m_Event_Capturetime = g_RTBase.m_Settings.eventCapturetime;
+				m_Event_Lifetime = g_RTBase.m_Settings.eventLifetime;
+			}
+			
+			RTEvent rtEvent = g_RTBase.GetRTEvent();
+			if (rtEvent)
+			{
+				m_CollisionCylinderRadius = rtEvent.GetEventLocation().captureAreaRadius;
+				m_CollisionCylinderHeight = rtEvent.GetEventLocation().captureAreaHeight;
+			}
 		}
 		m_CaptureSlice = (m_TotalCapturePct / m_Event_Capturetime) * m_UpdateInterval;
 		
@@ -222,8 +232,8 @@ class CaptureArea: Trigger
 		PlayerBase player;
 		if (Class.CastTo(player, insider.GetObject()))
 		{
-			//if (m_CaptureTimer.IsRunning())
-			//	m_CaptureTimer.Stop();
+			if (m_CaptureTimer.IsRunning())
+				m_CaptureTimer.Stop();
 			PlayerIdentity identity = player.GetIdentity();
 			if (identity)
 				Print("SERVER: " + identity.GetPlainName() + " left capture area");
@@ -235,6 +245,7 @@ class CaptureArea: Trigger
 	
 	void AddProgress(TriggerInsider insider)
 	{
+		Print("AddProgress Insider is " + insider);
 		if (m_CapturePct < m_TotalCapturePct)
 		{
 			m_CapturePct += m_CaptureSlice;
@@ -259,15 +270,18 @@ class CaptureArea: Trigger
 	{
 		super.OnStayServerEvent(insider, deltaTime);
 		
-		if (m_InsiderCount <= 0)
+		/*if (m_InsiderCount <= 0)
 		{
 			if (m_CaptureTimer.IsRunning())
 				m_CaptureTimer.Stop();
 			return;
-		}
+		}*/
 
 		if (!m_CaptureTimer.IsRunning())
+		{
+			//Print("Insider is " + insider);
 			m_CaptureTimer.Run(m_UpdateInterval, this, "AddProgress", new Param1<TriggerInsider>(insider), true);
+		}
 	}
 	
 	/*override void OnStayServerEvent(TriggerInsider insider, float deltaTime)

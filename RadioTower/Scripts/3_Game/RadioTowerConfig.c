@@ -9,7 +9,7 @@ class RTSettings
 	float eventHacktime;
 	string eventDefaultLootcrate;
 	bool enableLogging;
-	
+	bool allowSameEventSpawnInARow;
 	
 	void Defaults()
 	{	
@@ -19,6 +19,7 @@ class RTSettings
 		eventHacktime = 4;
 		eventDefaultLootcrate = "RTLootcrate_Yellow";
 		enableLogging = false;
+		allowSameEventSpawnInARow = true;
 	}
 	
 	static ref RTSettings Load()
@@ -115,8 +116,8 @@ class RTProps
 
 class RTProp
 {
-	string location;
-	string title;
+	string locationTitle;
+	string propClassName;
 	vector propCoordinatesXYZ;
     vector propOrientationYPR;
 }
@@ -133,13 +134,15 @@ class RTLocations
 		eventLocations = new array<ref RTLocation>();
 		
 		ref RTLoot eventLoot = new RTLoot();
-		eventLoot.title = "M4A1";
+		eventLoot.lootClassName = "M4A1";
 		eventLoot.attachments = new TStringArray;
 		eventLoot.attachments.Insert("M4_Suppressor");
 		
 		ref RTLocation eventLocation = new RTLocation();
-		eventLocation.title = "Green mountain";
-		eventLocation.lootcrate = "RTLootcrate_Red";		
+		eventLocation.captureAreaRadius = 25;
+		eventLocation.captureAreaHeight = 25;
+		eventLocation.locationTitle = "Green mountain";
+		eventLocation.lootcrateClassName = "RTLootcrate_Red";		
 		eventLocation.locationCoordinatesXYZ = {3706.91, 402.01, 5982.06};
 		eventLocation.locationOrientationYPR = {-109, 0, 0};
 		eventLocation.lootcrateCoordinatesXYZ = {3703.805664, 401.999969, 5977.849121};
@@ -191,9 +194,10 @@ class RTLocations
 
 class RTLocation
 {
-	float captureRadius;
-    string title;
-	string lootcrate;
+	float captureAreaRadius;
+	float captureAreaHeight;
+    string locationTitle;
+	string lootcrateClassName;
     vector locationCoordinatesXYZ;
     vector locationOrientationYPR;
 	vector lootcrateCoordinatesXYZ;
@@ -201,13 +205,13 @@ class RTLocation
 	vector vehicleCoordinatesXYZ;
     vector vehicleOrientationYPR;
 	float vehicleProbability;
-	string vehicleTitle;
+	string vehicleClassName;
 	ref array<ref RTLoot> loot;
 }
 
 class RTLoot
 {
-    string title;
+    string lootClassName;
 	int quantity;
 	ref TStringArray attachments;
 }
