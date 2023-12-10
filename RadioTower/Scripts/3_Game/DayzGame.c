@@ -2,6 +2,8 @@ modded class DayZGame
 {  
     protected ref RTSettings m_Settings;
 	protected bool m_IsClientInCaptureZone;
+	protected float m_CapturePct;
+	protected int m_InsiderCount;
     
     RTSettings GetRTSettings()
     {
@@ -27,4 +29,24 @@ modded class DayZGame
 	{
 		m_IsClientInCaptureZone = value;
 	}
-};
+	
+	float GetCapturePct()
+	{
+		return m_CapturePct;
+	}
+	
+	void SetCapturePct(float value)
+	{
+		m_CapturePct = value;
+	}
+	
+	int GetInsiderCount()
+	{
+		return m_InsiderCount;
+	}
+	
+	void SetInsiderCount(int value)
+	{
+		m_InsiderCount = value;
+	}
+}

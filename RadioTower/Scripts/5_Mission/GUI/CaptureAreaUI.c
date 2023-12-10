@@ -49,8 +49,8 @@ class CaptureAreaUI: UIScriptedMenu
 	
 	void SetCaptureText(float value)
 	{
-		//string text = string.Format("%1\'%' captured", value);
-		string text = value.ToString() + "% captured";
+		string text = MiscGameplayFunctions.TruncateToS(value, 2) + "% captured";
+		//string text = value.ToString() + "% captured";
 		m_CaptureTextWidget.SetText(text);
 	}
 };

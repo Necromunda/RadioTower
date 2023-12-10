@@ -8,16 +8,17 @@ class RTSettings
 	float eventCapturetime;
 	float eventHacktime;
 	string eventDefaultLootcrate;
-	int enableLogging;
+	bool enableLogging;
+	
 	
 	void Defaults()
 	{	
-		eventSpawnInterval = 60;
+		eventSpawnInterval = 120;
 		eventLifetime = 1800;
-		eventCapturetime = 15;
+		eventCapturetime = 30;
 		eventHacktime = 4;
 		eventDefaultLootcrate = "RTLootcrate_Yellow";
-		enableLogging = 0;
+		enableLogging = false;
 	}
 	
 	static ref RTSettings Load()
@@ -143,9 +144,6 @@ class RTLocations
 		eventLocation.locationOrientationYPR = {-109, 0, 0};
 		eventLocation.lootcrateCoordinatesXYZ = {3703.805664, 401.999969, 5977.849121};
 		eventLocation.lootcrateOrientationYPR = {2, 0, 0};
-		eventLocation.vehicleCoordinatesXYZ = {0,0,0};
-		eventLocation.vehicleOrientationYPR = {0,0,0};
-		eventLocation.vehicleProbability = 0;
 		eventLocation.loot = new array<ref RTLoot>();
 		eventLocation.loot.Insert(eventLoot);
 		
@@ -193,6 +191,7 @@ class RTLocations
 
 class RTLocation
 {
+	float captureRadius;
     string title;
 	string lootcrate;
     vector locationCoordinatesXYZ;
@@ -202,6 +201,7 @@ class RTLocation
 	vector vehicleCoordinatesXYZ;
     vector vehicleOrientationYPR;
 	float vehicleProbability;
+	string vehicleTitle;
 	ref array<ref RTLoot> loot;
 }
 

@@ -31,12 +31,14 @@ modded class MissionServer
 modded class MissionGameplay
 {
 	private ref CaptureAreaUI m_CaptureAreaUI;
+	//private PlayerBase m_RTPlayer;
 	
 	void MissionGameplay()
 	{
 		if ( GetGame().IsClient() )
         {
         	m_CaptureAreaUI = new CaptureAreaUI();
+			//PlayerBase.CastTo(m_RTPlayer, g_Game.GetPlayer());
         }
 		
 		GetRPCManager().AddRPC("RadioTower", "SendConfigToClient", this, SingleplayerExecutionType.Client);	
@@ -49,10 +51,15 @@ modded class MissionGameplay
     {
         super.OnUpdate(timeslice);
 		
-		if (g_Game.IsClientInCaptureZone())
+		//if (g_Game.IsClientInCaptureZone())
+		PlayerBase player;
+		if (PlayerBase.CastTo(player, GetGame().GetPlayer()) && player.GetIsInsideCaptureArea())
 		{
 			if (!m_CaptureAreaUI.IsCaptureUIVisible())
 				m_CaptureAreaUI.ToggleCaptureUI();
+			
+			m_CaptureAreaUI.SetCaptureProgress(g_Game.GetCapturePct());
+			m_CaptureAreaUI.SetInsiderCount(g_Game.GetInsiderCount().ToString());
 		}	
 		else
 		{

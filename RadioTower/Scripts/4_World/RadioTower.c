@@ -1,7 +1,7 @@
 class RTEvent
 {
 	protected RTServer m_Server;
-	protected Trigger m_CaptureArea;
+	protected CaptureArea m_CaptureArea;
 	protected RTLocation m_EventLocation;
 	
 	void ~RTEvent()
@@ -16,6 +16,14 @@ class RTEvent
 		m_Server = null;
 		m_CaptureArea = null;
 		m_EventLocation = null;
+	}
+	
+	bool IsActive()
+	{
+		if (m_CaptureArea && m_CaptureArea.GetEventLifetime() > 0)
+			return true;
+
+		return false;
 	}
 	
 	void Cleanup()
@@ -60,7 +68,7 @@ class RTEvent
 		return m_Server; 
 	}
 	
-	Trigger GetEventTrigger() 					
+	CaptureArea GetEventTrigger() 					
 	{ 
 		return m_CaptureArea; 
 	}
@@ -78,10 +86,12 @@ class RTBase
 	ref RTProps m_Props;
 	protected ref RTEvent m_RTEvent;
 	ref Timer m_EventSpawnTimer;
-	array<ref RTEvent> m_Events;
+	ref array<ref RTEvent> m_Events;
+	protected string m_LogMessage;
 	
 	void ~RTBase()
 	{
+		RTLogger.ClearInstance();
 		Print(RTConstants.RT_LOG_PREFIX + " RTBase dtor");
 	}
 	
@@ -94,6 +104,12 @@ class RTBase
 		m_RTEvent = null;
 		m_EventSpawnTimer = new Timer;
 		m_Events = new array<ref RTEvent>();
+		m_LogMessage = "";
+		
+		int createLogs = m_Settings.enableLogging;
+		RTLogger.CreateInstance();
+		RTLogger.GetInstance().SetCreateLogs(createLogs);
+		RTLogger.GetInstance().LogMessage("[RadioTower] CTOR");
 		
 		float spawnInterval = RTConstants.RT_EVENT_SPAWN_INTERVAL_DEFAULT;
 		if (m_Settings)
@@ -110,58 +126,78 @@ class RTBase
 	
     void CreateEvent()
     {
-		Print("[RadioTower] Creating event");
+		m_LogMessage = "Creating event";
+		Print("[RadioTower] " + m_LogMessage);
+		RTLogger.GetInstance().LogMessage(m_LogMessage);
+		
 		int eventLocationCount = m_Locations.eventLocations.Count();
 		if (eventLocationCount == 0)
 			return;
 		
 		int eventLocationIndex = Math.RandomInt(0, eventLocationCount);
-		RTLocation eventLocation;
-		if (Class.CastTo(eventLocation, m_Locations.eventLocations[eventLocationIndex]))
+		RTLocation eventLocation = RTLocation.Cast(m_Locations.eventLocations[eventLocationIndex]);	
+			
+		int pastEventsCount = m_Events.Count();
+		for (int i = 0; i < pastEventsCount; i++)
 		{
-			m_RTEvent = new RTEvent();
-			m_RTEvent.SetEventLocation(eventLocation);
-			
-			vector position = eventLocation.locationCoordinatesXYZ;
-			vector orientation = eventLocation.locationOrientationYPR;
-			vector lootcratePosition = eventLocation.lootcrateCoordinatesXYZ;
-			
-			array<Object> objects = new array<Object>;
-			GetGame().GetObjectsAtPosition(position, 1, objects, null);
-			foreach(Object serverObj: objects)
+			RTEvent pastEvent = RTEvent.Cast(m_Events[i]);
+			if (pastEvent.GetEventTitle() == eventLocation.title && pastEvent.IsActive())
 			{
-				if (serverObj.IsKindOf("RTServer_Base"))
-					GetGame().ObjectDelete(serverObj);
+				Print("[RadioTower] Trying to spawn event but " + m_RTEvent.GetEventTitle() + " is active!");
+				if (eventLocationCount == 1)
+					return;
+				
+				eventLocationIndex = Math.RandomInt(0, eventLocationCount);
+				eventLocation = RTLocation.Cast(m_Locations.eventLocations[eventLocationIndex]);
+				i = 0;
 			}
-			objects.Clear();
-			GetGame().GetObjectsAtPosition(lootcratePosition, 1, objects, null);
-			foreach(Object crateObj: objects)
-			{
-				if (crateObj.IsKindOf("RTLootcrate_Base"))
-					GetGame().ObjectDelete(crateObj);
-			}
-			
-			RTServer item;
-			if (RTServer.CastTo(item, GetGame().CreateObjectEx("RTServer", position, ECE_KEEPHEIGHT)))
-			{
-				item.SetPosition(position);
-				item.SetOrientation(orientation);
-				item.SetFlags(EntityFlags.STATIC, false);
-				item.Update();
-
-				m_RTEvent.SetEventServer(item);
-			}
-			string msg = "Server has been located in " + eventLocation.title + "!";
-			RTMsgHandler.RTSendChatMessage(msg);
-			RTMsgHandler.RTSendClientAlert(RTConstants.RT_ICON, msg, 3);
-			Print(RTConstants.RT_LOG_PREFIX + " Server placed");
-			m_Events.Insert(m_RTEvent);
 		}
+
+		m_RTEvent = new RTEvent();
+		m_RTEvent.SetEventLocation(eventLocation);
+		
+		vector position = eventLocation.locationCoordinatesXYZ;
+		vector orientation = eventLocation.locationOrientationYPR;
+		vector lootcratePosition = eventLocation.lootcrateCoordinatesXYZ;
+		
+		array<Object> objects = new array<Object>;
+		GetGame().GetObjectsAtPosition(position, 1, objects, null);
+		foreach(Object serverObj: objects)
+		{
+			if (serverObj.IsKindOf("RTServer_Base"))
+				GetGame().ObjectDelete(serverObj);
+		}
+		objects.Clear();
+		GetGame().GetObjectsAtPosition(lootcratePosition, 1, objects, null);
+		foreach(Object crateObj: objects)
+		{
+			if (crateObj.IsKindOf("RTLootcrate_Base"))
+				GetGame().ObjectDelete(crateObj);
+		}
+		
+		RTServer item;
+		if (RTServer.CastTo(item, GetGame().CreateObjectEx("RTServer", position, ECE_KEEPHEIGHT)))
+		{
+			item.SetPosition(position);
+			item.SetOrientation(orientation);
+			item.SetFlags(EntityFlags.STATIC, false);
+			item.Update();
+
+			m_RTEvent.SetEventServer(item);
+		}
+		m_LogMessage = "Server has been located in " + eventLocation.title + "!";
+		RTLogger.GetInstance().LogMessage(m_LogMessage);
+		RTMsgHandler.RTSendChatMessage(m_LogMessage);
+		RTMsgHandler.RTSendClientAlert(RTConstants.RT_ICON, m_LogMessage, 3);
+		Print(RTConstants.RT_LOG_PREFIX + " " + m_LogMessage);
+		m_Events.Insert(m_RTEvent);
     }
 	
 	void StartEvent()
 	{
-		Print("StartEvent " + m_RTEvent.GetEventServer().GetPosition());
+		m_LogMessage = "Event started in " + m_RTEvent.GetEventTitle();
+		Print(m_LogMessage);
+		RTLogger.GetInstance().LogMessage(m_LogMessage);
 		
 		vector pos = m_RTEvent.GetEventServer().GetPosition();
 		Trigger trigger;
@@ -173,7 +209,10 @@ class RTBase
 	
 	void SpawnEventLootCrate()
 	{
-		Print("[RadioTower] Spawning lootcrate");
+		string msg = "Spawning lootcrate";
+		Print("[RadioTower] " + msg);
+		m_LogMessage = m_RTEvent.GetEventTitle() + " " + m_LogMessage;
+		RTLogger.GetInstance().LogMessage(m_LogMessage);
 		
 		string title = m_RTEvent.GetLootcrateTitle();
 		vector pos = m_RTEvent.GetEventLocation().lootcrateCoordinatesXYZ;
@@ -189,10 +228,14 @@ class RTBase
 				ItemBase item;
 				if (ItemBase.CastTo(item, crate.GetInventory().CreateEntityInCargo(loot[i].title)))
 				{
+					m_LogMessage = "Item: " + loot[i].title;
+					RTLogger.GetInstance().LogMessage(m_LogMessage);
 					TStringArray attachments = loot[i].attachments;
 					for (int j = 0; j < attachments.Count(); j++)
 					{
 						item.GetInventory().CreateAttachment(attachments[j]);
+						m_LogMessage = "Attachment: " + attachments[j];
+						RTLogger.GetInstance().LogMessage(m_LogMessage);
 					}
 				}
 			}

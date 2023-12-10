@@ -18,7 +18,7 @@ class RTConstants
 	const string RT_LOCATIONS_CONFIGPATH = "$profile:RadioTower/RTLocations.json";
 	const string RT_PROPS_CONFIGPATH = "$profile:RadioTower/RTProps.json";
 	/* LOGGING */
-	const string RT_LOG_PREFIX = "[RadioTower]";
+	const string RT_LOG_PREFIX = "RT_";
 	/* ICONS */
 	const string RT_ICON = "RadioTower/RadioTower/Data/Icons/rt_logo.paa";
 };

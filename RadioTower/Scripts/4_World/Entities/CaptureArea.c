@@ -46,6 +46,7 @@ class CaptureArea: Trigger
 	protected float m_Event_Capturetime;
 	protected float m_TimeAccuStay;
 	protected float m_CapturePct;
+	protected float m_CapturePctLocal;
 	protected float m_CaptureSlice;
 	protected float m_UpdateInterval;
 	protected float m_TotalCapturePct;
@@ -55,9 +56,15 @@ class CaptureArea: Trigger
 	protected float m_Event_Lifetime;
 	
 	protected int m_InsiderCount;
+	protected int m_InsiderCountLocal;
+	
+	protected ref Timer m_CaptureTimer;
 	
 	void CaptureArea()
 	{
+		RegisterNetSyncVariableFloat("m_CapturePct");
+		RegisterNetSyncVariableInt("m_InsiderCount");
+		
 		Print("[RadioTower] Capture area ctor");
 		m_CollisionCylinderRadius = RTConstants.RT_EVENT_TRIGGER_RADIUS_DEFAULT;
 		m_CollisionCylinderHeight = RTConstants.RT_EVENT_TRIGGER_HEIGHT_DEFAULT;
@@ -69,6 +76,7 @@ class CaptureArea: Trigger
 		m_TotalCapturePct = RTConstants.RT_EVENT_TOTAL_CAPTURE_PCT_DEFAULT;
 		
 		m_LifetimeTimer = new Timer;
+		m_CaptureTimer = new Timer;
 		m_Event_Lifetime = RTConstants.RT_EVENT_LIFETIME_DEFAULT;
 		
 		if (g_RTBase)
@@ -86,6 +94,31 @@ class CaptureArea: Trigger
 		SetCollisionCylinder(m_CollisionCylinderRadius, m_CollisionCylinderHeight);
 	}
 	
+	override void OnVariablesSynchronized()
+	{
+		super.OnVariablesSynchronized();
+		
+		if (m_CapturePct != m_CapturePctLocal)
+		{
+			m_CapturePctLocal = m_CapturePct;
+		}
+		
+		if (m_InsiderCount != m_InsiderCountLocal)
+		{
+			m_InsiderCountLocal = m_InsiderCount;
+		}
+		
+		if (GetGame().IsClient())
+		{
+			/*Print("SERVER CapturePct: " + m_CapturePct);
+			Print("CLIENT CapturePct: " + m_CapturePctLocal);
+			Print("SERVER InsiderCount: " + m_InsiderCount);
+			Print("CLIENT InsiderCount: " + m_InsiderCountLocal);*/
+			g_Game.SetCapturePct(m_CapturePctLocal);
+			g_Game.SetInsiderCount(m_InsiderCountLocal);
+		}
+	}
+	
 	void Tick()
 	{
 		string date = CF_Date.Now().Format("DD-MM-YYYY hh:mm:ss");
@@ -98,12 +131,18 @@ class CaptureArea: Trigger
 		}
 	}
 	
+	float GetEventLifetime()
+	{
+		return m_Event_Lifetime;
+	}
+	
 	void OnEventCapture()
 	{
 		m_Event_Lifetime = 0;
 		g_RTBase.SpawnEventLootCrate();
 		string title = g_RTBase.GetRTEvent().GetEventTitle();
 		string msg = title + " has been captured!";
+		RTLogger.GetInstance().LogMessage(msg);
 		RTMsgHandler.RTSendChatMessage(msg);
 		RTMsgHandler.RTSendClientAlert(RTConstants.RT_ICON, msg, 3);
 	}
@@ -112,7 +151,28 @@ class CaptureArea: Trigger
 	{
 		DeleteSafe();
 		Print("[RadioTower] Capture area deleted");
-		g_Game.SetIsClientInCaptureZone(false);
+		if (GetGame().IsClient())
+		{
+			//g_Game.SetIsClientInCaptureZone(false);
+			array<ref TriggerInsider> insiders = GetInsiders();
+			for (int i = 0; i < insiders.Count(); i++)
+			{
+				PlayerBase player;
+				if (PlayerBase.CastTo(player, insiders[i].GetObject()))
+					player.SetIsInsideCaptureArea(false);
+			}
+		}
+	}
+	
+	override bool ShouldRemoveInsider(TriggerInsider insider)
+	{
+		EntityAI entity;
+		if (EntityAI.CastTo(entity, insider.GetObject()))
+		{
+			if (entity.IsPlayer() && entity.IsAlive())
+				return false;
+		}
+		return true;
 	}
 	
 	override void OnEnterClientEvent(TriggerInsider insider)
@@ -120,10 +180,10 @@ class CaptureArea: Trigger
 		super.OnEnterClientEvent(insider);
 		
 		PlayerBase player;
-		if (Class.CastTo( player, insider.GetObject()))
+		if (Class.CastTo(player, insider.GetObject()))
 		{
-			//Print("CLIENT: " + player.GetIdentity().GetPlainName() + " entered capture area");
-			g_Game.SetIsClientInCaptureZone(true);
+			//g_Game.SetIsClientInCaptureZone(true);
+			player.SetIsInsideCaptureArea(true);
 		}
 	}
 	
@@ -134,9 +194,8 @@ class CaptureArea: Trigger
 		PlayerBase player;
 		if (Class.CastTo(player, insider.GetObject()))
 		{
-			
-			//Print("CLIENT: " + player.GetIdentity().GetPlainName() + " left capture area");
-			g_Game.SetIsClientInCaptureZone(false);
+			//g_Game.SetIsClientInCaptureZone(false);
+			player.SetIsInsideCaptureArea(false);
 		}
 	}
 	
@@ -148,9 +207,11 @@ class CaptureArea: Trigger
 		if (Class.CastTo(player, insider.GetObject()))
 		{
 			PlayerIdentity identity = player.GetIdentity();
-			Print("SERVER: " + identity.GetPlainName() + " entered capture area");
+			if (identity)
+				Print("SERVER: " + identity.GetPlainName() + " entered capture area");
 			m_InsiderCount = GetInsiders().Count();
-			GetRPCManager().SendRPC("RadioTower", "ClientEnteredCaptureZone", new Param2<int, float>(m_InsiderCount, m_CapturePct), true, identity);
+			SetSynchDirty();
+			//GetRPCManager().SendRPC("RadioTower", "ClientEnteredCaptureZone", new Param2<int, float>(m_InsiderCount, m_CapturePct), true, identity);
 		}
 	}
 	
@@ -161,14 +222,55 @@ class CaptureArea: Trigger
 		PlayerBase player;
 		if (Class.CastTo(player, insider.GetObject()))
 		{
+			//if (m_CaptureTimer.IsRunning())
+			//	m_CaptureTimer.Stop();
 			PlayerIdentity identity = player.GetIdentity();
-			Print("SERVER: " + identity.GetPlainName() + " left capture area");
+			if (identity)
+				Print("SERVER: " + identity.GetPlainName() + " left capture area");
 			m_InsiderCount = GetInsiders().Count();
-			GetRPCManager().SendRPC("RadioTower", "UpdateInsiderCount", new Param1<int>(m_InsiderCount), true, identity);
+			SetSynchDirty();
+			//GetRPCManager().SendRPC("RadioTower", "UpdateInsiderCount", new Param1<int>(m_InsiderCount), true, identity);
+		}
+	}
+	
+	void AddProgress(TriggerInsider insider)
+	{
+		if (m_CapturePct < m_TotalCapturePct)
+		{
+			m_CapturePct += m_CaptureSlice;
+			m_CapturePct = Math.Clamp(m_CapturePct, 0, m_TotalCapturePct);
+			Print("Area captured " + m_CapturePct + "%");
+			PlayerBase player;
+			if (Class.CastTo(player, insider.GetObject()))
+			{
+				PlayerIdentity identity = player.GetIdentity();
+				m_InsiderCount = GetInsiders().Count();
+				SetSynchDirty();
+				//GetRPCManager().SendRPC("RadioTower", "UpdateCaptureProgress", new Param1<float>(m_CapturePct), true, identity);
+			}
+		}
+		else
+		{
+			OnEventCapture();
 		}
 	}
 	
 	override void OnStayServerEvent(TriggerInsider insider, float deltaTime)
+	{
+		super.OnStayServerEvent(insider, deltaTime);
+		
+		if (m_InsiderCount <= 0)
+		{
+			if (m_CaptureTimer.IsRunning())
+				m_CaptureTimer.Stop();
+			return;
+		}
+
+		if (!m_CaptureTimer.IsRunning())
+			m_CaptureTimer.Run(m_UpdateInterval, this, "AddProgress", new Param1<TriggerInsider>(insider), true);
+	}
+	
+	/*override void OnStayServerEvent(TriggerInsider insider, float deltaTime)
 	{
 		super.OnStayServerEvent(insider, deltaTime);
 		
@@ -179,6 +281,7 @@ class CaptureArea: Trigger
 			if (m_InsiderCount > 0 && m_CapturePct < m_TotalCapturePct)
 			{
 				m_CapturePct += m_CaptureSlice;
+				m_CapturePct = Math.Clamp(m_CapturePct, 0, m_TotalCapturePct);
 				Print("Area captured " + m_CapturePct + "%");
 				PlayerBase player;
 				if(Class.CastTo( player, insider.GetObject() ) )
@@ -192,5 +295,5 @@ class CaptureArea: Trigger
 				OnEventCapture();
 			}
 		} 
-	}
+	}*/
 }

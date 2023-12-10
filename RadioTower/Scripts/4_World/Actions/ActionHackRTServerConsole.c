@@ -74,14 +74,14 @@ class ActionHackRTServerConsole: ActionContinuousBase
 	override void OnFinishProgressServer( ActionData action_data ) 
 	{
 		Print("[RadioTower] Debug: Hack action OnFinishProgressServer()");
-		//vector pos = action_data.m_Target.GetObject().GetPosition();
+		string msg = action_data.m_Player.GetIdentity().GetPlainName() + " started an event";
+		RTLogger.GetInstance().LogMessage(msg);
 		RTServer server = RTServer.Cast(action_data.m_Target.GetObject());
 		if(server)
 		{
 			server.Hack();
 			server.Close();	
 		}
-		g_RTBase.StartEvent();
-		//GetGame().CreateObject("CaptureArea", pos);	
+		g_RTBase.StartEvent();	
 	}	
 };
