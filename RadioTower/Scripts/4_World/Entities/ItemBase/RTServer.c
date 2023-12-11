@@ -5,11 +5,24 @@ class RTServer extends Container_Base
 	protected bool m_IsHacked;
 	protected bool m_IsHackedLocal;
 	
+	protected CaptureArea m_Trigger;
+	protected float m_CollisionCylinderRadius;
+	protected float m_CollisionCylinderHeight;
+	
 	void RTServer()
 	{	
 		RegisterNetSyncVariableBool("m_IsSoundSynchRemote");
 		RegisterNetSyncVariableBool("m_IsOpened");
 		RegisterNetSyncVariableBool("m_IsHacked");
+		
+		m_CollisionCylinderRadius = RTConstants.RT_EVENT_TRIGGER_RADIUS_DEFAULT;
+		m_CollisionCylinderHeight = RTConstants.RT_EVENT_TRIGGER_HEIGHT_DEFAULT;
+		RTEvent rtEvent = g_RTBase.GetRTEvent();
+		if (rtEvent)
+		{
+			m_CollisionCylinderRadius = rtEvent.GetEventLocation().captureAreaRadius;
+			m_CollisionCylinderHeight = rtEvent.GetEventLocation().captureAreaHeight;
+		}
 	}
 	
 	void ~RTServer() 
@@ -23,6 +36,34 @@ class RTServer extends Container_Base
 			Open();
 		else
 			Close();
+		
+		/*if (!m_Trigger)
+		{
+			//Print("radius = " + m_CollisionCylinderRadius + ", height = " + m_CollisionCylinderHeight);
+			CaptureArea.CastTo(m_Trigger, GetGame().CreateObject("CaptureArea", GetPosition()));
+			AddChild(m_Trigger, -1);
+			Print("Trigger " + m_Trigger + " created in " + GetPosition());
+		}*/
+	}
+	
+	override void EEDelete(EntityAI parent)
+	{
+		super.EEDelete(parent);
+		Print("in EEDelete");
+		CleanUpTrigger();
+	}
+
+	protected void CleanUpTrigger()
+	{
+		if (m_Trigger)
+		{
+			GetGame().ObjectDelete(m_Trigger);
+		}
+	}
+	
+	CaptureArea GetTrigger()
+	{
+		return m_Trigger;
 	}
 
 	override void Open()

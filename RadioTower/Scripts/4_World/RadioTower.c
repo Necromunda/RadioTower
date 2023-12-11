@@ -1,8 +1,16 @@
+enum RTEventState
+{
+	DELETED,
+	ACTIVE,
+	CAPTURING
+}
+
 class RTEvent
 {
 	protected RTServer m_Server;
 	protected CaptureArea m_CaptureArea;
 	protected RTLocation m_EventLocation;
+	protected RTEventState m_State;
 	
 	void ~RTEvent()
 	{
@@ -13,29 +21,47 @@ class RTEvent
 	{
 		Print("[RadioTower] RTEvent ctor");
 		
+		m_State = RTEventState.DELETED;
 		m_Server = null;
 		m_CaptureArea = null;
 		m_EventLocation = null;
 	}
 	
+	void StartEvent()
+	{
+		if (m_CaptureArea)
+		{
+			
+		}
+	}
+	
 	bool IsActive()
 	{
-		if (m_CaptureArea && m_CaptureArea.GetEventLifetime() > 0)
+		if (m_State == RTEventState.ACTIVE || m_State == RTEventState.CAPTURING)
 			return true;
 
 		return false;
 	}
 	
-	void Cleanup()
+	bool IsCaptureInProgress()
 	{
-		if (m_Server)
-			m_Server.Delete();
-		
-		if (m_CaptureArea)
-			m_CaptureArea.Delete();
-		
-		m_Server = null;
-		m_CaptureArea = null;
+		if (m_State == RTEventState.CAPTURING)
+			return true;
+
+		return false;
+	}
+	
+	bool IsDeleted()
+	{
+		if (m_State == RTEventState.DELETED)
+			return true;
+
+		return false;
+	}
+	
+	void SetState(RTEventState state)
+	{
+		m_State = state;
 	}
 	
 	void SetEventServer(RTServer server)  		
@@ -63,6 +89,11 @@ class RTEvent
 		return m_EventLocation.lootcrateClassName; 
 	}
 	
+	RTEventState GetState()
+	{
+		return m_State;
+	}
+	
 	RTServer GetEventServer() 					
 	{ 
 		return m_Server; 
@@ -70,7 +101,8 @@ class RTEvent
 	
 	CaptureArea GetEventTrigger() 					
 	{ 
-		return m_CaptureArea; 
+		//return m_CaptureArea;
+		return m_Server.GetTrigger();
 	}
 	
 	RTLocation GetEventLocation()
@@ -134,6 +166,42 @@ class RTBase
 		return m_RTEvent;
 	}
 	
+	RTEvent GetRTEventWithServer(RTServer source)
+	{
+		RTEvent rtEvent;
+		for (int i = 0; i < m_Events.Count(); i++)
+		{
+			if (RTEvent.CastTo(rtEvent, m_Events[i]))
+			{
+				RTServer target = rtEvent.GetEventServer();
+				if (source == target)
+				{
+					Print("Found event with server: " + rtEvent.GetEventTitle());
+					return rtEvent;
+				}
+			}
+		}
+		return null;
+	}
+	
+	RTEvent GetRTEventWithTrigger(CaptureArea source)
+	{
+		RTEvent rtEvent;
+		for (int i = 0; i < m_Events.Count(); i++)
+		{
+			if (RTEvent.CastTo(rtEvent, m_Events[i]))
+			{
+				CaptureArea target = rtEvent.GetEventTrigger();
+				if (source == target)
+				{
+					Print("Found event with trigger: " + rtEvent.GetEventTitle());
+					return rtEvent;
+				}
+			}
+		}
+		return null;
+	}
+	
 	
 	RTEvent GetLastRTEvent()
 	{
@@ -146,7 +214,7 @@ class RTBase
 		return null;
 	}
 	
-	int GetIndexOfLocation(string locationTitle)
+	/*int GetIndexOfLocation(string locationTitle)
 	{
 		if (m_Locations)
 		{
@@ -162,22 +230,92 @@ class RTBase
 		}
 		
 		return -1;
+	}*/
+	
+	/*bool IsPastEventActive(string locationTitle)
+	{
+		for (int i = 0; i < m_Events.Count(); i++)
+		{
+			RTEvent rtEvent = m_Events[i];
+			if (!rtEvent.IsDeleted() && rtEvent.GetEventTitle() == locationTitle)
+				return true;
+		}
+		return false;
+	}*/
+	
+	/*bool IsPastEventCaptureInProgress(string locationTitle)
+	{
+		for (int i = 0; i < m_Events.Count(); i++)
+		{
+			RTEvent rtEvent = m_Events[i];
+			if (rtEvent.IsCaptureInProgress() && rtEvent.GetEventTitle() == locationTitle)
+				return true;
+		}
+		return false;
+	}*/
+	
+	int GetEventLocationCount()
+	{
+		if (m_Locations)
+			return m_Locations.eventLocations.Count();
+
+		return 0;
 	}
 	
-	bool AreAllEventsActive()
+	bool IsEventLocationValid(RTLocation location)
 	{
-		if (m_Events)
+		string locationTitle = location.locationTitle;
+		
+		// Check if we have 0 events
+		int eventLocationCount = GetEventLocationCount();
+		if (eventLocationCount == 0)
 		{
-			for (int i = 0; i < m_Events.Count(); i++)
+			m_LogMessage = "Possible misconfiguration! RTLocations.json has 0 locations";
+			m_EventSpawnTimer.Stop();
+			return false;
+		}
+		
+		// Check if we have 1 event and we can't spawn same event in a row
+		/*if (!m_AllowSameEventSpawnInARow)
+		{
+			RTEvent lastEvent = GetLastRTEvent();
+			if (lastEvent && !lastEvent.IsDeleted())
 			{
-				RTEvent pastEvent;
-				if (RTEvent.CastTo(pastEvent, m_Events[i]))
+				// Check if new event is the same as last event and thats our only event
+				if (lastEvent.GetEventTitle() == locationTitle)
 				{
-					if (!pastEvent.IsActive())
+					if (eventLocationCount == 1)
+					{
+						m_LogMessage = "Possible misconfiguration! Event could not be created because allowSameEventSpawnInARow = true and RTLocations.json only has one location";
+						m_EventSpawnTimer.Stop();
+					}
+					else
+					{
+						m_LogMessage = "Can't create event in " + locationTitle + " because it was the last event";
+					}
+					return false;
+				}
+			}
+		}*/
+		
+		for (int i = 0; i < m_Events.Count(); i++)
+		{			
+			// Check if past event is still active
+			RTEvent pastEvent = RTEvent.Cast(m_Events[i]);
+			if (!pastEvent.IsDeleted())
+			{
+				if (locationTitle == pastEvent.GetEventTitle())
+				{
+					if (pastEvent.IsCaptureInProgress())
+					{
+						m_LogMessage = "Trying to create event but " + pastEvent.GetEventTitle() + " is still being captured!";
 						return false;
+					}
 				}
 			}
 		}
+		
+		m_LogMessage = "Valid event location";
 		return true;
 	}
 	
@@ -187,81 +325,39 @@ class RTBase
 		Print("[RadioTower] " + m_LogMessage);
 		RTLogger.GetInstance().LogMessage(m_LogMessage);
 		
-		// Check if we have 0 events
-		int eventLocationCount = m_Locations.eventLocations.Count();
-		if (eventLocationCount == 0)
-		{
-			m_LogMessage = "Possible misconfiguration! RTLocations.json has 0 locations";
-			Print("[RadioTower] " + m_LogMessage);
-			RTLogger.GetInstance().LogMessage(m_LogMessage);
-			m_EventSpawnTimer.Stop();
-			return;
-		}
-		
-		// Check if we have 1 event and we can't spawn same event in a row
-		if (m_RTEvent && eventLocationCount == 1 && !m_AllowSameEventSpawnInARow)
-		{
-			m_LogMessage = "Possible misconfiguration! Event could not be created because allowSameEventSpawnInARow = true and RTLocations.json only has one location";
-			Print("[RadioTower] " + m_LogMessage);
-			RTLogger.GetInstance().LogMessage(m_LogMessage);
-			m_EventSpawnTimer.Stop();
-			return;
-		}
-		
+		array<int> exhaustedEventIndexes = {};
+		int eventLocationCount = GetEventLocationCount();
 		int eventLocationIndex = Math.RandomInt(0, eventLocationCount);
-		RTLocation eventLocation = RTLocation.Cast(m_Locations.eventLocations[eventLocationIndex]);	
+		RTLocation eventLocation = RTLocation.Cast(m_Locations.eventLocations[eventLocationIndex]);
 		
-		for (int i = 0; i < m_Events.Count(); i++)
+		bool isValid = IsEventLocationValid(eventLocation);
+		
+		while (exhaustedEventIndexes.Count() <= eventLocationCount)
 		{
-			// If all events are active, return to avoid infinite loop
-			if (AreAllEventsActive())
+			if (isValid)
+				break;
+
+			exhaustedEventIndexes.Insert(eventLocationIndex);
+			eventLocationIndex = Math.RandomInt(0, eventLocationCount);
+			while (exhaustedEventIndexes.Find(eventLocationIndex) != -1)
 			{
-				m_LogMessage = "Trying to create event but all events are currently being captured!";
-				Print("[RadioTower] " + m_LogMessage);
-				RTLogger.GetInstance().LogMessage(m_LogMessage);
-				return;
-			}
-			
-			// Check if new event is the same as last event
-			if (!m_AllowSameEventSpawnInARow)
-			{
-				RTEvent lastEvent = GetLastRTEvent();
-				
-				if (eventLocation.locationTitle == lastEvent.GetEventTitle())
+				if (exhaustedEventIndexes.Count() == eventLocationCount)
 				{
-					m_LogMessage = "Can't create event in " + m_RTEvent.GetEventTitle() + " because it was the last event";
-					Print("[RadioTower] " + m_LogMessage);
-					RTLogger.GetInstance().LogMessage(m_LogMessage);
-					
-					eventLocationIndex = Math.RandomInt(0, eventLocationCount);
-					eventLocation = RTLocation.Cast(m_Locations.eventLocations[eventLocationIndex]);
-					i = 0;
-				}
-			}
-			
-			// Check if past event is still active
-			RTEvent pastEvent = RTEvent.Cast(m_Events[i]);
-			if (pastEvent.GetEventTitle() == eventLocation.locationTitle && pastEvent.IsActive())
-			{
-				m_LogMessage = "Trying to create event but " + m_RTEvent.GetEventTitle() + " is currently being captured!";
-				Print("[RadioTower] " + m_LogMessage);
-				RTLogger.GetInstance().LogMessage(m_LogMessage);
-				
-				if (eventLocationCount == 1)
-				{
-					m_LogMessage = "Abort event creation because only 1 location is configured and it's being captured!";
+					m_LogMessage = "No available event locations";
 					Print("[RadioTower] " + m_LogMessage);
 					RTLogger.GetInstance().LogMessage(m_LogMessage);
 					return;
 				}
-				
 				eventLocationIndex = Math.RandomInt(0, eventLocationCount);
-				eventLocation = RTLocation.Cast(m_Locations.eventLocations[eventLocationIndex]);
-				i = 0;
 			}
+			
+			eventLocation = RTLocation.Cast(m_Locations.eventLocations[eventLocationIndex]);
+			isValid = IsEventLocationValid(eventLocation);
 		}
 		
-		Print("Event location index is " + eventLocationIndex.ToString());
+		Print("[RadioTower] " + m_LogMessage);
+		RTLogger.GetInstance().LogMessage(m_LogMessage);
+
 		m_RTEvent = new RTEvent();
 		m_RTEvent.SetEventLocation(eventLocation);
 		
@@ -274,7 +370,16 @@ class RTBase
 		foreach(Object serverObj: objects)
 		{
 			if (serverObj.IsKindOf("RTServer_Base"))
+			{
+				RTServer server;
+				if (RTServer.CastTo(server, serverObj))
+				{
+					RTEvent rtEvent = GetRTEventWithServer(server);
+					if (rtEvent)
+						rtEvent.SetState(RTEventState.DELETED);
+				}
 				GetGame().ObjectDelete(serverObj);
+			}
 		}
 		objects.Clear();
 		GetGame().GetObjectsAtPosition(lootcratePosition, 1, objects, null);
@@ -294,6 +399,7 @@ class RTBase
 
 			m_RTEvent.SetEventServer(item);
 		}
+		m_RTEvent.SetState(RTEventState.ACTIVE);
 		m_Events.Insert(m_RTEvent);
 		
 		m_LogMessage = "Server has been located in " + eventLocation.locationTitle + "!";
@@ -303,19 +409,23 @@ class RTBase
 		Print("[RadioTower] Event created! " + m_LogMessage);
     }
 	
-	//BUG: When hacking a server that isnt associated with the latest m_RTEvent, it starts the event in the latest m_RTEvent
-	// TODO: When server is hacked, find the right event from m_Events
 	void StartEvent(RTServer server)
 	{
-		m_LogMessage = "Event started in " + m_RTEvent.GetEventTitle();
-		Print("[RadioTower] " + m_LogMessage);
-		RTLogger.GetInstance().LogMessage(m_LogMessage);
+		//Print("Source server: " + server);
+		RTEvent rtEvent = GetRTEventWithServer(server);
 		
-		vector pos = m_RTEvent.GetEventServer().GetPosition();
-		Trigger trigger;
-		if (Trigger.CastTo(trigger, GetGame().CreateObject("CaptureArea", pos)))
+		if (rtEvent)
 		{
-			m_RTEvent.SetEventTrigger(trigger);
+			rtEvent.SetState(RTEventState.CAPTURING);
+			m_LogMessage = "Event started in " + rtEvent.GetEventTitle();
+			Print("[RadioTower] " + m_LogMessage);
+			/*RTLogger.GetInstance().LogMessage(m_LogMessage);
+			rtEvent.GetEventTrigger().SetCapture(true);
+			Print("CaptureSet to true for " + rtEvent.GetEventTrigger());*/
+			vector pos = rtEvent.GetEventServer().GetPosition();
+			CaptureArea trigger;
+			if (CaptureArea.CastTo(trigger, GetGame().CreateObject("CaptureArea", pos)))
+				rtEvent.SetEventTrigger(trigger);
 		}
 	}
 	
@@ -333,24 +443,36 @@ class RTBase
 		}
 	}*/
 	
-	void SpawnEventLootCrate()
+	void OnEventCapture(CaptureArea trigger)
+	{
+		RTEvent rtEvent = GetRTEventWithTrigger(trigger);
+		rtEvent.SetState(RTEventState.DELETED);
+		string title = rtEvent.GetEventTitle();
+		string msg = title + " has been captured!";
+		RTLogger.GetInstance().LogMessage(msg);
+		RTMsgHandler.RTSendChatMessage(msg);
+		RTMsgHandler.RTSendClientAlert(RTConstants.RT_ICON, msg, 3);
+		SpawnEventLootCrate(rtEvent);
+	}
+	
+	void SpawnEventLootCrate(RTEvent rtEvent)
 	{
 		string msg = "Spawning lootcrate";
 		Print("[RadioTower] " + msg);
-		m_LogMessage = m_RTEvent.GetEventTitle() + ": " + m_LogMessage;
+		m_LogMessage = rtEvent.GetEventTitle() + ": " + m_LogMessage;
 		RTLogger.GetInstance().LogMessage(m_LogMessage);
 		
-		string lootcrate = m_RTEvent.GetLootcrateClassName();
+		string lootcrate = rtEvent.GetLootcrateClassName();
 		if (lootcrate == "")
 			lootcrate = m_DefaultLootcrate;
-		vector pos = m_RTEvent.GetEventLocation().lootcrateCoordinatesXYZ;
-		vector orientation = m_RTEvent.GetEventLocation().lootcrateOrientationYPR;
+		vector pos = rtEvent.GetEventLocation().lootcrateCoordinatesXYZ;
+		vector orientation = rtEvent.GetEventLocation().lootcrateOrientationYPR;
 		
 		RTLootcrate_Base crate;
 		if (RTLootcrate_Base.CastTo(crate, GetGame().CreateObject(lootcrate, pos, ECE_LOCAL | ECE_KEEPHEIGHT)))
 		{
 			crate.SetOrientation(orientation);
-			array<ref RTLoot> loot = m_RTEvent.GetEventLocation().loot;
+			array<ref RTLoot> loot = rtEvent.GetEventLocation().loot;
 			for (int i = 0; i < loot.Count(); i++)
 			{
 				ItemBase item;

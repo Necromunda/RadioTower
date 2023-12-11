@@ -78,6 +78,6 @@ class ActionHackRTServerConsole: ActionContinuousBase
 			server.Hack();
 			server.Close();	
 		}
-		g_RTBase.StartEvent();	
+		g_RTBase.StartEvent(server);	
 	}	
 };
