@@ -1,18 +1,61 @@
 {
     "eventProps": [
         {
-            "locationTitle": "",
-            "propClassName": "",
-            "propCoordinatesXYZ": [
-                0.0,
-                0.0,
-                0.0
-            ],
-            "propOrientationYPR": [
-                0.0,
-                0.0,
-                0.0
-            ]
+            "locationTitle": "Green mountain",
+			"locationProps": [
+				{
+					"propClassName": "Wreck_UH1Y",
+					"propCoordinatesXYZ": [
+						3707.654541, 
+						403.856934, 
+						5970.361328
+					],
+					"propOrientationYPR": [
+						85.999680, 
+						0.000000, 
+						0.000000
+					]
+				},
+				{
+					"propClassName": "StaticObj_Dead_pile1",
+					"propCoordinatesXYZ": [
+						3696.678467, 
+						402.303986, 
+						5992.726074
+					],
+					"propOrientationYPR": [
+						0.000000, 
+						0.000000, 
+						0.000000
+					]
+				},
+				{
+					"propClassName": "StaticObj_Dead_pile1",
+					"propCoordinatesXYZ": [
+						3697.934326, 
+						402.303986, 
+						5980.837402
+					],
+					"propOrientationYPR": [
+						0.000000, 
+						0.000000, 
+						0.000000
+					]
+				},
+				{
+					"propClassName": "StaticObj_Wall_CncBarrier_4Block",
+					"propCoordinatesXYZ": [
+						3704.207031, 
+						402.796204, 
+						5987.443848
+					],
+					"propOrientationYPR": [
+						0.000000, 
+						0.000000, 
+						0.000000
+					]
+				}
+			]
         }
     ]
 }

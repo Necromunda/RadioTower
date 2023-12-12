@@ -26,11 +26,24 @@
                 0.0
             ],
             "vehicleCoordinatesXYZ": [
+				3696.678467, 
+				402.303986, 
+				5992.726074
             ],
             "vehicleOrientationYPR": [
+				0,
+				0,
+				0
             ],
-            "vehicleProbability": 0.0,
-            "vehicleClassName": "",
+            "vehicleProbability": 1.0,
+            "vehicleClassName": "OffroadHatchback",
+			"vehicleAttachments": [
+				"HatchbackWheel",
+				"HatchbackWheel",
+				"HatchbackWheel",
+				"HatchbackWheel",
+				"HatchbackDoors_Driver"
+			],
             "loot": [
                 {
                     "lootClassName": "M4A1",
