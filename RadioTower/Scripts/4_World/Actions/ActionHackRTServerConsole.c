@@ -75,8 +75,9 @@ class ActionHackRTServerConsole: ActionContinuousBase
 		RTServer server = RTServer.Cast(action_data.m_Target.GetObject());
 		if(server)
 		{
-			server.Hack();
-			server.Close();	
+			//server.Hack();
+			//server.Close();	
+			server.Disable();
 		}
 		g_RTBase.StartEvent(server);	
 	}	

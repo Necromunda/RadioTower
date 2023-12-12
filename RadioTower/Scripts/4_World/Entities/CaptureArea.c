@@ -61,14 +61,17 @@ class CaptureArea: Trigger
 	protected ref Timer m_CaptureTimer;
 	
 	protected bool m_StartCapture;
+	protected bool m_StartCaptureLocal;
 	
 	void CaptureArea()
 	{
 		RegisterNetSyncVariableFloat("m_CapturePct");
 		RegisterNetSyncVariableInt("m_InsiderCount");
+		RegisterNetSyncVariableBool("m_StartCapture");
 		
 		Print("[RadioTower] Capture area ctor");
 		m_StartCapture = false;
+		m_StartCaptureLocal = false;
 		m_CollisionCylinderRadius = RTConstants.RT_EVENT_TRIGGER_RADIUS_DEFAULT;
 		m_CollisionCylinderHeight = RTConstants.RT_EVENT_TRIGGER_HEIGHT_DEFAULT;
 		
@@ -140,16 +143,23 @@ class CaptureArea: Trigger
 			m_InsiderCountLocal = m_InsiderCount;
 		}
 		
+		if (m_StartCapture != m_StartCaptureLocal)
+		{
+			m_StartCaptureLocal = m_StartCapture;
+		}
+		
 		if (GetGame().IsClient())
 		{
 			g_Game.SetCapturePct(m_CapturePctLocal);
 			g_Game.SetInsiderCount(m_InsiderCountLocal);
+			m_StartCaptureLocal = m_StartCapture;
 		}
 	}
 	
 	void SetCapture(bool value)
 	{
 		m_StartCapture = value;
+		SetSynchDirty();
 	}
 	
 	void Tick()
@@ -182,11 +192,33 @@ class CaptureArea: Trigger
 	
 	void OnEventFinish()
 	{
-		DeleteSafe();
-		Print("[RadioTower] Capture area deleted");
-		if (GetGame().IsClient())
+		if (GetGame().IsServer())
 		{
-			//g_Game.SetIsClientInCaptureZone(false);
+			RTEvent rtEvent;
+			if (RTEvent.CastTo(rtEvent, g_RTBase.GetRTEventWithTrigger(this)))
+			{
+				RTServer server = rtEvent.GetEventServer();
+				if (server)
+				{
+					string msg = rtEvent.GetEventTitle() + " event has ended";
+					server.Disable();
+					if (!rtEvent.GetState() == RTEventState.CAPTURED)
+					{
+						RTLogger.GetInstance().LogMessage(msg);
+						if (g_RTBase.IsNotificationAllowed(RTNotificationType.END))
+						{
+							RTMsgHandler.RTSendChatMessage(msg);
+							RTMsgHandler.RTSendClientAlert(RTConstants.RT_ICON, msg, 3);
+						}
+					}
+				}
+				rtEvent.SetState(RTEventState.DELETED);
+			}
+		}
+		
+		/*if (GetGame().IsClient())
+		{
+			Print("client eventfinish");
 			array<ref TriggerInsider> insiders = GetInsiders();
 			for (int i = 0; i < insiders.Count(); i++)
 			{
@@ -194,13 +226,13 @@ class CaptureArea: Trigger
 				if (PlayerBase.CastTo(player, insiders[i].GetObject()))
 					player.SetIsInsideCaptureArea(false);
 			}
-		}
+		}*/
+		Print("[RadioTower] Capture area deleted");
+		DeleteSafe();
 	}
 	
 	override bool ShouldRemoveInsider(TriggerInsider insider)
 	{
-		//if (!m_StartCapture) return false;
-		
 		EntityAI entity;
 		if (EntityAI.CastTo(entity, insider.GetObject()))
 		{
@@ -210,11 +242,23 @@ class CaptureArea: Trigger
 		return true;
 	}
 	
-	override void OnEnterClientEvent(TriggerInsider insider)
+	/*protected bool CanAddObjectAsInsider(Object object)
+	{
+		EntityAI entity;
+		if (EntityAI.CastTo(entity, object))
+		{
+			if (entity.IsPlayer() && entity.IsAlive())
+				return true;
+		}
+		return false;
+	}*/
+	
+	/*override void OnEnterClientEvent(TriggerInsider insider)
 	{
 		super.OnEnterClientEvent(insider);
 		
-		//if (!m_StartCapture) return;
+		Print("CLIENT OnEnter: m_StartCaptureLocal = " + m_StartCaptureLocal);
+		if (!m_StartCaptureLocal) return;
 		
 		PlayerBase player;
 		if (Class.CastTo(player, insider.GetObject()))
@@ -222,13 +266,14 @@ class CaptureArea: Trigger
 			//g_Game.SetIsClientInCaptureZone(true);
 			player.SetIsInsideCaptureArea(true);
 		}
-	}
+	}*/
 	
 	override void OnLeaveClientEvent(TriggerInsider insider)
 	{
 		super.OnLeaveClientEvent(insider);
 		
-		//if (!m_StartCapture) return;
+		Print("CLIENT OnLeave: m_StartCaptureLocal = " + m_StartCaptureLocal);
+		if (!m_StartCaptureLocal) return;
 		
 		PlayerBase player;
 		if (Class.CastTo(player, insider.GetObject()))
@@ -238,10 +283,11 @@ class CaptureArea: Trigger
 		}
 	}
 	
-	override void OnEnterServerEvent(TriggerInsider insider)
+	/*override void OnEnterServerEvent(TriggerInsider insider)
 	{
 		super.OnEnterServerEvent(insider);
 
+		Print("SERVER OnEnter: m_StartCapture = " + m_StartCapture);
 		//if (!m_StartCapture) return;
 		
 		PlayerBase player;
@@ -260,7 +306,8 @@ class CaptureArea: Trigger
 	{
 		super.OnLeaveServerEvent(insider);
 		
-		//if (!m_StartCapture) return;
+		Print("SERVER OnLeave: m_StartCapture = " + m_StartCapture);
+		if (!m_StartCapture) return;
 		
 		PlayerBase player;
 		if (Class.CastTo(player, insider.GetObject()))
@@ -274,11 +321,33 @@ class CaptureArea: Trigger
 			SetSynchDirty();
 			//GetRPCManager().SendRPC("RadioTower", "UpdateInsiderCount", new Param1<int>(m_InsiderCount), true, identity);
 		}
+	}*/
+	
+	override void OnEnterServerEvent(TriggerInsider insider)
+	{
+		super.OnEnterServerEvent(insider);
+
+		Print("SERVER OnEnter");
+		m_InsiderCount = GetInsiders().Count();
+		SetSynchDirty();
+	}
+	
+	override void OnLeaveServerEvent(TriggerInsider insider)
+	{
+		super.OnLeaveServerEvent(insider);
+		
+		Print("SERVER OnLeave");
+		if (!m_StartCapture) return;
+		
+		if (m_CaptureTimer.IsRunning())
+				m_CaptureTimer.Stop();
+		
+		m_InsiderCount = GetInsiders().Count();
+		SetSynchDirty();
 	}
 	
 	void AddProgress(TriggerInsider insider)
 	{
-		//Print("AddProgress Insider is " + insider);
 		if (m_CapturePct < m_TotalCapturePct)
 		{
 			m_CapturePct += m_CaptureSlice;
@@ -290,7 +359,6 @@ class CaptureArea: Trigger
 				PlayerIdentity identity = player.GetIdentity();
 				m_InsiderCount = GetInsiders().Count();
 				SetSynchDirty();
-				//GetRPCManager().SendRPC("RadioTower", "UpdateCaptureProgress", new Param1<float>(m_CapturePct), true, identity);
 			}
 		}
 		else
@@ -301,24 +369,26 @@ class CaptureArea: Trigger
 		}
 	}
 	
+	override void OnStayClientEvent(TriggerInsider insider, float deltaTime)
+	{
+		super.OnStayClientEvent(insider, deltaTime);
+		
+		if (!m_StartCaptureLocal) return;
+		
+		PlayerBase player;
+		if (Class.CastTo(player, insider.GetObject()))
+			if (!player.GetIsInsideCaptureArea())
+				player.SetIsInsideCaptureArea(true);
+	}
+	
 	override void OnStayServerEvent(TriggerInsider insider, float deltaTime)
 	{
 		super.OnStayServerEvent(insider, deltaTime);
 		
-		//if (!m_StartCapture) return;
-		
-		/*if (m_InsiderCount <= 0)
-		{
-			if (m_CaptureTimer.IsRunning())
-				m_CaptureTimer.Stop();
-			return;
-		}*/
+		if (!m_StartCapture) return;
 
 		if (!m_CaptureTimer.IsRunning())
-		{
-			//Print("Insider is " + insider);
 			m_CaptureTimer.Run(m_UpdateInterval, this, "AddProgress", new Param1<TriggerInsider>(insider), true);
-		}
 	}
 	
 	/*override void OnStayServerEvent(TriggerInsider insider, float deltaTime)

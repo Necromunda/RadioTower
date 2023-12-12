@@ -8,9 +8,9 @@ modded class MissionServer
 		
 		if (GetGame().IsServer())
 		{
-			Print(RTConstants.RT_LOG_PREFIX + " MissionServer init g_RTBase");
 			g_RTBase = null;
 			GetRTBase();
+			Print("[RadioTower] MissionServer init g_RTBase");
 		}	
 	}
 	
@@ -23,7 +23,6 @@ modded class MissionServer
 	{
 		super.InvokeOnConnect(player,identity);
     
-    	//GetRPCManager().SendRPC("RadioTower", "SendConfigToClient", new Param1<RTBase>(g_RTBase), true, identity); 
 		GetRPCManager().SendRPC("RadioTower", "SendConfigToClient", new Param1<RTSettings>(g_RTBase.m_Settings), true, identity); 
   	}
 };
@@ -38,9 +37,6 @@ modded class MissionGameplay
         	m_CaptureAreaUI = new CaptureAreaUI();
 		
 		GetRPCManager().AddRPC("RadioTower", "SendConfigToClient", this, SingleplayerExecutionType.Client);	
-		//GetRPCManager().AddRPC("RadioTower", "UpdateInsiderCount", this, SingleplayerExecutionType.Client);
-		//GetRPCManager().AddRPC("RadioTower", "UpdateCaptureProgress", this, SingleplayerExecutionType.Client);
-		//GetRPCManager().AddRPC("RadioTower", "ClientEnteredCaptureZone", this, SingleplayerExecutionType.Client);
 	}
 	
 	override void OnUpdate(float timeslice)
@@ -79,56 +75,4 @@ modded class MissionGameplay
 
 		Print(RTConstants.RT_LOG_PREFIX + " Client received settings " + clientResponse);
 	}
-	
-	/*void ClientEnteredCaptureZone(CallType type, ParamsReadContext ctx, PlayerIdentity sender, Object target)
-	{
-		//if this function is trigger anywhere but on client, we return without continuing.
-		if(type != CallType.Client)
-			return;
-
-		Param2<int, float> data;
-		//if the data is not retrieved we return to avoid issue
-		if (!ctx.Read(data)) 
-			return;
-		
-		if (m_CaptureAreaUI)
-		{
-			m_CaptureAreaUI.SetInsiderCount(data.param1.ToString());
-			m_CaptureAreaUI.SetCaptureProgress(data.param2);
-		}
-	}
-	
-	void UpdateCaptureProgress(CallType type, ParamsReadContext ctx, PlayerIdentity sender, Object target) 
-	{
-		//if this function is trigger anywhere but on client, we return without continuing.
-		if(type != CallType.Client)
-			return;
-
-		Param1<float> data;
-		//if the data is not retrieved we return to avoid issue
-		if (!ctx.Read(data)) 
-			return;
-		
-		if (m_CaptureAreaUI)
-		{
-			m_CaptureAreaUI.SetCaptureProgress(data.param1);
-		}
-	}
-	
-	void UpdateInsiderCount(CallType type, ParamsReadContext ctx, PlayerIdentity sender, Object target)
-	{
-		//if this function is trigger anywhere but on client, we return without continuing.
-		if(type != CallType.Client)
-			return;
-
-		Param1<int> data;
-		//if the data is not retrieved we return to avoid issue
-		if (!ctx.Read(data)) 
-			return;
-		
-		if (m_CaptureAreaUI)
-		{
-			m_CaptureAreaUI.SetInsiderCount(data.param1.ToString());
-		}
-	}*/
 }

@@ -1,0 +1,14 @@
+{
+    "eventSpawnInterval": 60.0,
+    "eventLifetime": 45.0,
+    "eventCapturetime": 15.0,
+    "eventHacktime": 1.0,
+    "eventDefaultLootcrate": "RTLootcrate_White",
+    "enableLogging": 1,
+    "allowSameEventSpawnInARow": 0,
+	"enableConcurrentEvents": 0,
+	"enableNotifications": 1,
+	"enableEventCreateNotification": 1,
+	"enableEventCaptureNotification": 0,
+	"enableEventEndNotification": 1
+}

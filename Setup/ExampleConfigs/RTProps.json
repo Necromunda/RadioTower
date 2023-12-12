@@ -1,0 +1,18 @@
+{
+    "eventProps": [
+        {
+            "locationTitle": "",
+            "propClassName": "",
+            "propCoordinatesXYZ": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "propOrientationYPR": [
+                0.0,
+                0.0,
+                0.0
+            ]
+        }
+    ]
+}

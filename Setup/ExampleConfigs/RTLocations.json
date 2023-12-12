@@ -1,0 +1,121 @@
+{
+    "eventLocations": [
+        {
+            "captureAreaRadius": 5.0,
+            "captureAreaHeight": 5.0,
+            "locationTitle": "Green mountain",
+            "lootcrateClassName": "RTLootcrate_Red",
+            "locationCoordinatesXYZ": [
+                3706.909912109375,
+                402.010009765625,
+                5982.06005859375
+            ],
+            "locationOrientationYPR": [
+                -109.0,
+                0.0,
+                0.0
+            ],
+            "lootcrateCoordinatesXYZ": [
+                3703.8056640625,
+                401.9999694824219,
+                5977.84912109375
+            ],
+            "lootcrateOrientationYPR": [
+                2.0,
+                0.0,
+                0.0
+            ],
+            "vehicleCoordinatesXYZ": [
+            ],
+            "vehicleOrientationYPR": [
+            ],
+            "vehicleProbability": 0.0,
+            "vehicleClassName": "",
+            "loot": [
+                {
+                    "lootClassName": "M4A1",
+                    "quantity": 0,
+                    "attachments": [
+                        "M4_Suppressor"
+                    ]
+                }
+            ]
+        },
+		{
+            "captureAreaRadius": 10.0,
+            "captureAreaHeight": 10.0,
+            "locationTitle": "Vybor Military Complex",
+            "lootcrateClassName": "",
+            "locationCoordinatesXYZ": [
+                4520.569824, 
+				316.013977, 
+				8273.550781
+            ],
+            "locationOrientationYPR": [
+                12.657836, 
+				2.585529, 
+				-0.357249
+            ],
+            "lootcrateCoordinatesXYZ": [
+                4524.421875, 
+				316.124512, 
+				8273.518555
+            ],
+            "lootcrateOrientationYPR": [
+                -77.772049, 
+				-2.510887, 
+				-2.104894
+            ],
+            "vehicleCoordinatesXYZ": [],
+            "vehicleOrientationYPR": [],
+            "vehicleProbability": 0.0,
+            "vehicleClassName": "",
+            "loot": [
+                {
+                    "lootClassName": "M4A1",
+                    "quantity": 0,
+                    "attachments": []
+                }
+            ]
+        },
+		{
+            "captureAreaRadius": 25.0,
+            "captureAreaHeight": 25.0,
+            "locationTitle": "Tisy",
+            "lootcrateClassName": "RTLootcrate_Grey",
+            "locationCoordinatesXYZ": [
+                1685.167725, 
+				460.633026, 
+				14219.413086
+            ],
+            "locationOrientationYPR": [
+                162.741241, 
+				-0.001729, 
+				0.000262
+            ],
+            "lootcrateCoordinatesXYZ": [
+                1681.313110, 
+				460.633026, 
+				14219.468750
+            ],
+            "lootcrateOrientationYPR": [
+                162.958603, 
+				-0.001470, 
+				0.001988
+            ],
+            "vehicleCoordinatesXYZ": [],
+            "vehicleOrientationYPR": [],
+            "vehicleProbability": 0.0,
+            "vehicleClassName": "",
+            "loot": [
+                {
+                    "lootClassName": "M4A1",
+                    "quantity": 0,
+                    "attachments": [
+                        "ImprovisedSuppressor"
+                    ]
+                }
+            ]
+        }
+    ]
+}

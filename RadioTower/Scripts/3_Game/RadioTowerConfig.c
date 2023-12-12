@@ -10,6 +10,11 @@ class RTSettings
 	string eventDefaultLootcrate;
 	bool enableLogging;
 	bool allowSameEventSpawnInARow;
+	bool enableConcurrentEvents;
+	bool enableNotifications;
+	bool enableEventCreateNotification;
+	bool enableEventCaptureNotification;
+	bool enableEventEndNotification;
 	
 	void Defaults()
 	{	
@@ -20,6 +25,7 @@ class RTSettings
 		eventDefaultLootcrate = "RTLootcrate_Yellow";
 		enableLogging = false;
 		allowSameEventSpawnInARow = true;
+		enableConcurrentEvents = false;
 	}
 	
 	static ref RTSettings Load()
@@ -66,13 +72,16 @@ class RTSettings
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\\
 class RTProps
 {
-	ref array<ref RTProp> eventProps;
+	ref array<ref RTLocationProps> eventProps;
 
 	void Defaults()
 	{
-		eventProps = new array<ref RTProp>();
+		eventProps = new array<ref RTLocationProps>();
+		ref RTLocationProps location = new RTLocationProps();
+		location.locationProps = new array<ref RTProp>();
 		ref RTProp eventProp = new RTProp();
-		eventProps.Insert(eventProp);
+		location.locationProps.Insert(eventProp);
+		eventProps.Insert(location);
 	}
 	
 	static ref RTProps Load()
@@ -114,9 +123,14 @@ class RTProps
 	}
 }
 
-class RTProp
+class RTLocationProps
 {
 	string locationTitle;
+	ref array<ref RTProp> locationProps;
+}
+
+class RTProp
+{
 	string propClassName;
 	vector propCoordinatesXYZ;
     vector propOrientationYPR;
@@ -147,6 +161,12 @@ class RTLocations
 		eventLocation.locationOrientationYPR = {-109, 0, 0};
 		eventLocation.lootcrateCoordinatesXYZ = {3703.805664, 401.999969, 5977.849121};
 		eventLocation.lootcrateOrientationYPR = {2, 0, 0};
+		eventLocation.vehicleCoordinatesXYZ = {3696.678467, 402.303986, 5992.726074};
+		eventLocation.vehicleOrientationYPR = {0, 0, 0};
+		eventLocation.vehicleProbability = 1;
+		eventLocation.vehicleClassName = "OffroadHatchback";
+		//eventLocation.vehicleAttachments = new TStringArray;
+		eventLocation.vehicleAttachments = {"HatchbackWheel", "HatchbackWheel", "HatchbackWheel", "HatchbackWheel", "HatchbackDoors_Driver"};
 		eventLocation.loot = new array<ref RTLoot>();
 		eventLocation.loot.Insert(eventLoot);
 		
@@ -206,6 +226,7 @@ class RTLocation
     vector vehicleOrientationYPR;
 	float vehicleProbability;
 	string vehicleClassName;
+	ref TStringArray vehicleAttachments;
 	ref array<ref RTLoot> loot;
 }
 

@@ -5,24 +5,13 @@ class RTServer extends Container_Base
 	protected bool m_IsHacked;
 	protected bool m_IsHackedLocal;
 	
-	protected CaptureArea m_Trigger;
-	protected float m_CollisionCylinderRadius;
-	protected float m_CollisionCylinderHeight;
+	//protected CaptureArea m_Trigger;
 	
 	void RTServer()
 	{	
 		RegisterNetSyncVariableBool("m_IsSoundSynchRemote");
 		RegisterNetSyncVariableBool("m_IsOpened");
 		RegisterNetSyncVariableBool("m_IsHacked");
-		
-		m_CollisionCylinderRadius = RTConstants.RT_EVENT_TRIGGER_RADIUS_DEFAULT;
-		m_CollisionCylinderHeight = RTConstants.RT_EVENT_TRIGGER_HEIGHT_DEFAULT;
-		RTEvent rtEvent = g_RTBase.GetRTEvent();
-		if (rtEvent)
-		{
-			m_CollisionCylinderRadius = rtEvent.GetEventLocation().captureAreaRadius;
-			m_CollisionCylinderHeight = rtEvent.GetEventLocation().captureAreaHeight;
-		}
 	}
 	
 	void ~RTServer() 
@@ -50,10 +39,10 @@ class RTServer extends Container_Base
 	{
 		super.EEDelete(parent);
 		Print("in EEDelete");
-		CleanUpTrigger();
+		//CleanUpTrigger();
 	}
 
-	protected void CleanUpTrigger()
+	/*protected void CleanUpTrigger()
 	{
 		if (m_Trigger)
 		{
@@ -64,7 +53,7 @@ class RTServer extends Container_Base
 	CaptureArea GetTrigger()
 	{
 		return m_Trigger;
-	}
+	}*/
 
 	override void Open()
 	{
@@ -85,6 +74,12 @@ class RTServer extends Container_Base
 	override bool IsOpen()
 	{
 		return m_IsOpened;
+	}
+	
+	void Disable()
+	{
+		Hack();
+		Close();
 	}
 	
 	void Hack()
