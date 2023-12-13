@@ -16,17 +16,23 @@ class RTSettings
 	bool enableEventCaptureNotification;
 	bool enableEventEndNotification;
 	bool prioritizeOldEvent;
+	bool spawnZombies;
 	
 	void Defaults()
 	{	
-		eventSpawnInterval = 120;
+		eventSpawnInterval = 2700;
 		eventLifetime = 1800;
-		eventCapturetime = 30;
-		eventHacktime = 4;
-		eventDefaultLootcrate = "RTLootcrate_Yellow";
+		eventCapturetime = 900;
+		eventHacktime = 5;
+		eventDefaultLootcrate = "RTLootcrate_White";
 		enableLogging = false;
-		allowSameEventSpawnInARow = true;
+		allowSameEventSpawnInARow = false;
 		enableConcurrentEvents = false;
+		enableNotifications = true;
+		enableEventCreateNotification = true;
+		enableEventCaptureNotification = true;
+		enableEventEndNotification = false;
+		prioritizeOldEvent = false;
 	}
 	
 	static ref RTSettings Load()
@@ -157,6 +163,8 @@ class RTLocations
 		eventLocation.captureAreaRadius = 25;
 		eventLocation.captureAreaHeight = 25;
 		eventLocation.captureAreaYAxisOffset = 0;
+		eventLocation.spawnGas = false;
+		eventLocation.zombieCount = 10;
 		eventLocation.locationTitle = "Green mountain";
 		eventLocation.lootcrateClassName = "RTLootcrate_Red";		
 		eventLocation.locationCoordinatesXYZ = {3706.91, 402.01, 5982.06};
@@ -218,6 +226,8 @@ class RTLocation
 	float captureAreaRadius;
 	float captureAreaHeight;
 	float captureAreaYAxisOffset;
+	bool spawnGas;
+	int zombieCount;
     string locationTitle;
 	string lootcrateClassName;
     vector locationCoordinatesXYZ;

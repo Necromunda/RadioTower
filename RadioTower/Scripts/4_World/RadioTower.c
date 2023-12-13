@@ -21,6 +21,12 @@ enum RTNotificationType
 	END
 }
 
+enum RTEventType
+{
+	NORMAL = 0,
+	GAS = 1
+}
+
 class RTEvent
 {
 	protected RTServer m_Server;
@@ -30,6 +36,7 @@ class RTEvent
 	protected RTEventState m_State;
 	protected ref array<Object> m_PropObjects;
 	protected string m_LogMessage;
+	protected RTEventType m_EventType;
 	
 	void ~RTEvent()
 	{
@@ -213,6 +220,16 @@ class RTEvent
 	void SetEventProps(RTLocationProps locationProps)		
 	{ 
 		m_EventProps = locationProps; 
+	}
+	
+	void SetEventType(RTEventType type)
+	{
+		m_EventType = type;
+	}
+	
+	RTEventType GetEventType()
+	{
+		return m_EventType;
 	}
 	
 	string GetEventTitle()						
@@ -530,8 +547,10 @@ class RTBase
 		if (m_Settings && !m_Settings.enableConcurrentEvents)
 			CleanupPastEvents();
 		
+		RTEventType type = eventLocation.spawnGas;
 		m_RTEvent = new RTEvent();
 		m_RTEvent.SetEventLocation(eventLocation);
+		m_RTEvent.SetEventType(type);
 		
 		vector position = eventLocation.locationCoordinatesXYZ;
 		vector orientation = eventLocation.locationOrientationYPR;
@@ -609,6 +628,12 @@ class RTBase
 					m_RTEvent.SpawnProps(locationProps);
 				}
 			}
+		}
+		bool spawnZombies = m_Settings.spawnZombies;
+		if (spawnZombies)
+		{
+			int zombieCount = eventLocation.zombieCount;
+			
 		}
 		
 		m_RTEvent.SetState(RTEventState.ACTIVE);
