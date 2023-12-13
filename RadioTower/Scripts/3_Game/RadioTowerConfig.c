@@ -15,6 +15,7 @@ class RTSettings
 	bool enableEventCreateNotification;
 	bool enableEventCaptureNotification;
 	bool enableEventEndNotification;
+	bool prioritizeOldEvent;
 	
 	void Defaults()
 	{	
@@ -155,6 +156,7 @@ class RTLocations
 		ref RTLocation eventLocation = new RTLocation();
 		eventLocation.captureAreaRadius = 25;
 		eventLocation.captureAreaHeight = 25;
+		eventLocation.captureAreaYAxisOffset = 0;
 		eventLocation.locationTitle = "Green mountain";
 		eventLocation.lootcrateClassName = "RTLootcrate_Red";		
 		eventLocation.locationCoordinatesXYZ = {3706.91, 402.01, 5982.06};
@@ -165,7 +167,6 @@ class RTLocations
 		eventLocation.vehicleOrientationYPR = {0, 0, 0};
 		eventLocation.vehicleProbability = 1;
 		eventLocation.vehicleClassName = "OffroadHatchback";
-		//eventLocation.vehicleAttachments = new TStringArray;
 		eventLocation.vehicleAttachments = {"HatchbackWheel", "HatchbackWheel", "HatchbackWheel", "HatchbackWheel", "HatchbackDoors_Driver"};
 		eventLocation.loot = new array<ref RTLoot>();
 		eventLocation.loot.Insert(eventLoot);
@@ -216,6 +217,7 @@ class RTLocation
 {
 	float captureAreaRadius;
 	float captureAreaHeight;
+	float captureAreaYAxisOffset;
     string locationTitle;
 	string lootcrateClassName;
     vector locationCoordinatesXYZ;

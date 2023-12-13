@@ -236,7 +236,8 @@ class CaptureArea: Trigger
 		EntityAI entity;
 		if (EntityAI.CastTo(entity, insider.GetObject()))
 		{
-			if (entity.IsPlayer() && entity.IsAlive())
+			//if (entity.IsPlayer() && entity.IsAlive())
+			if (entity.IsAlive() && (entity.IsZombie() || entity.IsPlayer()))
 				return false;
 		}
 		return true;
@@ -348,18 +349,28 @@ class CaptureArea: Trigger
 	
 	void AddProgress(TriggerInsider insider)
 	{
+		EntityAI entity = EntityAI.Cast(insider.GetObject());
+		
+		Print("INSIDER COUNT: " + m_InsiderCount);
+		Print(entity.GetType() + " is player " + entity.IsPlayer());
 		if (m_CapturePct < m_TotalCapturePct)
 		{
-			m_CapturePct += m_CaptureSlice;
-			m_CapturePct = Math.Clamp(m_CapturePct, 0, m_TotalCapturePct);
-			Print("Area captured " + m_CapturePct + "%");
-			PlayerBase player;
+			if (entity.IsPlayer())
+			{
+				Print("Area captured " + m_CapturePct + "%");
+				m_CapturePct += m_CaptureSlice;
+				m_CapturePct = Math.Clamp(m_CapturePct, 0, m_TotalCapturePct);	
+			}
+			m_InsiderCount = GetInsiders().Count();
+			SetSynchDirty();
+			/*PlayerBase player;
 			if (Class.CastTo(player, insider.GetObject()))
 			{
 				PlayerIdentity identity = player.GetIdentity();
+				Print("IDENTITY: " + identity);
 				m_InsiderCount = GetInsiders().Count();
 				SetSynchDirty();
-			}
+			}*/
 		}
 		else
 		{

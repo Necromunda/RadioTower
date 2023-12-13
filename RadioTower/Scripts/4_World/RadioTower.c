@@ -10,6 +10,8 @@ enum RTNotificationState
 {
 	DISABLED = 0,
 	ENABLED = 1
+	//CHAT = 2,
+	//POPUP = 3
 }
 
 enum RTNotificationType
@@ -24,8 +26,10 @@ class RTEvent
 	protected RTServer m_Server;
 	protected CaptureArea m_CaptureArea;
 	protected RTLocation m_EventLocation;
+	protected RTLocationProps m_EventProps;
 	protected RTEventState m_State;
 	protected ref array<Object> m_PropObjects;
+	protected string m_LogMessage;
 	
 	void ~RTEvent()
 	{
@@ -40,9 +44,12 @@ class RTEvent
 		m_Server = null;
 		m_CaptureArea = null;
 		m_EventLocation = null;
+		m_EventProps = null;
 		m_PropObjects = new array<Object>();
+		m_LogMessage = "";
 	}
 	
+	// Delete all event objects except lootbox and car
 	void CleanUp()
 	{
 		m_State = RTEventState.DELETED;
@@ -53,17 +60,101 @@ class RTEvent
 		if (m_Server)
 			GetGame().ObjectDelete(m_Server);
 		
-		if (m_PropObjects)
+		for (int i = 0; i < m_PropObjects.Count(); i++)
 		{
-			for (int i = 0; i < m_PropObjects.Count(); i++)
-			{
-				if (m_PropObjects[i])
-					GetGame().ObjectDelete(m_PropObjects[i]);
-			}
+			if (m_PropObjects[i])
+				GetGame().ObjectDelete(m_PropObjects[i]);
 		}
 		
 		m_CaptureArea = null;
 		m_Server = null;
+	}
+	
+	// Delete all event objects
+	void CleanUpAll()
+	{
+		if (m_EventLocation)
+		{
+			array<Object> objects = new array<Object>;
+			vector lootcratePosition = m_EventLocation.lootcrateCoordinatesXYZ;
+			vector vehiclePosition = m_EventLocation.vehicleCoordinatesXYZ;
+			string vehicleClassname = m_EventLocation.vehicleClassName;
+			
+			CleanUp();
+			
+			GetGame().GetObjectsAtPosition(lootcratePosition, 1, objects, null);
+			foreach(Object serverObj: objects)
+			{
+				if (serverObj.IsKindOf("RTLootcrate_Base"))
+					GetGame().ObjectDelete(serverObj);
+			}
+			objects.Clear();
+			GetGame().GetObjectsAtPosition(vehiclePosition, 1, objects, null);
+			foreach(Object vehicleObj: objects)
+			{
+				if (vehicleObj.IsKindOf(vehicleClassname))
+					GetGame().ObjectDelete(vehicleObj);
+			}
+		}
+	}
+	
+	void SpawnEventLootCrate()
+	{
+		string msg = "Spawning lootcrate";
+		Print("[RadioTower] " + msg);
+		m_LogMessage = GetEventTitle() + ": " + m_LogMessage;
+		RTLogger.GetInstance().LogMessage(m_LogMessage);
+		
+		if (m_EventLocation)
+		{
+			vector pos = m_EventLocation.lootcrateCoordinatesXYZ;
+			vector orientation = m_EventLocation.lootcrateOrientationYPR;
+			string lootcrate = m_EventLocation.lootcrateClassName;
+			if (!lootcrate || lootcrate == "")
+				lootcrate = g_RTBase.GetDefaultLootcrateClassName();;
+			
+			RTLootcrate_Base crate;
+			if (RTLootcrate_Base.CastTo(crate, GetGame().CreateObject(lootcrate, pos, ECE_LOCAL | ECE_KEEPHEIGHT)))
+			{
+				crate.SetOrientation(orientation);
+				array<ref RTLoot> loot = m_EventLocation.loot;
+				for (int i = 0; i < loot.Count(); i++)
+				{
+					ItemBase item;
+					if (ItemBase.CastTo(item, crate.GetInventory().CreateEntityInCargo(loot[i].lootClassName)))
+					{
+						m_LogMessage = "Item: " + loot[i].lootClassName;
+						RTLogger.GetInstance().LogMessage(m_LogMessage);
+						string attachmentsMsg = "";
+						
+						TStringArray attachments = loot[i].attachments;
+						for (int j = 0; j < attachments.Count(); j++)
+						{
+							item.GetInventory().CreateAttachment(attachments[j]);
+							attachmentsMsg += attachments[j] + ", ";
+						}
+						m_LogMessage += " attachments: " + attachmentsMsg;
+						RTLogger.GetInstance().LogMessage(m_LogMessage);
+					}
+				}
+			}
+			
+			string vehicleName = m_EventLocation.vehicleClassName;
+			vector vehiclePosition = m_EventLocation.vehicleCoordinatesXYZ;
+			vector vehicleOrientation = m_EventLocation.vehicleOrientationYPR;
+			TStringArray vehicleAttachments = m_EventLocation.vehicleAttachments;
+			float vehicleProbability = Math.Clamp(m_EventLocation.vehicleProbability, 0, 1);
+			
+			if (Math.RandomFloat(0, 1) <= vehicleProbability)
+			{
+				Object obj = g_RTBase.SpawnObject(vehicleName, vehiclePosition, vehicleOrientation);
+				EntityAI entity = EntityAI.Cast(obj);
+				for (int k = 0; k < vehicleAttachments.Count(); k++)
+				{
+					entity.GetInventory().CreateAttachment(vehicleAttachments[k]);
+				}
+			}
+		}
 	}
 	
 	void SpawnProps(RTLocationProps props)
@@ -117,6 +208,11 @@ class RTEvent
 	void SetEventLocation(RTLocation location)		
 	{ 
 		m_EventLocation = location; 
+	}
+	
+	void SetEventProps(RTLocationProps locationProps)		
+	{ 
+		m_EventProps = locationProps; 
 	}
 	
 	string GetEventTitle()						
@@ -206,6 +302,16 @@ class RTBase
 		m_EventSpawnTimer.Run(spawnInterval, this, "CreateEvent", NULL, true);	
 	}
 	
+	void CleanupPastEvents()
+	{
+		for (int i = 0; i < m_Events.Count(); i++)
+		{
+			RTEvent rtEvent;
+			if (RTEvent.CastTo(rtEvent, m_Events[i]))
+				rtEvent.CleanUp();
+		}
+	}
+	
 	bool IsNotificationAllowed(RTNotificationType type)
 	{
 		bool isAllowed = m_NotificationState;
@@ -243,6 +349,11 @@ class RTBase
 	    obj.SetAffectPathgraph( true, false );
 	    if( obj.CanAffectPathgraph() ) GetGame().GetCallQueue( CALL_CATEGORY_SYSTEM ).CallLater( GetGame().UpdatePathgraphRegionByObject, 100, false, obj );
 		return obj;
+	}
+	
+	string GetDefaultLootcrateClassName()
+	{
+		return m_DefaultLootcrate;
 	}
 	
 	RTEvent GetRTEvent()
@@ -324,7 +435,7 @@ class RTBase
 		{
 			RTEvent lastEvent = GetLastRTEvent();
 			// Check if new event is the same as last event
-			if (lastEvent.GetEventTitle() == locationTitle)
+			if (lastEvent && lastEvent.GetEventTitle() == locationTitle)
 			{
 				if (eventLocationCount == 1)
 				{
@@ -343,17 +454,33 @@ class RTBase
 		{			
 			// Check if past event is still active
 			RTEvent pastEvent = RTEvent.Cast(m_Events[i]);
+			string pastEventTitle = pastEvent.GetEventTitle();
+			
 			if (!pastEvent.IsDeleted())
 			{
-				if (locationTitle == pastEvent.GetEventTitle())
+				if (m_Settings && m_Settings.prioritizeOldEvent)
+				{
+					m_LogMessage = "Trying to create event but " + pastEventTitle + " is still active!";
+					return false;
+				}
+				
+				if (locationTitle == pastEventTitle)
 				{
 					if (pastEvent.IsCaptureInProgress())
 					{
-						m_LogMessage = "Trying to create event but " + pastEvent.GetEventTitle() + " is still being captured!";
+						m_LogMessage = "Trying to create event but " + pastEventTitle + " is still being captured!";
 						return false;
 					}
 				}
-			}
+			} 
+			/*else if (pastEvent.IsActive())
+			{
+				if (m_Settings && m_Settings.prioritizeOldEvent)
+				{
+					m_LogMessage = "Trying to create event but " + pastEventTitle + " is still active!";
+					return false;
+				}
+			}*/
 		}
 		
 		m_LogMessage = "Valid event location";
@@ -400,46 +527,59 @@ class RTBase
 		RTLogger.GetInstance().LogMessage(m_LogMessage);
 		
 		if (m_Settings && !m_Settings.enableConcurrentEvents)
-			DeletePastEvents();
+			CleanupPastEvents();
 		
 		m_RTEvent = new RTEvent();
 		m_RTEvent.SetEventLocation(eventLocation);
 		
 		vector position = eventLocation.locationCoordinatesXYZ;
 		vector orientation = eventLocation.locationOrientationYPR;
+		/*
 		vector lootcratePosition = eventLocation.lootcrateCoordinatesXYZ;
+		vector vehiclePosition = eventLocation.vehicleCoordinatesXYZ;
+		string vehicleClassname = eventLocation.vehicleClassName;
 		
+		/*
 		array<Object> objects = new array<Object>;
 		GetGame().GetObjectsAtPosition(position, 1, objects, null);
-		foreach(Object serverObj: objects)
+		foreach(Object obj: objects)
 		{
-			if (serverObj.IsKindOf("RTServer_Base"))
+			if (obj.IsKindOf("RTServer_Base"))
 			{
 				RTServer server;
-				if (RTServer.CastTo(server, serverObj))
+				if (RTServer.CastTo(server, obj))
 				{
 					RTEvent rtEvent = GetRTEventWithServer(server);
 					if (rtEvent)
 						rtEvent.CleanUp();
-					//rtEvent.SetState(RTEventState.DELETED);
 				}
 				GetGame().ObjectDelete(serverObj);
 			}
 		}
 		objects.Clear();
 		GetGame().GetObjectsAtPosition(lootcratePosition, 1, objects, null);
-		foreach(Object crateObj: objects)
+		foreach(Object obj: objects)
 		{
-			if (crateObj.IsKindOf("RTLootcrate_Base"))
-				GetGame().ObjectDelete(crateObj);
+			if (obj.IsKindOf("RTLootcrate_Base"))
+				GetGame().ObjectDelete(obj);
 		}
+		objects.Clear();
+		GetGame().GetObjectsAtPosition(vehiclePosition, 1, objects, null);
+		foreach(Object obj: objects)
+		{
+			if (obj.IsKindOf(vehicleClassname))
+				GetGame().ObjectDelete(obj);
+		}
+		*/
+		
+		m_RTEvent.CleanUpAll();
 		
 		RTServer item;
 		if (RTServer.CastTo(item, GetGame().CreateObjectEx("RTServer", position, ECE_KEEPHEIGHT)))
 		{
 			item.SetPosition(position);
 			item.SetOrientation(orientation);
-			item.SetOrientation(item.GetOrientation());
+			//item.SetOrientation(item.GetOrientation());
 			item.SetFlags(EntityFlags.STATIC, false);
 			item.Update();
 
@@ -448,7 +588,14 @@ class RTBase
 		
 		CaptureArea trigger;
 		if (CaptureArea.CastTo(trigger, GetGame().CreateObject("CaptureArea", position)))
+		{
+			float yOffset = eventLocation.captureAreaYAxisOffset;
+			vector offset = vector.Zero;
+			offset[1] = yOffset;
+			Print(offset);
+			trigger.SetPosition(position + offset);
 			m_RTEvent.SetEventTrigger(trigger);
+		}
 		
 		for (int i = 0; i < m_Props.eventProps.Count(); i++)
 		{
@@ -457,7 +604,7 @@ class RTBase
 			{
 				if (m_RTEvent.GetEventTitle() == locationProps.locationTitle)
 				{
-					//m_RTEvent.SetEventLocationProps(locationProps);
+					//m_RTEvent.SetEventProps(locationProps);
 					m_RTEvent.SpawnProps(locationProps);
 				}
 			}
@@ -478,7 +625,6 @@ class RTBase
 	
 	void StartEvent(RTServer server)
 	{
-		//Print("Source server: " + server);
 		RTEvent rtEvent = GetRTEventWithServer(server);
 		
 		if (rtEvent)
@@ -488,33 +634,31 @@ class RTBase
 			Print("[RadioTower] " + m_LogMessage);
 			CaptureArea trigger = rtEvent.GetEventTrigger();
 			rtEvent.GetEventTrigger().SetCapture(true);
-			/*RTLogger.GetInstance().LogMessage(m_LogMessage);
-			rtEvent.GetEventTrigger().SetCapture(true);
-			Print("CaptureSet to true for " + rtEvent.GetEventTrigger());*/
-			/*vector pos = rtEvent.GetEventServer().GetPosition();
-			CaptureArea trigger;
-			if (CaptureArea.CastTo(trigger, GetGame().CreateObject("CaptureArea", pos)))
-				rtEvent.SetEventTrigger(trigger);*/
 		}
 	}
 	
 	void OnEventCapture(CaptureArea trigger)
 	{
 		RTEvent rtEvent = GetRTEventWithTrigger(trigger);
-		//rtEvent.SetState(RTEventState.DELETED);
-		rtEvent.SetState(RTEventState.CAPTURED);
 		
-		string title = rtEvent.GetEventTitle();
-		string msg = title + " has been captured!";
-		RTLogger.GetInstance().LogMessage(msg);
-		if (IsNotificationAllowed(RTNotificationType.CAPTURE))
+		if (rtEvent)
 		{
-			RTMsgHandler.RTSendChatMessage(msg);
-			RTMsgHandler.RTSendClientAlert(RTConstants.RT_ICON, msg, 3);
-		}
-		SpawnEventLootCrate(rtEvent);
+			rtEvent.SetState(RTEventState.CAPTURED);
+		
+			string title = rtEvent.GetEventTitle();
+			string msg = title + " has been captured!";
+			RTLogger.GetInstance().LogMessage(msg);
+			if (IsNotificationAllowed(RTNotificationType.CAPTURE))
+			{
+				RTMsgHandler.RTSendChatMessage(msg);
+				RTMsgHandler.RTSendClientAlert(RTConstants.RT_ICON, msg, 3);
+			}
+			rtEvent.SpawnEventLootCrate();
+			//SpawnEventLootCrate(rtEvent);
+		}		
 	}
 	
+	/*
 	void SpawnEventLootCrate(RTEvent rtEvent)
 	{
 		string msg = "Spawning lootcrate";
@@ -572,16 +716,7 @@ class RTBase
 			}
 		}
 	}
-	
-	void DeletePastEvents()
-	{
-		for (int i = 0; i < m_Events.Count(); i++)
-		{
-			RTEvent rtEvent;
-			if (RTEvent.CastTo(rtEvent, m_Events[i]))
-				rtEvent.CleanUp();
-		}
-	}
+	*/
 }
 
 static ref RTBase g_RTBase;
