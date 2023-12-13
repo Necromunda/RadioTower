@@ -202,7 +202,7 @@ class CaptureArea: Trigger
 				{
 					string msg = rtEvent.GetEventTitle() + " event has ended";
 					server.Disable();
-					if (!rtEvent.GetState() == RTEventState.CAPTURED)
+					if (rtEvent.GetState() != RTEventState.CAPTURED)
 					{
 						RTLogger.GetInstance().LogMessage(msg);
 						if (g_RTBase.IsNotificationAllowed(RTNotificationType.END))
@@ -236,9 +236,10 @@ class CaptureArea: Trigger
 		EntityAI entity;
 		if (EntityAI.CastTo(entity, insider.GetObject()))
 		{
-			//if (entity.IsPlayer() && entity.IsAlive())
-			if (entity.IsAlive() && (entity.IsZombie() || entity.IsPlayer()))
+			if (entity.IsPlayer() && entity.IsAlive())
 				return false;
+			//if (entity.IsAlive() && (entity.IsZombie() || entity.IsPlayer()))
+				//return false;
 		}
 		return true;
 	}

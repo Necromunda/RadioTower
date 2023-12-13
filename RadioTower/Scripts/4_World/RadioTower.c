@@ -458,7 +458,8 @@ class RTBase
 			
 			if (!pastEvent.IsDeleted())
 			{
-				if (m_Settings && m_Settings.prioritizeOldEvent)
+				// If allowing multiple events, ignore prioritizeOldEvent
+				if (m_Settings && m_Settings.prioritizeOldEvent && !m_Settings.enableConcurrentEvents)
 				{
 					m_LogMessage = "Trying to create event but " + pastEventTitle + " is still active!";
 					return false;
