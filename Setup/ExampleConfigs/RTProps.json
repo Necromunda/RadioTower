@@ -19,19 +19,6 @@
 				{
 					"propClassName": "StaticObj_Dead_pile1",
 					"propCoordinatesXYZ": [
-						3696.678467, 
-						402.303986, 
-						5992.726074
-					],
-					"propOrientationYPR": [
-						0.000000, 
-						0.000000, 
-						0.000000
-					]
-				},
-				{
-					"propClassName": "StaticObj_Dead_pile1",
-					"propCoordinatesXYZ": [
 						3697.934326, 
 						402.303986, 
 						5980.837402

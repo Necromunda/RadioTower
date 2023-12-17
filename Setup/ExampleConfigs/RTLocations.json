@@ -3,6 +3,7 @@
         {
             "captureAreaRadius": 5.0,
             "captureAreaHeight": 5.0,
+			"captureAreaYAxisOffset": 0,
             "locationTitle": "Green mountain",
             "lootcrateClassName": "RTLootcrate_Red",
             "locationCoordinatesXYZ": [
@@ -57,6 +58,7 @@
 		{
             "captureAreaRadius": 10.0,
             "captureAreaHeight": 10.0,
+			"captureAreaYAxisOffset": 0,
             "locationTitle": "Vybor Military Complex",
             "lootcrateClassName": "",
             "locationCoordinatesXYZ": [
@@ -79,10 +81,25 @@
 				-2.510887, 
 				-2.104894
             ],
-            "vehicleCoordinatesXYZ": [],
-            "vehicleOrientationYPR": [],
-            "vehicleProbability": 0.0,
-            "vehicleClassName": "",
+            "vehicleCoordinatesXYZ": [
+				4530.252930, 
+				316.095093, 
+				8273.514648
+			],
+            "vehicleOrientationYPR": [
+				15.248120,
+				0,
+				0
+			],
+            "vehicleProbability": 1.0,
+            "vehicleClassName": "OffroadHatchback",
+			"vehicleAttachments": [
+				"HatchbackWheel",
+				"HatchbackWheel",
+				"HatchbackWheel",
+				"HatchbackWheel",
+				"HatchbackDoors_Driver"
+			],
             "loot": [
                 {
                     "lootClassName": "M4A1",
@@ -94,6 +111,7 @@
 		{
             "captureAreaRadius": 25.0,
             "captureAreaHeight": 25.0,
+			"captureAreaYAxisOffset": -10,
             "locationTitle": "Tisy",
             "lootcrateClassName": "RTLootcrate_Grey",
             "locationCoordinatesXYZ": [
@@ -116,10 +134,135 @@
 				-0.001470, 
 				0.001988
             ],
-            "vehicleCoordinatesXYZ": [],
-            "vehicleOrientationYPR": [],
-            "vehicleProbability": 0.0,
-            "vehicleClassName": "",
+            "vehicleCoordinatesXYZ": [
+				1660.900024,
+				451.580597,
+				14222.674805
+			],
+            "vehicleOrientationYPR": [
+				160.805191,
+				0,
+				0
+			],
+            "vehicleProbability": 1.0,
+            "vehicleClassName": "OffroadHatchback",
+			"vehicleAttachments": [
+				"HatchbackWheel",
+				"HatchbackWheel",
+				"HatchbackWheel",
+				"HatchbackWheel",
+				"HatchbackDoors_Driver"
+			],
+            "loot": [
+                {
+                    "lootClassName": "M4A1",
+                    "quantity": 0,
+                    "attachments": [
+                        "ImprovisedSuppressor"
+                    ]
+                }
+            ]
+        },
+		{
+            "captureAreaRadius": 25.0,
+            "captureAreaHeight": 25.0,
+			"captureAreaYAxisOffset": 0,
+            "locationTitle": "Altar",
+            "lootcrateClassName": "",
+            "locationCoordinatesXYZ": [
+				8166.144531, 
+				475.543579, 
+				9146.650391
+            ],
+            "locationOrientationYPR": [
+               -23.658743, 
+			   0.669780, 
+			   -0.376106
+            ],
+            "lootcrateCoordinatesXYZ": [
+				8163.546875, 
+				475.500305, 
+				9142.974609
+            ],
+            "lootcrateOrientationYPR": [
+				155.203140, 
+				-0.587048, 
+				0.188136
+            ],
+            "vehicleCoordinatesXYZ": [
+				8153.336426,
+				475.328125,
+				9141.594727
+			],
+            "vehicleOrientationYPR": [
+				-120.589294,
+				0,
+				0
+			],
+            "vehicleProbability": 1.0,
+            "vehicleClassName": "OffroadHatchback",
+			"vehicleAttachments": [
+				"HatchbackWheel",
+				"HatchbackWheel",
+				"HatchbackWheel",
+				"HatchbackWheel",
+				"HatchbackDoors_Driver"
+			],
+            "loot": [
+                {
+                    "lootClassName": "M4A1",
+                    "quantity": 0,
+                    "attachments": [
+                        "ImprovisedSuppressor"
+                    ]
+                }
+            ]
+        },
+		{
+            "captureAreaRadius": 25.0,
+            "captureAreaHeight": 25.0,
+			"captureAreaYAxisOffset": 0,
+            "locationTitle": "Bashnya",
+            "lootcrateClassName": "",
+            "locationCoordinatesXYZ": [
+               4147.169434, 
+			   383.651398, 
+			   11765.890625
+            ],
+            "locationOrientationYPR": [
+				-124.643852, 
+				-0.174226, 
+				-0.251320
+            ],
+            "lootcrateCoordinatesXYZ": [
+				4150.496582, 
+				383.645844, 
+				11764.840820
+            ],
+            "lootcrateOrientationYPR": [
+				58.225235, 
+				0.159724, 
+				0.263068
+            ],
+            "vehicleCoordinatesXYZ": [
+				4155.114746,
+				383.482819,
+				11761.680664
+			],
+            "vehicleOrientationYPR": [
+				160.805191,
+				0,
+				0
+			],
+            "vehicleProbability": 1.0,
+            "vehicleClassName": "OffroadHatchback",
+			"vehicleAttachments": [
+				"HatchbackWheel",
+				"HatchbackWheel",
+				"HatchbackWheel",
+				"HatchbackWheel",
+				"HatchbackDoors_Driver"
+			],
             "loot": [
                 {
                     "lootClassName": "M4A1",
