@@ -1,3 +1,10 @@
+enum CaptureState
+{
+	DEFAULT,
+	CAPTURING,
+	CAPTURED
+};
+
 class RTServer extends Container_Base
 {
 	protected bool m_IsOpened;
@@ -5,26 +12,47 @@ class RTServer extends Container_Base
 	protected bool m_IsHacked;
 	protected bool m_IsHackedLocal;
 	
+	protected int m_CaptureState;
+	protected int m_CaptureStateLocal;
+	
+	protected vector m_ParticlePlayPos;
+	
+	protected Particle m_ParDefaultFire;
+	protected Particle m_ParCapturingFire;
+	protected Particle m_ParCapturedFire;
+	
+	static protected int PARTICLE_DEFAULT_FIRE = ParticleList.RT_SMOKE_RED;
+	static protected int PARTICLE_CAPTURING_FIRE = ParticleList.RT_SMOKE_YELLOW;
+	static protected int PARTICLE_CAPTURED_FIRE = ParticleList.RT_SMOKE_GREEN;
+	
 	//protected CaptureArea m_Trigger;
 	
 	void RTServer()
 	{	
+		Print("[RadioTower] RTServer ctor");
 		RegisterNetSyncVariableBool("m_IsSoundSynchRemote");
 		RegisterNetSyncVariableBool("m_IsOpened");
 		RegisterNetSyncVariableBool("m_IsHacked");
+		RegisterNetSyncVariableInt("m_CaptureState");
+		
+		m_CaptureState = CaptureState.DEFAULT;
+		m_ParticlePlayPos = GetProgressPclPosition();
 	}
 	
 	void ~RTServer() 
 	{ 
+		Print("[RadioTower] RTServer dtor");
 	}
 	
 	override void EEInit()
 	{
-		super.EEInit();		
-        if(IsOpen())
+		super.EEInit();	
+		Close();	
+		//SetCaptureStateSynchronized(CaptureState.DEFAULT);
+        /*if(IsOpen())
 			Open();
 		else
-			Close();
+			Close();*/
 		
 		/*if (!m_Trigger)
 		{
@@ -38,7 +66,10 @@ class RTServer extends Container_Base
 	override void EEDelete(EntityAI parent)
 	{
 		super.EEDelete(parent);
-		Print("in EEDelete");
+		DestroyAllParticles();
+		//if (m_Light)
+			//m_Light.FadeOut(0);
+		//Print("in EEDelete");
 		//CleanUpTrigger();
 	}
 
@@ -54,6 +85,113 @@ class RTServer extends Container_Base
 	{
 		return m_Trigger;
 	}*/
+	
+	int GetCaptureState()
+	{
+		return m_CaptureState;
+	}
+	
+	void SetCaptureStateSynchronized(int state_number)
+	{
+		if ( !GetGame().IsDedicatedServer() )
+			return;
+		
+		m_CaptureState = state_number;
+		SetSynchDirty();
+		Print("[RadioTower] CaptureState: " + m_CaptureState);
+		//UpdateActiveParticles();
+	}
+	
+	void UpdateActiveParticles()
+	{
+		if ( GetGame().IsDedicatedServer() )
+			return;
+		
+		if (!g_Game.IsCaptureStatusSmokeEnabled())
+			return;
+		
+		//vector pclPos = GetProgressPclPosition();
+		//Print("[RadioTower] Particle pos: " + m_ParticlePlayPos);
+		//DestroyAllParticles();
+		switch (m_CaptureStateLocal)
+		{				
+			case CaptureState.DEFAULT:			
+				Print("[RadioTower] RTServer DEFAULT CaptureState: Red particle");
+				if (!m_ParDefaultFire)
+				{
+					DestroyAllParticles();
+					m_ParDefaultFire = ParticleManager.GetInstance().PlayOnObject( PARTICLE_DEFAULT_FIRE, this, m_ParticlePlayPos);
+					//m_ParDefaultFire = ParticleManager.GetInstance().PlayInWorld(PARTICLE_DEFAULT_FIRE, pclPos);
+					//m_ParDefaultFire.SetWiggle( 10, 0.3 );
+				}
+				break;
+				
+			case CaptureState.CAPTURING:
+				Print("[RadioTower] RTServer CAPTURING CaptureState: Yellow particle");
+				if (!m_ParCapturingFire)
+				{
+					//DestroyAllParticles();
+					m_ParCapturingFire = ParticleManager.GetInstance().PlayOnObject( PARTICLE_CAPTURING_FIRE, this, m_ParticlePlayPos);
+					//m_ParCapturingFire.SetWiggle( 7, 0.3 );
+				}
+				
+				DestroyParticleEx(m_ParDefaultFire);
+				break;	
+				
+			case CaptureState.CAPTURED:
+				Print("[RadioTower] RTServer CAPTURED CaptureState: Green particle");
+				if (!m_ParCapturedFire)
+				{
+					//DestroyAllParticles();
+					m_ParCapturedFire = ParticleManager.GetInstance().PlayOnObject( PARTICLE_CAPTURED_FIRE, this, m_ParticlePlayPos);
+					//m_ParCapturedFire.SetWiggle( 4, 0.3 );
+				}
+				
+				DestroyParticleEx(m_ParCapturingFire);
+				break;
+		}
+		Print("Particle m_ParDefaultFire: " + m_ParDefaultFire);
+		Print("Particle m_ParCapturingFire: " + m_ParCapturingFire);
+		Print("Particle m_ParCapturedFire: " + m_ParCapturedFire);
+	}
+	
+	// Destroys the given particle
+	void DestroyParticle( Particle p )
+	{
+		if (p)
+		{
+			p.SetWiggle(0,0);
+			p.Stop();
+		}
+	}
+	
+	void DestroyParticleEx( out Particle p )
+	{
+		DestroyParticle(p);
+		p = null;
+	}
+	
+	void DestroyAllParticles()
+	{
+		DestroyParticleEx(m_ParDefaultFire);
+		DestroyParticleEx(m_ParCapturingFire);
+		DestroyParticleEx(m_ParCapturedFire);
+	}
+	
+	vector GetProgressPclPosition()
+	{
+		if ( MemoryPointExists( "progress_pcl" ) )
+		{
+			//Print("Memory point exists");
+			vector position;
+			position = GetMemoryPointPos( "progress_pcl" );
+			//Print(position);
+			return position;
+			//return ModelToWorld( position );
+		}
+		
+		return Vector(0, -10, 0);
+	}
 
 	override void Open()
 	{
@@ -65,10 +203,10 @@ class RTServer extends Container_Base
 
 	override void Close()
 	{
-		super.Close();
 		m_IsOpened = false;
 		SoundSynchRemote();
 		UpdateVisualState();
+		super.Close();
 	}	
 
 	override bool IsOpen()
@@ -84,7 +222,9 @@ class RTServer extends Container_Base
 	
 	void Hack()
 	{
+		//Print("Hack() Caller server: " + GetGame().IsDedicatedServer());
 		m_IsHacked = true;
+		//m_CaptureState = CaptureState.CAPTURING;
 		SetSynchDirty();
 	}
 	
@@ -112,14 +252,16 @@ class RTServer extends Container_Base
 		}
 		
 		if (m_IsHacked != m_IsHackedLocal)
-		{
 			m_IsHackedLocal = m_IsHacked;
-		}
+		
+		if (m_CaptureState != m_CaptureStateLocal)
+			m_CaptureStateLocal = m_CaptureState;
 		
 		UpdateVisualState();
+		UpdateActiveParticles();
 	}
 	
-	override void OnStoreSave( ParamsWriteContext ctx )
+	/*override void OnStoreSave( ParamsWriteContext ctx )
 	{   
 		super.OnStoreSave( ctx );		
 		ctx.Write( m_IsOpened );
@@ -138,19 +280,19 @@ class RTServer extends Container_Base
 		else
 			Close();
 		
+		//SetCaptureState(CaptureState.DEFAULT);
+		
 		return true;
-	}
+	}*/
 
 	void UpdateVisualState()
     {
         if ( IsOpen() )
         {
-            // SetAnimationPhase("server_console_screen",1);
             SetAnimationPhase("Spin", 0);
         }
         else
         {
-            // SetAnimationPhase("server_console_screen",0);
             SetAnimationPhase("Spin", 1);
         }
     }

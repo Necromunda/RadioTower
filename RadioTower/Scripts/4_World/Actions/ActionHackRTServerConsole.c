@@ -78,6 +78,7 @@ class ActionHackRTServerConsole: ActionContinuousBase
 			//server.Hack();
 			//server.Close();	
 			server.Disable();
+			server.SetCaptureStateSynchronized(CaptureState.CAPTURING);
 		}
 		g_RTBase.StartEvent(server);	
 	}	

@@ -17,6 +17,7 @@ class RTSettings
 	bool enableEventEndNotification;
 	bool prioritizeOldEvent;
 	bool spawnZombies;
+	bool showCaptureStatusSmoke;
 	
 	void Defaults()
 	{	
@@ -32,7 +33,9 @@ class RTSettings
 		enableEventCreateNotification = true;
 		enableEventCaptureNotification = true;
 		enableEventEndNotification = false;
-		prioritizeOldEvent = false;
+		prioritizeOldEvent = true;
+		spawnZombies = true;
+		showCaptureStatusSmoke = true;
 	}
 	
 	static ref RTSettings Load()

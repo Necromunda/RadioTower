@@ -49,4 +49,12 @@ modded class DayZGame
 	{
 		m_InsiderCount = value;
 	}
+	
+	bool IsCaptureStatusSmokeEnabled()
+	{
+		bool enabled = true;
+		if (m_Settings)
+			enabled = m_Settings.showCaptureStatusSmoke;
+		return enabled;
+	}
 }

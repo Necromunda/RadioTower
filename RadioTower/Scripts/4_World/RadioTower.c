@@ -388,7 +388,7 @@ class RTBase
 				RTServer target = rtEvent.GetEventServer();
 				if (source == target)
 				{
-					Print("Found event with server: " + rtEvent.GetEventTitle());
+					//Print("Found event with server: " + rtEvent.GetEventTitle());
 					return rtEvent;
 				}
 			}
@@ -406,7 +406,7 @@ class RTBase
 				CaptureArea target = rtEvent.GetEventTrigger();
 				if (source == target)
 				{
-					Print("Found event with trigger: " + rtEvent.GetEventTitle());
+					//Print("Found event with trigger: " + rtEvent.GetEventTitle());
 					return rtEvent;
 				}
 			}
@@ -594,6 +594,7 @@ class RTBase
 		
 		m_RTEvent.CleanUpAll();
 		
+		//bool showCaptureStatusSmoke = m_Settings.showCaptureStatusSmoke;
 		RTServer item;
 		if (RTServer.CastTo(item, GetGame().CreateObjectEx("RTServer", position, ECE_KEEPHEIGHT)))
 		{
@@ -612,7 +613,7 @@ class RTBase
 			float yOffset = eventLocation.captureAreaYAxisOffset;
 			vector offset = vector.Zero;
 			offset[1] = yOffset;
-			Print(offset);
+
 			trigger.SetPosition(position + offset);
 			m_RTEvent.SetEventTrigger(trigger);
 		}
@@ -629,6 +630,7 @@ class RTBase
 				}
 			}
 		}
+		
 		bool spawnZombies = m_Settings.spawnZombies;
 		if (spawnZombies)
 		{
@@ -666,6 +668,13 @@ class RTBase
 	void OnEventCapture(CaptureArea trigger)
 	{
 		RTEvent rtEvent = GetRTEventWithTrigger(trigger);
+		RTServer rtServer = rtEvent.GetEventServer();
+		if (rtServer)
+		{
+			Print("Server captured, state (should be 1): " + rtServer.GetCaptureState());
+			rtServer.SetCaptureStateSynchronized(CaptureState.CAPTURED);
+			Print("Server captured, state (should be 2): " + rtServer.GetCaptureState());
+		}
 		
 		if (rtEvent)
 		{

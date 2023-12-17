@@ -201,15 +201,17 @@ class CaptureArea: Trigger
 				if (server)
 				{
 					string msg = rtEvent.GetEventTitle() + " event has ended";
-					server.Disable();
+					//server.Disable();
 					if (rtEvent.GetState() != RTEventState.CAPTURED)
 					{
+						server.Disable();
 						RTLogger.GetInstance().LogMessage(msg);
 						if (g_RTBase.IsNotificationAllowed(RTNotificationType.END))
 						{
 							RTMsgHandler.RTSendChatMessage(msg);
 							RTMsgHandler.RTSendClientAlert(RTConstants.RT_ICON, msg, 3);
 						}
+						server.SetCaptureStateSynchronized(CaptureState.DEFAULT);
 					}
 				}
 				rtEvent.SetState(RTEventState.DELETED);
@@ -274,7 +276,7 @@ class CaptureArea: Trigger
 	{
 		super.OnLeaveClientEvent(insider);
 		
-		Print("CLIENT OnLeave: m_StartCaptureLocal = " + m_StartCaptureLocal);
+		//Print("CLIENT OnLeave: m_StartCaptureLocal = " + m_StartCaptureLocal);
 		if (!m_StartCaptureLocal) return;
 		
 		PlayerBase player;
@@ -352,8 +354,8 @@ class CaptureArea: Trigger
 	{
 		EntityAI entity = EntityAI.Cast(insider.GetObject());
 		
-		Print("INSIDER COUNT: " + m_InsiderCount);
-		Print(entity.GetType() + " is player " + entity.IsPlayer());
+		//Print("INSIDER COUNT: " + m_InsiderCount);
+		//Print(entity.GetType() + " is player " + entity.IsPlayer());
 		if (m_CapturePct < m_TotalCapturePct)
 		{
 			if (entity.IsPlayer())
@@ -376,8 +378,9 @@ class CaptureArea: Trigger
 		else
 		{
 			//OnEventCapture();
-			m_Event_Lifetime = 0;
 			g_RTBase.OnEventCapture(this);
+			m_Event_Lifetime = 0;
+			//g_RTBase.OnEventCapture(this);
 		}
 	}
 	
