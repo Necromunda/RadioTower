@@ -125,7 +125,7 @@ class CaptureArea: Trigger
 				}
 			}
 		}
-		Print("CaptureArea radius: " + m_CollisionCylinderRadius + ", height: " + m_CollisionCylinderHeight);
+		//Print("CaptureArea radius: " + m_CollisionCylinderRadius + ", height: " + m_CollisionCylinderHeight);
 		SetCollisionCylinder(m_CollisionCylinderRadius, m_CollisionCylinderHeight);
 	}
 	
@@ -215,6 +215,10 @@ class CaptureArea: Trigger
 					}
 				}
 				rtEvent.SetState(RTEventState.DELETED);
+#ifdef LBMaster
+				LBServerMarker marker = rtEvent.GetLBMapMarker();
+				g_RTBase.RemoveLBMapMarker(marker);
+#endif
 			}
 		}
 		
@@ -229,7 +233,7 @@ class CaptureArea: Trigger
 					player.SetIsInsideCaptureArea(false);
 			}
 		}*/
-		Print("[RadioTower] Capture area deleted");
+		//Print("[RadioTower] Capture area deleted");
 		DeleteSafe();
 	}
 	

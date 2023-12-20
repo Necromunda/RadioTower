@@ -1,3 +1,5 @@
+//#define LBMaster
+
 enum RTEventState
 {
 	DELETED,
@@ -38,6 +40,10 @@ class RTEvent
 	protected string m_LogMessage;
 	protected RTEventType m_EventType;
 	
+#ifdef LBMaster
+	protected ref LBServerMarker m_LBMapMarker;
+#endif
+	
 	void ~RTEvent()
 	{
 		Print("[RadioTower] RTEvent dtor");
@@ -54,6 +60,9 @@ class RTEvent
 		m_EventProps = null;
 		m_PropObjects = new array<Object>();
 		m_LogMessage = "";
+#ifdef LBMaster
+		m_LBMapMarker = null;
+#endif
 	}
 	
 	// Delete all event objects except lootbox and car
@@ -75,6 +84,10 @@ class RTEvent
 		
 		m_CaptureArea = null;
 		m_Server = null;
+#ifdef LBMaster
+		RemoveLBMapMarker(m_LBMapMarker);
+		m_LBMapMarker = null;
+#endif
 	}
 	
 	// Delete all event objects
@@ -261,6 +274,18 @@ class RTEvent
 	{ 
 		return m_EventLocation; 
 	}
+	
+#ifdef LBMaster
+	void SetLBMapMarker(out LBServerMarker markerObject)
+	{
+		m_LBMapMarker = markerObject;
+	}
+	
+	LBServerMarker GetLBMapMarker()
+	{
+		return m_LBMapMarker;
+	}
+#endif
 }
 
 class RTBase
@@ -279,6 +304,10 @@ class RTBase
 	protected bool m_AllowSameEventSpawnInARow;
 	
 	protected RTNotificationState m_NotificationState;
+	
+#ifdef LBMaster
+	protected array<ref LBServerMarker> m_LBServerMarkers;
+#endif
 	
 	void ~RTBase()
 	{
@@ -313,11 +342,32 @@ class RTBase
 			m_NotificationState = m_Settings.enableNotifications;
 		}
 		
+#ifdef LBMaster
+		m_LBServerMarkers = array<ref LBServerMarker>();
+#endif
+		
 		RTLogger.CreateInstance();
 		RTLogger.GetInstance().SetCreateLogs(enableLogging);
 		
 		m_EventSpawnTimer.Run(spawnInterval, this, "CreateEvent", NULL, true);	
 	}
+	
+#ifdef LBMaster
+	LBServerMarker CreateLBServerMarker(string name, vector position, string icon, int argb, bool display3D, bool displayMap, bool displayGPS)
+	{
+		//LBServerMarker marker = LBStaticMarkerManager.Get().AddTempServerMarker(name, position, icon, ARGB(a, r, g, b), toSurface, display3D, displayMap, displayGPS);
+		LBServerMarker marker = LBStaticMarkerManager.Get().AddTempServerMarker(name, position, icon, argb, toSurface, display3D, displayMap, displayGPS);
+		m_LBServerMarkers.Insert(marker);
+		return marker;
+	}
+	
+	bool RemoveLBServerMarker(out LBServerMarker markerObject)
+	{		
+		bool success = LBStaticMarkerManager.Get().RemoveServerMarker(markerObject);
+		m_LBServerMarkers.RemoveItem(markerObject);
+		return success;
+	}
+#endif
 	
 	void CleanupPastEvents()
 	{
@@ -631,12 +681,22 @@ class RTBase
 			}
 		}
 		
+		/* TODO
 		bool spawnZombies = m_Settings.spawnZombies;
 		if (spawnZombies)
 		{
 			int zombieCount = eventLocation.zombieCount;
 			
 		}
+		*/
+		
+#ifdef LBMaster
+		if (m_Settings.enableLBMapMarker)
+		{
+			ref LBServerMarker marker = CreateLBMapMarker(eventLocation.locationTitle, position, string icon, ARGB(255, 0, 0, 255), false, true, false);
+			m_RTEvent.SetLBMapMarker(marker);
+		}
+#endif
 		
 		m_RTEvent.SetState(RTEventState.ACTIVE);
 		m_Events.Insert(m_RTEvent);

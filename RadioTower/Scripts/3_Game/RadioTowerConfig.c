@@ -18,6 +18,7 @@ class RTSettings
 	bool prioritizeOldEvent;
 	bool spawnZombies;
 	bool showCaptureStatusSmoke;
+	bool enableLBMapMarker;
 	
 	void Defaults()
 	{	
@@ -36,6 +37,7 @@ class RTSettings
 		prioritizeOldEvent = true;
 		spawnZombies = true;
 		showCaptureStatusSmoke = true;
+		enableLBMapMarker = false;
 	}
 	
 	static ref RTSettings Load()

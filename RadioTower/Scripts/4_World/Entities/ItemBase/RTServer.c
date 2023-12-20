@@ -98,7 +98,7 @@ class RTServer extends Container_Base
 		
 		m_CaptureState = state_number;
 		SetSynchDirty();
-		Print("[RadioTower] CaptureState: " + m_CaptureState);
+		//Print("[RadioTower] CaptureState: " + m_CaptureState);
 		//UpdateActiveParticles();
 	}
 	
