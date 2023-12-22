@@ -40,7 +40,7 @@ class RTEvent
 	protected string m_LogMessage;
 	protected RTEventType m_EventType;
 	
-#ifdef LBMaster
+#ifndef LBMaster_Settings
 	protected ref LBServerMarker m_LBMapMarker;
 #endif
 	
@@ -60,7 +60,7 @@ class RTEvent
 		m_EventProps = null;
 		m_PropObjects = new array<Object>();
 		m_LogMessage = "";
-#ifdef LBMaster
+#ifndef LBMaster_Settings
 		m_LBMapMarker = null;
 #endif
 	}
@@ -84,8 +84,8 @@ class RTEvent
 		
 		m_CaptureArea = null;
 		m_Server = null;
-#ifdef LBMaster
-		RemoveLBMapMarker(m_LBMapMarker);
+#ifndef LBMaster_Settings
+		RemoveLBMapMarker();
 		m_LBMapMarker = null;
 #endif
 	}
@@ -275,8 +275,22 @@ class RTEvent
 		return m_EventLocation; 
 	}
 	
-#ifdef LBMaster
-	void SetLBMapMarker(out LBServerMarker markerObject)
+#ifndef LBMaster_Settings
+	LBServerMarker CreateLBMapMarker(string name, vector position, string icon, int argb, bool toSurface, bool display3D, bool displayMap, bool displayGPS)
+	{
+		LBServerMarker marker = LBStaticMarkerManager.Get().AddTempServerMarker(name, position, icon, argb, toSurface, display3D, displayMap, displayGPS);
+
+		return marker;
+	}
+	
+	bool RemoveLBMapMarker()
+	{	
+		bool success = LBStaticMarkerManager.Get().RemoveServerMarker(m_LBMapMarker);
+
+		return success;
+	}
+	
+	void SetLBMapMarker(LBServerMarker markerObject)
 	{
 		m_LBMapMarker = markerObject;
 	}
@@ -305,9 +319,9 @@ class RTBase
 	
 	protected RTNotificationState m_NotificationState;
 	
-#ifdef LBMaster
-	protected array<ref LBServerMarker> m_LBServerMarkers;
-#endif
+/*#ifndef LBMaster_Settings
+	protected ref array<ref LBServerMarker> m_LBMapMarkers;
+#endif*/
 	
 	void ~RTBase()
 	{
@@ -342,9 +356,9 @@ class RTBase
 			m_NotificationState = m_Settings.enableNotifications;
 		}
 		
-#ifdef LBMaster
-		m_LBServerMarkers = array<ref LBServerMarker>();
-#endif
+/*#ifndef LBMaster_Settings
+		m_LBMapMarkers = new array<ref LBServerMarker>();
+#endif*/
 		
 		RTLogger.CreateInstance();
 		RTLogger.GetInstance().SetCreateLogs(enableLogging);
@@ -352,22 +366,22 @@ class RTBase
 		m_EventSpawnTimer.Run(spawnInterval, this, "CreateEvent", NULL, true);	
 	}
 	
-#ifdef LBMaster
-	LBServerMarker CreateLBServerMarker(string name, vector position, string icon, int argb, bool display3D, bool displayMap, bool displayGPS)
+/*#ifndef LBMaster_Settings
+	LBServerMarker CreateLBMapMarker(string name, vector position, string icon, int argb, bool toSurface, bool display3D, bool displayMap, bool displayGPS)
 	{
 		//LBServerMarker marker = LBStaticMarkerManager.Get().AddTempServerMarker(name, position, icon, ARGB(a, r, g, b), toSurface, display3D, displayMap, displayGPS);
 		LBServerMarker marker = LBStaticMarkerManager.Get().AddTempServerMarker(name, position, icon, argb, toSurface, display3D, displayMap, displayGPS);
-		m_LBServerMarkers.Insert(marker);
+		m_LBMapMarkers.Insert(marker);
 		return marker;
 	}
 	
-	bool RemoveLBServerMarker(out LBServerMarker markerObject)
+	bool RemoveLBMapMarker(LBServerMarker markerObject)
 	{		
 		bool success = LBStaticMarkerManager.Get().RemoveServerMarker(markerObject);
-		m_LBServerMarkers.RemoveItem(markerObject);
+		m_LBMapMarkers.RemoveItem(markerObject);
 		return success;
 	}
-#endif
+#endif*/
 	
 	void CleanupPastEvents()
 	{
@@ -690,10 +704,11 @@ class RTBase
 		}
 		*/
 		
-#ifdef LBMaster
+#ifndef LBMaster_Settings
 		if (m_Settings.enableLBMapMarker)
 		{
-			ref LBServerMarker marker = CreateLBMapMarker(eventLocation.locationTitle, position, string icon, ARGB(255, 0, 0, 255), false, true, false);
+			string title = string.Format("KOTH: %1 Event", eventLocation.locationTitle);
+			ref LBServerMarker marker = m_RTEvent.CreateLBMapMarker(title, position, "LBmaster_Groups/gui/icons/skull.paa", ARGB(255, 200, 0, 0), false, false, true, true);
 			m_RTEvent.SetLBMapMarker(marker);
 		}
 #endif
