@@ -215,7 +215,7 @@ class CaptureArea: Trigger
 					}
 				}
 				rtEvent.SetState(RTEventState.DELETED);
-#ifndef LBMaster_Settings
+#ifdef LBMaster_Settings
 				//LBServerMarker marker = rtEvent.GetLBMapMarker();
 				rtEvent.RemoveLBMapMarker();
 #endif

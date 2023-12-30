@@ -40,7 +40,7 @@ class RTEvent
 	protected string m_LogMessage;
 	protected RTEventType m_EventType;
 	
-#ifndef LBMaster_Settings
+#ifdef LBMaster_Settings
 	protected ref LBServerMarker m_LBMapMarker;
 #endif
 	
@@ -60,7 +60,7 @@ class RTEvent
 		m_EventProps = null;
 		m_PropObjects = new array<Object>();
 		m_LogMessage = "";
-#ifndef LBMaster_Settings
+#ifdef LBMaster_Settings
 		m_LBMapMarker = null;
 #endif
 	}
@@ -84,7 +84,7 @@ class RTEvent
 		
 		m_CaptureArea = null;
 		m_Server = null;
-#ifndef LBMaster_Settings
+#ifdef LBMaster_Settings
 		RemoveLBMapMarker();
 		m_LBMapMarker = null;
 #endif
@@ -275,7 +275,7 @@ class RTEvent
 		return m_EventLocation; 
 	}
 	
-#ifndef LBMaster_Settings
+#ifdef LBMaster_Settings
 	LBServerMarker CreateLBMapMarker(string name, vector position, string icon, int argb, bool toSurface, bool display3D, bool displayMap, bool displayGPS)
 	{
 		LBServerMarker marker = LBStaticMarkerManager.Get().AddTempServerMarker(name, position, icon, argb, toSurface, display3D, displayMap, displayGPS);
@@ -319,7 +319,7 @@ class RTBase
 	
 	protected RTNotificationState m_NotificationState;
 	
-/*#ifndef LBMaster_Settings
+/*#ifdef LBMaster_Settings
 	protected ref array<ref LBServerMarker> m_LBMapMarkers;
 #endif*/
 	
@@ -356,7 +356,7 @@ class RTBase
 			m_NotificationState = m_Settings.enableNotifications;
 		}
 		
-/*#ifndef LBMaster_Settings
+/*#ifdef LBMaster_Settings
 		m_LBMapMarkers = new array<ref LBServerMarker>();
 #endif*/
 		
@@ -366,7 +366,7 @@ class RTBase
 		m_EventSpawnTimer.Run(spawnInterval, this, "CreateEvent", NULL, true);	
 	}
 	
-/*#ifndef LBMaster_Settings
+/*#ifdef LBMaster_Settings
 	LBServerMarker CreateLBMapMarker(string name, vector position, string icon, int argb, bool toSurface, bool display3D, bool displayMap, bool displayGPS)
 	{
 		//LBServerMarker marker = LBStaticMarkerManager.Get().AddTempServerMarker(name, position, icon, ARGB(a, r, g, b), toSurface, display3D, displayMap, displayGPS);
@@ -704,7 +704,7 @@ class RTBase
 		}
 		*/
 		
-#ifndef LBMaster_Settings
+#ifdef LBMaster_Settings
 		if (m_Settings.enableLBMapMarker)
 		{
 			string title = string.Format("KOTH: %1 Event", eventLocation.locationTitle);
