@@ -158,18 +158,12 @@ class RTLocations
 	void Defaults()
 	{
 		eventLocations = new array<ref RTLocation>();
-		
-		ref RTLoot eventLoot = new RTLoot();
-		/*
-		eventLoot.lootClassName = "M4A1";
-		eventLoot.attachments = new TStringArray;
-		eventLoot.attachments.Insert("M4_Suppressor");
-		*/
+	
 		ref RTLocation eventLocation = new RTLocation();
+		eventLocation.loot = new RTLoot();
 		eventLocation.captureAreaRadius = 25;
 		eventLocation.captureAreaHeight = 25;
 		eventLocation.captureAreaYAxisOffset = 0;
-		eventLocation.spawnGas = false;
 		eventLocation.zombieCount = 10;
 		eventLocation.locationTitle = "Green mountain";
 		eventLocation.lootcrateClassName = "RTLootcrate_Red";		
@@ -182,10 +176,6 @@ class RTLocations
 		eventLocation.vehicleProbability = 1;
 		eventLocation.vehicleClassName = "OffroadHatchback";
 		eventLocation.vehicleAttachments = {"HatchbackWheel", "HatchbackWheel", "HatchbackWheel", "HatchbackWheel", "HatchbackDoors_Driver"};
-		//eventLocation.loot = new array<ref RTLoot>();
-		eventLocation.loot.lootCount = 10;
-		eventLocation.loot.lootCategories = new array<ref RTLootCategory>();
-		//eventLocation.loot.Insert(eventLoot);
 		
 		eventLocations.Insert(eventLocation);
 	}
@@ -234,7 +224,7 @@ class RTLocation
 	float captureAreaRadius;
 	float captureAreaHeight;
 	float captureAreaYAxisOffset;
-	bool spawnGas;
+	//bool spawnGas;
 	int zombieCount;
     string locationTitle;
 	string lootcrateClassName;
@@ -247,7 +237,6 @@ class RTLocation
 	float vehicleProbability;
 	string vehicleClassName;
 	ref TStringArray vehicleAttachments;
-	//ref array<ref RTLoot> loot;
 	ref RTLoot loot;
 }
 

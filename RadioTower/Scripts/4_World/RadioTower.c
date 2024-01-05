@@ -859,11 +859,12 @@ class RTBase
 				}
 			}
 		}
-		
+
 		if (m_Settings.spawnZombies)
 		{
 			int zombieCount = eventLocation.zombieCount;
-			SpawnZombies(zombieCount, position, eventLocation.captureAreaRadius);
+			float radius = Math.AbsFloat(eventLocation.captureAreaRadius);
+			SpawnZombies(zombieCount, position, radius);
 		}
 		
 #ifdef LBMaster_Settings
@@ -904,22 +905,17 @@ class RTBase
 	
 	void SpawnZombies(int count, vector centerPos, float radius)
 	{
-		Print("Finding valid location...");
-		/*
-        string path = "CfgWorlds " + GetGame().GetWorldName();
-        vector temp = GetGame().ConfigGetVector(path + " centerPosition");
-
-        float world_width = temp[0] * 2;
-        float world_height = temp[1] * 2;
-		*/
-		
 		int spawnedZombies = 0;
-        int iterations = 0;
-        while(spawnedZombies <= count)
+        while(spawnedZombies < count)
         {
-            iterations++;
+			float angle = Math.RandomFloat(0, 2 * Math.PI);
+			float distance = Math.RandomFloat(0, radius);
+			float x = centerPos[0] + distance * Math.Cos(angle);
+			float z = centerPos[2] + distance * Math.Sin(angle);
+			/*
             float x = Math.RandomFloat(centerPos[0] - radius, centerPos[0] + radius);
             float z = Math.RandomFloat(centerPos[2] - radius, centerPos[2] + radius);
+			*/
             float y = GetGame().SurfaceY(x, z);
             vector position = Vector( x, y, z );
 
@@ -936,9 +932,10 @@ class RTBase
         float x = pos[0];
         float z = pos[2];
 
-        if(GetGame().SurfaceIsSea(x, z))
+        if (GetGame().SurfaceIsSea(x, z))
             return false;
-        if(GetGame().SurfaceIsPond(x, z))
+		
+        if (GetGame().SurfaceIsPond(x, z))
             return false;
 
         string surface_type;
@@ -973,7 +970,7 @@ class RTBase
             return false;
 
        
-        Print("Found safe vehicle spawn position using IsSafeSpawnPos");
+        //Print("Found safe spawn position using IsSafeSpawnPos");
         return true;
     }
 	
