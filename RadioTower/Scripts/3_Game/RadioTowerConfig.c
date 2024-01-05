@@ -160,10 +160,11 @@ class RTLocations
 		eventLocations = new array<ref RTLocation>();
 		
 		ref RTLoot eventLoot = new RTLoot();
+		/*
 		eventLoot.lootClassName = "M4A1";
 		eventLoot.attachments = new TStringArray;
 		eventLoot.attachments.Insert("M4_Suppressor");
-		
+		*/
 		ref RTLocation eventLocation = new RTLocation();
 		eventLocation.captureAreaRadius = 25;
 		eventLocation.captureAreaHeight = 25;
@@ -181,8 +182,10 @@ class RTLocations
 		eventLocation.vehicleProbability = 1;
 		eventLocation.vehicleClassName = "OffroadHatchback";
 		eventLocation.vehicleAttachments = {"HatchbackWheel", "HatchbackWheel", "HatchbackWheel", "HatchbackWheel", "HatchbackDoors_Driver"};
-		eventLocation.loot = new array<ref RTLoot>();
-		eventLocation.loot.Insert(eventLoot);
+		//eventLocation.loot = new array<ref RTLoot>();
+		eventLocation.loot.lootCount = 10;
+		eventLocation.loot.lootCategories = new array<ref RTLootCategory>();
+		//eventLocation.loot.Insert(eventLoot);
 		
 		eventLocations.Insert(eventLocation);
 	}
@@ -244,12 +247,126 @@ class RTLocation
 	float vehicleProbability;
 	string vehicleClassName;
 	ref TStringArray vehicleAttachments;
-	ref array<ref RTLoot> loot;
+	//ref array<ref RTLoot> loot;
+	ref RTLoot loot;
 }
 
+class RTLoot
+{
+	int lootCount;
+	ref array<ref RTLootCategory> lootCategories;
+	
+	float GetTotalCategoriesProbability()
+	{
+		float totalProbability = 0;
+		
+		if (lootCategories)
+		{
+			for (int i = 0; i < lootCategories.Count(); i++)
+			{
+				totalProbability += lootCategories[i].probability;
+			}
+		}
+		
+		return totalProbability;
+	}
+	
+	// Useful when making sure that lootCount is higher than all the category limits combined because otherwise we have problems
+	int GetTotalCategoriesLimit()
+	{
+		float totalLimit = 0;
+		
+		if (lootCategories)
+		{
+			for (int i = 0; i < lootCategories.Count(); i++)
+			{
+				totalLimit += lootCategories[i].limit;
+			}
+		}
+		
+		return totalLimit;
+	}
+}
+
+class RTLootCategory
+{
+	string lootCategoryTitle;
+	float probability;
+	int limit;
+	int lootedCount;
+	ref array<ref RTLootItem> items;
+	
+	float GetTotalItemsProbability()
+	{
+		float totalProbability = 0;
+				
+		if (items)
+		{
+			for (int i = 0; i < items.Count(); i++)
+			{
+				totalProbability += items[i].probability;
+			}
+		}
+		
+		return totalProbability;
+	}
+}
+
+class RTLootItem
+{
+	string lootItemClassName;
+	float probability;
+	int quantity;
+	ref array<ref RTLootItemAttachmentCategory> attachmentCategories;
+	
+	float GetTotalAttachmentCategoriesProbability()
+	{
+		float totalProbability = 0;
+		
+		if (attachmentCategories)
+		{
+			for (int i = 0; i < attachmentCategories.Count(); i++)
+			{
+				totalProbability += attachmentCategories[i].probability;
+			}
+		}
+		
+		return totalProbability;
+	}
+}
+
+class RTLootItemAttachmentCategory
+{
+	string attachmentCategoryTitle;
+	float probability;
+	ref array<ref RTLootItemAttachment> attachments;
+	
+	float GetTotalAttachmentsProbability()
+	{
+		float totalProbability = 0;
+		
+		if (attachments)
+		{
+			for (int i = 0; i < attachments.Count(); i++)
+			{
+				totalProbability += attachments[i].probability;
+			}
+		}
+		
+		return totalProbability;
+	}
+}
+
+class RTLootItemAttachment
+{
+	string attachmentClassName;
+	float probability;
+}
+/*
 class RTLoot
 {
     string lootClassName;
 	int quantity;
 	ref TStringArray attachments;
 }
+*/

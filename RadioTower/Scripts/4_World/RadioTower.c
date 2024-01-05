@@ -118,6 +118,7 @@ class RTEvent
 		}
 	}
 	
+	/*
 	void SpawnEventLootCrate()
 	{
 		string msg = "Spawning lootcrate";
@@ -172,6 +173,170 @@ class RTEvent
 				for (int k = 0; k < vehicleAttachments.Count(); k++)
 				{
 					entity.GetInventory().CreateAttachment(vehicleAttachments[k]);
+				}
+			}
+		}
+	}
+	*/
+	
+	void SpawnEventLootCrate()
+	{
+		string msg = "Spawning lootcrate";
+		Print("[RadioTower] " + msg);
+		m_LogMessage = GetEventTitle() + ": " + m_LogMessage;
+		RTLogger.GetInstance().LogMessage(m_LogMessage);
+		
+		if (m_EventLocation)
+		{
+			vector pos = m_EventLocation.lootcrateCoordinatesXYZ;
+			vector orientation = m_EventLocation.lootcrateOrientationYPR;
+			string lootcrate = m_EventLocation.lootcrateClassName;
+			if (!lootcrate || lootcrate == "")
+				lootcrate = g_RTBase.GetDefaultLootcrateClassName();;
+			
+			RTLootcrate_Base crate;
+			if (RTLootcrate_Base.CastTo(crate, GetGame().CreateObject(lootcrate, pos, ECE_LOCAL | ECE_KEEPHEIGHT)))
+			{
+				crate.SetOrientation(orientation);
+
+				SpawnLoot(crate);
+			}
+			
+			string vehicleName = m_EventLocation.vehicleClassName;
+			vector vehiclePosition = m_EventLocation.vehicleCoordinatesXYZ;
+			vector vehicleOrientation = m_EventLocation.vehicleOrientationYPR;
+			TStringArray vehicleAttachments = m_EventLocation.vehicleAttachments;
+			float vehicleProbability = Math.Clamp(m_EventLocation.vehicleProbability, 0, 1);
+			
+			if (Math.RandomFloat(0, 1) <= vehicleProbability)
+			{
+				Object obj = g_RTBase.SpawnObject(vehicleName, vehiclePosition, vehicleOrientation);
+				EntityAI entity = EntityAI.Cast(obj);
+				for (int k = 0; k < vehicleAttachments.Count(); k++)
+				{
+					entity.GetInventory().CreateAttachment(vehicleAttachments[k]);
+				}
+			}
+		}
+	}
+	
+	void SpawnLoot(RTLootcrate_Base target)
+	{
+		array<ref RTLootCategory> categories = m_EventLocation.loot.lootCategories;
+	    float totalCategoriesProbability = m_EventLocation.loot.GetTotalCategoriesProbability();
+		int lootCount = m_EventLocation.loot.lootCount;
+		int totalLimit = m_EventLocation.loot.GetTotalCategoriesLimit();
+		
+		if (lootCount > totalLimit)
+		{
+			lootCount = totalLimit;
+		}
+	
+	    for (int i = 0; i < lootCount; i++)
+	    {
+	        float randomValue = Math.RandomFloat(0, totalCategoriesProbability);
+	        float cumulativeProbability = 0;
+	        EntityAI entity = null;
+	
+	        // Iterate through each category and its items to determine the spawned item
+	        for (int j = 0; j < categories.Count(); j++)
+	        {
+				RTLootCategory category = categories[j];
+	            cumulativeProbability += category.probability;
+	
+	            if (randomValue <= cumulativeProbability)
+	            {
+	                array<ref RTLootItem> items = category.items;
+					int lootLimit = category.limit;
+					int lootedCount = category.lootedCount;
+					
+					if(lootLimit > 0 && lootedCount >= lootLimit)
+					{
+						i--;
+						break;
+					}
+					
+					category.lootedCount++;
+	
+	                // Calculate the total probability for items within the category
+	                float totalItemProbability = category.GetTotalItemsProbability();
+	                float randomItemValue = Math.RandomFloat(0, totalItemProbability);
+	                float cumulativeItemProbability = 0;
+	
+	                // Iterate through the items within the category to determine the spawned item
+	                for (int k = 0; k < items.Count(); k++)
+	                {
+						RTLootItem item = items[k];
+	                    cumulativeItemProbability += item.probability;
+	
+	                    if (randomItemValue <= cumulativeItemProbability)
+	                    {
+	                        entity = target.GetInventory().CreateEntityInCargo(item.lootItemClassName);
+							
+							if(item.quantity > 1)
+							{
+								/*
+								ItemBase item = ItemBase.Cast(entity);
+								int quantity = items.Quantity;
+								if (items.HasRandomQuantity)
+								{
+									quantity = Math.RandomInt(1, quantity);
+								}
+								item.SetQuantity(quantity);
+								*/
+							}
+	                        SpawnAttachments(entity, item.attachmentCategories);
+	                        break;
+	                    }
+	                }
+	                break;
+	            }
+	        }
+	    }
+	}
+	
+	void SpawnAttachments(EntityAI target, ref array<ref RTLootItemAttachmentCategory> attachmentCategories)
+	{
+		if (attachmentCategories.Count() == 0)
+			return;
+		
+		if (target.GetInventory().GetAttachmentSlotsCount() == 0)
+			return;
+		
+		array<string> spawnedAttachments = {};
+
+		for(int l = 0; l < attachmentCategories.Count(); l++)
+		{
+			RTLootItemAttachmentCategory category = attachmentCategories[l];
+			
+			if (category.probability <= 0)
+				continue;
+			
+			float randomCategoryValue = Math.RandomFloat(0, 1);
+			
+			if (category.probability >= 1 || randomCategoryValue < category.probability)
+			{
+				float totalItemAttachmentsProbability = category.GetTotalAttachmentsProbability();
+				float randomAttachmentValue = Math.RandomFloat(0, totalItemAttachmentsProbability);
+				float cumulativeItemAttachmentsProbability = 0;
+
+				for(int m = 0; m < category.attachments.Count(); m++)
+				{
+					RTLootItemAttachment attachment = category.attachments[m];
+					if (attachment.probability < 1)
+					{
+						cumulativeItemAttachmentsProbability += attachment.probability;
+					}
+					
+					if (attachment.probability >= 1 || randomAttachmentValue <= cumulativeItemAttachmentsProbability)
+					{
+						if (spawnedAttachments.Find(attachment.attachmentClassName) == -1)
+						{
+							spawnedAttachments.Insert(attachment.attachmentClassName);
+							target.GetInventory().CreateAttachment(attachment.attachmentClassName);
+						}
+						break;
+					}
 				}
 			}
 		}
@@ -695,14 +860,11 @@ class RTBase
 			}
 		}
 		
-		/* TODO
-		bool spawnZombies = m_Settings.spawnZombies;
-		if (spawnZombies)
+		if (m_Settings.spawnZombies)
 		{
 			int zombieCount = eventLocation.zombieCount;
-			
+			SpawnZombies(zombieCount, position, eventLocation.captureAreaRadius);
 		}
-		*/
 		
 #ifdef LBMaster_Settings
 		if (m_Settings.enableLBMapMarker)
@@ -739,6 +901,81 @@ class RTBase
 			rtEvent.GetEventTrigger().SetCapture(true);
 		}
 	}
+	
+	void SpawnZombies(int count, vector centerPos, float radius)
+	{
+		Print("Finding valid location...");
+		/*
+        string path = "CfgWorlds " + GetGame().GetWorldName();
+        vector temp = GetGame().ConfigGetVector(path + " centerPosition");
+
+        float world_width = temp[0] * 2;
+        float world_height = temp[1] * 2;
+		*/
+		
+		int spawnedZombies = 0;
+        int iterations = 0;
+        while(spawnedZombies <= count)
+        {
+            iterations++;
+            float x = Math.RandomFloat(centerPos[0] - radius, centerPos[0] + radius);
+            float z = Math.RandomFloat(centerPos[2] - radius, centerPos[2] + radius);
+            float y = GetGame().SurfaceY(x, z);
+            vector position = Vector( x, y, z );
+
+            if (IsSafeSpawnPos(position))
+            {
+				spawnedZombies++;
+				GetGame().CreateObject("ZmbM_PatientSkinny", position, false, true);
+			}	
+		}
+	}
+	
+	bool IsSafeSpawnPos(vector pos)
+    {
+        float x = pos[0];
+        float z = pos[2];
+
+        if(GetGame().SurfaceIsSea(x, z))
+            return false;
+        if(GetGame().SurfaceIsPond(x, z))
+            return false;
+
+        string surface_type;
+        GetGame().SurfaceGetType(x, z, surface_type);
+
+        string cfgSurfacePath = "CfgSurfaces " + surface_type;
+        int is_interior = GetGame().ConfigGetInt(cfgSurfacePath + " interior");
+
+         //Invalid if GetInt(CfgSurfaces >> surface_type >> interior) == 1
+        if(is_interior == 1)
+            return false;
+
+        float friction = GetGame().ConfigGetFloat(cfgSurfacePath + " friction");
+
+        //Invalid if GetFloat(... friction) < 0.94     
+        if(friction < 0.94)
+            return false;
+
+
+        vector start = pos;
+        vector end = pos + Vector( 0, 1, 0 );
+        float radius = 2.0; 
+        PhxInteractionLayers collisionLayerMask = PhxInteractionLayers.VEHICLE|PhxInteractionLayers.BUILDING|PhxInteractionLayers.DOOR|PhxInteractionLayers.ITEM_LARGE|PhxInteractionLayers.FENCE;
+        Object m_HitObject;
+        vector m_HitPosition;
+        vector m_HitNormal;
+        float m_HitFraction;
+
+        //check if safe from object collisions using same raycast as players tp
+        bool m_Hit = DayZPhysics.SphereCastBullet( start, end, radius, collisionLayerMask, NULL, m_HitObject, m_HitPosition, m_HitNormal, m_HitFraction );
+        if(m_Hit)
+            return false;
+
+       
+        Print("Found safe vehicle spawn position using IsSafeSpawnPos");
+        return true;
+    }
 	
 	void OnEventCapture(CaptureArea trigger)
 	{
