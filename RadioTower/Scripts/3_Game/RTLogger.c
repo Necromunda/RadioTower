@@ -25,7 +25,20 @@ class RTLogger
 		
 		if(fileHandle != 0)
 		{
-			FPrintln(fileHandle,"[" + GetCurrentDateAndTime() + "]	" + message);
+			FPrintln(fileHandle, "[" + GetCurrentDateAndTime() + "]	" + message);
+			CloseFile(fileHandle);
+		}
+	}
+	
+	void LogCaptureEvent()
+	{
+		if (!createLogs) return;
+		
+		FileHandle fileHandle = OpenFile(logFilePath, FileMode.APPEND);
+		
+		if(fileHandle != 0)
+		{
+			FPrintln(fileHandle, "[" + GetCurrentDateAndTime() + "]	" + message);
 			CloseFile(fileHandle);
 		}
 	}

@@ -173,7 +173,7 @@ class RTLocations
 		eventLocation.lootcrateOrientationYPR = {2, 0, 0};
 		eventLocation.vehicleCoordinatesXYZ = {3696.678467, 402.303986, 5992.726074};
 		eventLocation.vehicleOrientationYPR = {0, 0, 0};
-		eventLocation.vehicleProbability = 1;
+		eventLocation.vehicleProbability = 0.5;
 		eventLocation.vehicleClassName = "OffroadHatchback";
 		eventLocation.vehicleAttachments = {"HatchbackWheel", "HatchbackWheel", "HatchbackWheel", "HatchbackWheel", "HatchbackDoors_Driver"};
 		

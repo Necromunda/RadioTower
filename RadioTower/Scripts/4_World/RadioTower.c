@@ -736,10 +736,6 @@ class RTBase
 	
     void CreateEvent()
     {
-		m_LogMessage = "Creating event";
-		Print("[RadioTower] " + m_LogMessage);
-		RTLogger.GetInstance().LogMessage(m_LogMessage);
-		
 		array<int> exhaustedEventIndexes = {};
 		int eventLocationCount = GetEventLocationCount();
 		int eventLocationIndex = Math.RandomInt(0, eventLocationCount);
@@ -758,9 +754,7 @@ class RTBase
 			{
 				if (exhaustedEventIndexes.Count() == eventLocationCount)
 				{
-					m_LogMessage = "No available event locations";
-					Print("[RadioTower] " + m_LogMessage);
-					RTLogger.GetInstance().LogMessage(m_LogMessage);
+					Print("[RadioTower] No available event locations");
 					return;
 				}
 				eventLocationIndex = Math.RandomInt(0, eventLocationCount);
@@ -770,6 +764,7 @@ class RTBase
 			isValid = IsEventLocationValid(eventLocation);
 		}
 		
+		m_LogMessage = "Event created in " + eventLocation.locationTitle;
 		Print("[RadioTower] " + m_LogMessage);
 		RTLogger.GetInstance().LogMessage(m_LogMessage);
 		
@@ -783,53 +778,14 @@ class RTBase
 		
 		vector position = eventLocation.locationCoordinatesXYZ;
 		vector orientation = eventLocation.locationOrientationYPR;
-		/*
-		vector lootcratePosition = eventLocation.lootcrateCoordinatesXYZ;
-		vector vehiclePosition = eventLocation.vehicleCoordinatesXYZ;
-		string vehicleClassname = eventLocation.vehicleClassName;
-		
-		/*
-		array<Object> objects = new array<Object>;
-		GetGame().GetObjectsAtPosition(position, 1, objects, null);
-		foreach(Object obj: objects)
-		{
-			if (obj.IsKindOf("RTServer_Base"))
-			{
-				RTServer server;
-				if (RTServer.CastTo(server, obj))
-				{
-					RTEvent rtEvent = GetRTEventWithServer(server);
-					if (rtEvent)
-						rtEvent.CleanUp();
-				}
-				GetGame().ObjectDelete(serverObj);
-			}
-		}
-		objects.Clear();
-		GetGame().GetObjectsAtPosition(lootcratePosition, 1, objects, null);
-		foreach(Object obj: objects)
-		{
-			if (obj.IsKindOf("RTLootcrate_Base"))
-				GetGame().ObjectDelete(obj);
-		}
-		objects.Clear();
-		GetGame().GetObjectsAtPosition(vehiclePosition, 1, objects, null);
-		foreach(Object obj: objects)
-		{
-			if (obj.IsKindOf(vehicleClassname))
-				GetGame().ObjectDelete(obj);
-		}
-		*/
 		
 		m_RTEvent.CleanUpAll();
 		
-		//bool showCaptureStatusSmoke = m_Settings.showCaptureStatusSmoke;
 		RTServer item;
 		if (RTServer.CastTo(item, GetGame().CreateObjectEx("RTServer", position, ECE_KEEPHEIGHT)))
 		{
 			item.SetPosition(position);
 			item.SetOrientation(orientation);
-			//item.SetOrientation(item.GetOrientation());
 			item.SetFlags(EntityFlags.STATIC, false);
 			item.Update();
 
@@ -854,7 +810,6 @@ class RTBase
 			{
 				if (m_RTEvent.GetEventTitle() == locationProps.locationTitle)
 				{
-					//m_RTEvent.SetEventProps(locationProps);
 					m_RTEvent.SpawnProps(locationProps);
 				}
 			}

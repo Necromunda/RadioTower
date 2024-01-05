@@ -335,7 +335,8 @@ class CaptureArea: Trigger
 	{
 		super.OnEnterServerEvent(insider);
 
-		Print("SERVER OnEnter");
+		RTLogger.GetInstance().LogMessage("Player " + insider.GetObject().GetName() + " entered capture area");
+		//Print("SERVER OnEnter");
 		m_InsiderCount = GetInsiders().Count();
 		SetSynchDirty();
 	}
@@ -344,7 +345,8 @@ class CaptureArea: Trigger
 	{
 		super.OnLeaveServerEvent(insider);
 		
-		Print("SERVER OnLeave");
+		RTLogger.GetInstance().LogMessage("Player " + insider.GetObject().GetName() + " left capture area");
+		//Print("SERVER OnLeave");
 		if (!m_StartCapture) return;
 		
 		if (m_CaptureTimer.IsRunning())
