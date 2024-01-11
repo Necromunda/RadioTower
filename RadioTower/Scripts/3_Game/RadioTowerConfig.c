@@ -351,11 +351,3 @@ class RTLootItemAttachment
 	string attachmentClassName;
 	float probability;
 }
-/*
-class RTLoot
-{
-    string lootClassName;
-	int quantity;
-	ref TStringArray attachments;
-}
-*/

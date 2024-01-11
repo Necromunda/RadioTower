@@ -1,5 +1,3 @@
-//#define LBMaster
-
 enum RTEventState
 {
 	DELETED,
@@ -12,8 +10,6 @@ enum RTNotificationState
 {
 	DISABLED = 0,
 	ENABLED = 1
-	//CHAT = 2,
-	//POPUP = 3
 }
 
 enum RTNotificationType
@@ -39,6 +35,8 @@ class RTEvent
 	protected ref array<Object> m_PropObjects;
 	protected string m_LogMessage;
 	protected RTEventType m_EventType;
+	protected ref array<EntityAI> m_Zombies;
+	protected EntityAI m_Lootcrate;
 	
 #ifdef LBMaster_Settings
 	protected ref LBServerMarker m_LBMapMarker;
@@ -46,12 +44,12 @@ class RTEvent
 	
 	void ~RTEvent()
 	{
-		Print("[RadioTower] RTEvent dtor");
+		//Print("[RadioTower] RTEvent dtor");
 	}
 	
 	void RTEvent()
 	{
-		Print("[RadioTower] RTEvent ctor");
+		//Print("[RadioTower] RTEvent ctor");
 		
 		m_State = RTEventState.DELETED;
 		m_Server = null;
@@ -60,6 +58,8 @@ class RTEvent
 		m_EventProps = null;
 		m_PropObjects = new array<Object>();
 		m_LogMessage = "";
+		m_Zombies = new array<EntityAI>();
+		m_Lootcrate = null;
 #ifdef LBMaster_Settings
 		m_LBMapMarker = null;
 #endif
@@ -82,6 +82,12 @@ class RTEvent
 				GetGame().ObjectDelete(m_PropObjects[i]);
 		}
 		
+		for (int j = 0; j < m_Zombies.Count(); j++)
+		{
+			if (m_Zombies[j])
+				GetGame().ObjectDelete(m_Zombies[j]);
+		}
+		
 		m_CaptureArea = null;
 		m_Server = null;
 #ifdef LBMaster_Settings
@@ -99,16 +105,22 @@ class RTEvent
 			vector lootcratePosition = m_EventLocation.lootcrateCoordinatesXYZ;
 			vector vehiclePosition = m_EventLocation.vehicleCoordinatesXYZ;
 			string vehicleClassname = m_EventLocation.vehicleClassName;
+			string lootcrateClassName = GetLootcrateClassName();
 			
 			CleanUp();
 			
 			GetGame().GetObjectsAtPosition(lootcratePosition, 1, objects, null);
-			foreach(Object serverObj: objects)
+			foreach(Object crateObj: objects)
 			{
-				if (serverObj.IsKindOf("RTLootcrate_Base"))
-					GetGame().ObjectDelete(serverObj);
+				//if (crateObj.IsKindOf("RTLootcrate_Base"))
+				if (crateObj.IsKindOf("Container_Base"))
+					GetGame().ObjectDelete(crateObj);
 			}
 			objects.Clear();
+			
+			//if (m_Lootcrate)
+				//GetGame().ObjectDelete(m_Lootcrate);
+			
 			GetGame().GetObjectsAtPosition(vehiclePosition, 1, objects, null);
 			foreach(Object vehicleObj: objects)
 			{
@@ -118,72 +130,38 @@ class RTEvent
 		}
 	}
 	
-	/*
-	void SpawnEventLootCrate()
+	void SpawnZombies(int count, vector centerPos, float radius)
 	{
-		string msg = "Spawning lootcrate";
-		Print("[RadioTower] " + msg);
-		m_LogMessage = GetEventTitle() + ": " + m_LogMessage;
-		RTLogger.GetInstance().LogMessage(m_LogMessage);
-		
-		if (m_EventLocation)
-		{
-			vector pos = m_EventLocation.lootcrateCoordinatesXYZ;
-			vector orientation = m_EventLocation.lootcrateOrientationYPR;
-			string lootcrate = m_EventLocation.lootcrateClassName;
-			if (!lootcrate || lootcrate == "")
-				lootcrate = g_RTBase.GetDefaultLootcrateClassName();;
-			
-			RTLootcrate_Base crate;
-			if (RTLootcrate_Base.CastTo(crate, GetGame().CreateObject(lootcrate, pos, ECE_LOCAL | ECE_KEEPHEIGHT)))
-			{
-				crate.SetOrientation(orientation);
-				array<ref RTLoot> loot = m_EventLocation.loot;
-				for (int i = 0; i < loot.Count(); i++)
-				{
-					ItemBase item;
-					if (ItemBase.CastTo(item, crate.GetInventory().CreateEntityInCargo(loot[i].lootClassName)))
-					{
-						m_LogMessage = "Item: " + loot[i].lootClassName;
-						RTLogger.GetInstance().LogMessage(m_LogMessage);
-						string attachmentsMsg = "";
-						
-						TStringArray attachments = loot[i].attachments;
-						for (int j = 0; j < attachments.Count(); j++)
-						{
-							item.GetInventory().CreateAttachment(attachments[j]);
-							attachmentsMsg += attachments[j] + ", ";
-						}
-						m_LogMessage += " attachments: " + attachmentsMsg;
-						RTLogger.GetInstance().LogMessage(m_LogMessage);
-					}
-				}
-			}
-			
-			string vehicleName = m_EventLocation.vehicleClassName;
-			vector vehiclePosition = m_EventLocation.vehicleCoordinatesXYZ;
-			vector vehicleOrientation = m_EventLocation.vehicleOrientationYPR;
-			TStringArray vehicleAttachments = m_EventLocation.vehicleAttachments;
-			float vehicleProbability = Math.Clamp(m_EventLocation.vehicleProbability, 0, 1);
-			
-			if (Math.RandomFloat(0, 1) <= vehicleProbability)
-			{
-				Object obj = g_RTBase.SpawnObject(vehicleName, vehiclePosition, vehicleOrientation);
-				EntityAI entity = EntityAI.Cast(obj);
-				for (int k = 0; k < vehicleAttachments.Count(); k++)
-				{
-					entity.GetInventory().CreateAttachment(vehicleAttachments[k]);
-				}
-			}
+		int spawnedZombies = 0;
+        while(spawnedZombies < count)
+        {
+			float angle = Math.RandomFloat(0, 2 * Math.PI);
+			float distance = Math.RandomFloat(0, radius);
+			float x = centerPos[0] + distance * Math.Cos(angle);
+			float z = centerPos[2] + distance * Math.Sin(angle);
+			/*
+            float x = Math.RandomFloat(centerPos[0] - radius, centerPos[0] + radius);
+            float z = Math.RandomFloat(centerPos[2] - radius, centerPos[2] + radius);
+			*/
+            float y = GetGame().SurfaceY(x, z);
+            vector position = Vector( x, y, z );
+
+            if (g_RTBase.IsSafeSpawnPos(position))
+            {
+				string zombieClassname = RTConstants.GetRandomZombieClassname();
+				ref EntityAI zombie;
+				if (EntityAI.CastTo(zombie, GetGame().CreateObject(zombieClassname, position, false, true)))
+					m_Zombies.Insert(zombie);
+				spawnedZombies++;
+			}	
 		}
 	}
-	*/
 	
 	void SpawnEventLootCrate()
 	{
-		string msg = "Spawning lootcrate";
+		string msg = "Spawning lootcrate in " + GetEventTitle();
 		Print("[RadioTower] " + msg);
-		m_LogMessage = GetEventTitle() + ": " + m_LogMessage;
+		m_LogMessage = "[Spawn loot] " + GetEventTitle();
 		RTLogger.GetInstance().LogMessage(m_LogMessage);
 		
 		if (m_EventLocation)
@@ -192,8 +170,9 @@ class RTEvent
 			vector orientation = m_EventLocation.lootcrateOrientationYPR;
 			string lootcrate = m_EventLocation.lootcrateClassName;
 			if (!lootcrate || lootcrate == "")
-				lootcrate = g_RTBase.GetDefaultLootcrateClassName();;
+				lootcrate = g_RTBase.GetDefaultLootcrateClassName();
 			
+			/*
 			RTLootcrate_Base crate;
 			if (RTLootcrate_Base.CastTo(crate, GetGame().CreateObject(lootcrate, pos, ECE_LOCAL | ECE_KEEPHEIGHT)))
 			{
@@ -201,6 +180,15 @@ class RTEvent
 
 				SpawnLoot(crate);
 			}
+			*/
+			ref EntityAI crate;
+			if (EntityAI.CastTo(crate, GetGame().CreateObject(lootcrate, pos, ECE_LOCAL | ECE_KEEPHEIGHT)))
+			{
+				m_Lootcrate = crate;
+				m_Lootcrate.SetOrientation(orientation);
+
+				SpawnLoot(m_Lootcrate);
+			}
 			
 			string vehicleName = m_EventLocation.vehicleClassName;
 			vector vehiclePosition = m_EventLocation.vehicleCoordinatesXYZ;
@@ -220,7 +208,8 @@ class RTEvent
 		}
 	}
 	
-	void SpawnLoot(RTLootcrate_Base target)
+	//void SpawnLoot(RTLootcrate_Base target)
+	void SpawnLoot(EntityAI target)
 	{
 		array<ref RTLootCategory> categories = m_EventLocation.loot.lootCategories;
 	    float totalCategoriesProbability = m_EventLocation.loot.GetTotalCategoriesProbability();
@@ -273,17 +262,17 @@ class RTEvent
 	                    {
 	                        entity = target.GetInventory().CreateEntityInCargo(item.lootItemClassName);
 							
+							RTLogger.GetInstance().LogMessage("[Item] " + item.lootItemClassName);
+							
 							if(item.quantity > 1)
 							{
-								/*
-								ItemBase item = ItemBase.Cast(entity);
-								int quantity = items.Quantity;
-								if (items.HasRandomQuantity)
+								ItemBase ingameItem = ItemBase.Cast(entity);
+								int quantity = item.quantity;
+								/*if (item.HasRandomQuantity)
 								{
 									quantity = Math.RandomInt(1, quantity);
-								}
-								item.SetQuantity(quantity);
-								*/
+								}*/
+								ingameItem.SetQuantity(quantity);
 							}
 	                        SpawnAttachments(entity, item.attachmentCategories);
 	                        break;
@@ -334,6 +323,7 @@ class RTEvent
 						{
 							spawnedAttachments.Insert(attachment.attachmentClassName);
 							target.GetInventory().CreateAttachment(attachment.attachmentClassName);
+							RTLogger.GetInstance().LogMessage("[Att] " + attachment.attachmentClassName);
 						}
 						break;
 					}
@@ -417,7 +407,10 @@ class RTEvent
 	
 	string GetLootcrateClassName() 					
 	{ 
-		return m_EventLocation.lootcrateClassName; 
+		string crate = m_EventLocation.lootcrateClassName;
+		if (!crate || crate == "")
+			return g_RTBase.GetDefaultLootcrateClassName();
+		return crate; 
 	}
 	
 	RTEventState GetState()
@@ -484,19 +477,15 @@ class RTBase
 	
 	protected RTNotificationState m_NotificationState;
 	
-/*#ifdef LBMaster_Settings
-	protected ref array<ref LBServerMarker> m_LBMapMarkers;
-#endif*/
-	
 	void ~RTBase()
 	{
 		RTLogger.ClearInstance();
-		Print("[RadioTower] RTBase dtor");
+		//Print("[RadioTower] RTBase dtor");
 	}
 	
 	void RTBase()
 	{
-		Print("[RadioTower] RTBase ctor");
+		//Print("[RadioTower] RTBase ctor");
 		
 		m_Settings = RTSettings.Load();
 		m_Props = RTProps.Load();
@@ -521,32 +510,11 @@ class RTBase
 			m_NotificationState = m_Settings.enableNotifications;
 		}
 		
-/*#ifdef LBMaster_Settings
-		m_LBMapMarkers = new array<ref LBServerMarker>();
-#endif*/
-		
 		RTLogger.CreateInstance();
 		RTLogger.GetInstance().SetCreateLogs(enableLogging);
 		
 		m_EventSpawnTimer.Run(spawnInterval, this, "CreateEvent", NULL, true);	
 	}
-	
-/*#ifdef LBMaster_Settings
-	LBServerMarker CreateLBMapMarker(string name, vector position, string icon, int argb, bool toSurface, bool display3D, bool displayMap, bool displayGPS)
-	{
-		//LBServerMarker marker = LBStaticMarkerManager.Get().AddTempServerMarker(name, position, icon, ARGB(a, r, g, b), toSurface, display3D, displayMap, displayGPS);
-		LBServerMarker marker = LBStaticMarkerManager.Get().AddTempServerMarker(name, position, icon, argb, toSurface, display3D, displayMap, displayGPS);
-		m_LBMapMarkers.Insert(marker);
-		return marker;
-	}
-	
-	bool RemoveLBMapMarker(LBServerMarker markerObject)
-	{		
-		bool success = LBStaticMarkerManager.Get().RemoveServerMarker(markerObject);
-		m_LBMapMarkers.RemoveItem(markerObject);
-		return success;
-	}
-#endif*/
 	
 	void CleanupPastEvents()
 	{
@@ -672,6 +640,8 @@ class RTBase
 		if (eventLocationCount == 0)
 		{
 			m_LogMessage = "Possible misconfiguration! RTLocations.json has 0 locations";
+			Print("[RadioTower] " + m_LogMessage);
+			RTLogger.GetInstance().LogMessage("[Warning] " + m_LogMessage);
 			m_EventSpawnTimer.Stop();
 			return false;
 		}
@@ -686,11 +656,13 @@ class RTBase
 				if (eventLocationCount == 1)
 				{
 					m_LogMessage = "Possible misconfiguration! Event could not be created because allowSameEventSpawnInARow = true and RTLocations.json only has one location";
+					Print("[RadioTower] " + m_LogMessage);
+					RTLogger.GetInstance().LogMessage("[Warning] " + m_LogMessage);
 					m_EventSpawnTimer.Stop();
 				}
 				else
 				{
-					m_LogMessage = "Can't create event in " + locationTitle + " because it was the last event";
+					Print("[RadioTower] Can't create event in " + locationTitle + " because it was the last event");
 				}
 				return false;
 			}
@@ -707,7 +679,7 @@ class RTBase
 				// If allowing multiple events, ignore prioritizeOldEvent
 				if (m_Settings && m_Settings.prioritizeOldEvent && !m_Settings.enableConcurrentEvents)
 				{
-					m_LogMessage = "Trying to create event but " + pastEventTitle + " is still active!";
+					Print("[RadioTower] Trying to create event but " + pastEventTitle + " is still active!");
 					return false;
 				}
 				
@@ -715,22 +687,14 @@ class RTBase
 				{
 					if (pastEvent.IsCaptureInProgress())
 					{
-						m_LogMessage = "Trying to create event but " + pastEventTitle + " is still being captured!";
+						Print("[RadioTower] Trying to create event but " + pastEventTitle + " is still being captured!");
 						return false;
 					}
 				}
 			} 
-			/*else if (pastEvent.IsActive())
-			{
-				if (m_Settings && m_Settings.prioritizeOldEvent)
-				{
-					m_LogMessage = "Trying to create event but " + pastEventTitle + " is still active!";
-					return false;
-				}
-			}*/
 		}
 		
-		m_LogMessage = "Valid event location";
+		Print("[RadioTower] Valid event location");
 		return true;
 	}
 	
@@ -764,17 +728,13 @@ class RTBase
 			isValid = IsEventLocationValid(eventLocation);
 		}
 		
-		m_LogMessage = "Event created in " + eventLocation.locationTitle;
-		Print("[RadioTower] " + m_LogMessage);
-		RTLogger.GetInstance().LogMessage(m_LogMessage);
-		
 		if (m_Settings && !m_Settings.enableConcurrentEvents)
 			CleanupPastEvents();
 		
-		RTEventType type = eventLocation.spawnGas;
+		//RTEventType type = eventLocation.spawnGas;
 		m_RTEvent = new RTEvent();
 		m_RTEvent.SetEventLocation(eventLocation);
-		m_RTEvent.SetEventType(type);
+		//m_RTEvent.SetEventType(type);
 		
 		vector position = eventLocation.locationCoordinatesXYZ;
 		vector orientation = eventLocation.locationOrientationYPR;
@@ -819,7 +779,8 @@ class RTBase
 		{
 			int zombieCount = eventLocation.zombieCount;
 			float radius = Math.AbsFloat(eventLocation.captureAreaRadius);
-			SpawnZombies(zombieCount, position, radius);
+			//SpawnZombies(zombieCount, position, radius);
+			m_RTEvent.SpawnZombies(zombieCount, position, radius);
 		}
 		
 #ifdef LBMaster_Settings
@@ -834,14 +795,13 @@ class RTBase
 		m_RTEvent.SetState(RTEventState.ACTIVE);
 		m_Events.Insert(m_RTEvent);
 		
-		m_LogMessage = "Server has been located in " + eventLocation.locationTitle + "!";
 		RTLogger.GetInstance().LogMessage("[Event created] " + eventLocation.locationTitle);
 		if (IsNotificationAllowed(RTNotificationType.CREATE))
 		{
-			RTMsgHandler.RTSendChatMessage(m_LogMessage);
-			RTMsgHandler.RTSendClientAlert(RTConstants.RT_ICON, m_LogMessage, 3);
+			string ingame_msg = "Server has been located in " + eventLocation.locationTitle + "!";
+			RTMsgHandler.RTSendChatMessage(ingame_msg);
+			RTMsgHandler.RTSendClientAlert(RTConstants.RT_ICON, ingame_msg, 3);
 		}
-		Print("[RadioTower] Event created! " + m_LogMessage);
     }
 	
 	void StartEvent(RTServer server)
@@ -851,14 +811,15 @@ class RTBase
 		if (rtEvent)
 		{
 			rtEvent.SetState(RTEventState.CAPTURING);
-			m_LogMessage = "Event started in " + rtEvent.GetEventTitle();
-			Print("[RadioTower] " + m_LogMessage);
+			string title = rtEvent.GetEventTitle();
+			Print("[RadioTower] Event capture started in " + title);
+			RTLogger.GetInstance().LogMessage("[Capture start] " + title);
 			CaptureArea trigger = rtEvent.GetEventTrigger();
 			rtEvent.GetEventTrigger().SetCapture(true);
 		}
 	}
 	
-	void SpawnZombies(int count, vector centerPos, float radius)
+	/*void SpawnZombies(int count, vector centerPos, float radius)
 	{
 		int spawnedZombies = 0;
         while(spawnedZombies < count)
@@ -867,10 +828,10 @@ class RTBase
 			float distance = Math.RandomFloat(0, radius);
 			float x = centerPos[0] + distance * Math.Cos(angle);
 			float z = centerPos[2] + distance * Math.Sin(angle);
-			/*
-            float x = Math.RandomFloat(centerPos[0] - radius, centerPos[0] + radius);
-            float z = Math.RandomFloat(centerPos[2] - radius, centerPos[2] + radius);
-			*/
+			
+            //float x = Math.RandomFloat(centerPos[0] - radius, centerPos[0] + radius);
+            //float z = Math.RandomFloat(centerPos[2] - radius, centerPos[2] + radius);
+			
             float y = GetGame().SurfaceY(x, z);
             vector position = Vector( x, y, z );
 
@@ -881,6 +842,7 @@ class RTBase
 			}	
 		}
 	}
+	*/
 	
 	bool IsSafeSpawnPos(vector pos)
     {
@@ -924,8 +886,6 @@ class RTBase
         if(m_Hit)
             return false;
 
-       
-        //Print("Found safe spawn position using IsSafeSpawnPos");
         return true;
     }
 	
@@ -935,9 +895,7 @@ class RTBase
 		RTServer rtServer = rtEvent.GetEventServer();
 		if (rtServer)
 		{
-			Print("Server captured, state (should be 1): " + rtServer.GetCaptureState());
 			rtServer.SetCaptureStateSynchronized(CaptureState.CAPTURED);
-			Print("Server captured, state (should be 2): " + rtServer.GetCaptureState());
 		}
 		
 		if (rtEvent)
@@ -945,77 +903,16 @@ class RTBase
 			rtEvent.SetState(RTEventState.CAPTURED);
 		
 			string title = rtEvent.GetEventTitle();
-			string msg = title + " has been captured!";
-			RTLogger.GetInstance().LogMessage(msg);
+			RTLogger.GetInstance().LogMessage("[Event captured] " + title);
 			if (IsNotificationAllowed(RTNotificationType.CAPTURE))
 			{
-				RTMsgHandler.RTSendChatMessage(msg);
-				RTMsgHandler.RTSendClientAlert(RTConstants.RT_ICON, msg, 3);
+				string ingame_msg = title + " has been captured!";
+				RTMsgHandler.RTSendChatMessage(ingame_msg);
+				RTMsgHandler.RTSendClientAlert(RTConstants.RT_ICON, ingame_msg, 3);
 			}
 			rtEvent.SpawnEventLootCrate();
-			//SpawnEventLootCrate(rtEvent);
 		}		
 	}
-	
-	/*
-	void SpawnEventLootCrate(RTEvent rtEvent)
-	{
-		string msg = "Spawning lootcrate";
-		Print("[RadioTower] " + msg);
-		m_LogMessage = rtEvent.GetEventTitle() + ": " + m_LogMessage;
-		RTLogger.GetInstance().LogMessage(m_LogMessage);
-		
-		RTLocation eventLocation = rtEvent.GetEventLocation();
-		
-		vector pos = eventLocation.lootcrateCoordinatesXYZ;
-		vector orientation = eventLocation.lootcrateOrientationYPR;
-		string lootcrate = rtEvent.GetLootcrateClassName();
-		if (lootcrate == "")
-			lootcrate = m_DefaultLootcrate;
-		
-		RTLootcrate_Base crate;
-		if (RTLootcrate_Base.CastTo(crate, GetGame().CreateObject(lootcrate, pos, ECE_LOCAL | ECE_KEEPHEIGHT)))
-		{
-			crate.SetOrientation(orientation);
-			array<ref RTLoot> loot = rtEvent.GetEventLocation().loot;
-			for (int i = 0; i < loot.Count(); i++)
-			{
-				ItemBase item;
-				if (ItemBase.CastTo(item, crate.GetInventory().CreateEntityInCargo(loot[i].lootClassName)))
-				{
-					m_LogMessage = "Item: " + loot[i].lootClassName;
-					RTLogger.GetInstance().LogMessage(m_LogMessage);
-					string attachmentsMsg = "";
-					
-					TStringArray attachments = loot[i].attachments;
-					for (int j = 0; j < attachments.Count(); j++)
-					{
-						item.GetInventory().CreateAttachment(attachments[j]);
-						attachmentsMsg += attachments[j] + ", ";
-					}
-					m_LogMessage += " attachments: " + attachmentsMsg;
-					RTLogger.GetInstance().LogMessage(m_LogMessage);
-				}
-			}
-		}
-		
-		string vehicleName = eventLocation.vehicleClassName;
-		vector vehiclePosition = eventLocation.vehicleCoordinatesXYZ;
-		vector vehicleOrientation = eventLocation.vehicleOrientationYPR;
-		TStringArray vehicleAttachments = eventLocation.vehicleAttachments;
-		float vehicleProbability = Math.Clamp(eventLocation.vehicleProbability, 0, 1);
-		
-		if (Math.RandomFloat(0, 1) <= vehicleProbability)
-		{
-			Object obj = SpawnObject(vehicleName, vehiclePosition, vehicleOrientation);
-			EntityAI entity = EntityAI.Cast(obj);
-			for (int k = 0; k < vehicleAttachments.Count(); k++)
-			{
-				entity.GetInventory().CreateAttachment(vehicleAttachments[k]);
-			}
-		}
-	}
-	*/
 }
 
 static ref RTBase g_RTBase;

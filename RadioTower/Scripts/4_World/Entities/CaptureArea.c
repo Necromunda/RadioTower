@@ -69,7 +69,7 @@ class CaptureArea: Trigger
 		RegisterNetSyncVariableInt("m_InsiderCount");
 		RegisterNetSyncVariableBool("m_StartCapture");
 		
-		Print("[RadioTower] Capture area ctor");
+		//Print("[RadioTower] Capture area ctor");
 		m_StartCapture = false;
 		m_StartCaptureLocal = false;
 		m_CollisionCylinderRadius = RTConstants.RT_EVENT_TRIGGER_RADIUS_DEFAULT;
@@ -165,8 +165,8 @@ class CaptureArea: Trigger
 	void Tick()
 	{
 		string date = CF_Date.Now().Format("DD-MM-YYYY hh:mm:ss");
-		if (m_Event_Lifetime.ToString().ToInt() % 60 == 0)
-			Print(date + " CaptureArea lifetime " + m_Event_Lifetime);
+		//if (m_Event_Lifetime.ToString().ToInt() % 60 == 0)
+			//Print(date + " CaptureArea lifetime " + m_Event_Lifetime);
 		m_Event_Lifetime -= LIFETIME_TICKRATE;
 		if (m_Event_Lifetime < 0)
 		{
@@ -200,16 +200,15 @@ class CaptureArea: Trigger
 				RTServer server = rtEvent.GetEventServer();
 				if (server)
 				{
-					string msg = rtEvent.GetEventTitle() + " event has ended";
-					//server.Disable();
 					if (rtEvent.GetState() != RTEventState.CAPTURED)
 					{
 						server.Disable();
-						RTLogger.GetInstance().LogMessage(msg);
+						RTLogger.GetInstance().LogMessage("[Event finish] " + rtEvent.GetEventTitle());
 						if (g_RTBase.IsNotificationAllowed(RTNotificationType.END))
 						{
-							RTMsgHandler.RTSendChatMessage(msg);
-							RTMsgHandler.RTSendClientAlert(RTConstants.RT_ICON, msg, 3);
+							string ingame_msg = rtEvent.GetEventTitle() + " event finished";
+							RTMsgHandler.RTSendChatMessage(ingame_msg);
+							RTMsgHandler.RTSendClientAlert(RTConstants.RT_ICON, ingame_msg, 3);
 						}
 						server.SetCaptureStateSynchronized(CaptureState.DEFAULT);
 					}
@@ -334,8 +333,10 @@ class CaptureArea: Trigger
 	override void OnEnterServerEvent(TriggerInsider insider)
 	{
 		super.OnEnterServerEvent(insider);
-
-		RTLogger.GetInstance().LogMessage("Player " + insider.GetObject().GetName() + " entered capture area");
+		
+		PlayerBase player = PlayerBase.Cast(insider.GetObject());
+		if (player && player.GetIdentity())
+			RTLogger.GetInstance().LogMessage("Player " + player.GetIdentity().GetPlainName() + " entered capture area");
 		//Print("SERVER OnEnter");
 		m_InsiderCount = GetInsiders().Count();
 		SetSynchDirty();
@@ -345,7 +346,9 @@ class CaptureArea: Trigger
 	{
 		super.OnLeaveServerEvent(insider);
 		
-		RTLogger.GetInstance().LogMessage("Player " + insider.GetObject().GetName() + " left capture area");
+		PlayerBase player = PlayerBase.Cast(insider.GetObject());
+		if (player && player.GetIdentity())
+			RTLogger.GetInstance().LogMessage("Player " + player.GetIdentity().GetPlainName() + " left capture area");
 		//Print("SERVER OnLeave");
 		if (!m_StartCapture) return;
 		
@@ -366,7 +369,7 @@ class CaptureArea: Trigger
 		{
 			if (entity.IsPlayer())
 			{
-				Print("Area captured " + m_CapturePct + "%");
+				//Print("Area captured " + m_CapturePct + "%");
 				m_CapturePct += m_CaptureSlice;
 				m_CapturePct = Math.Clamp(m_CapturePct, 0, m_TotalCapturePct);	
 			}

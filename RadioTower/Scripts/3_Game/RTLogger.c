@@ -14,7 +14,7 @@ class RTLogger
 		logFileName = GetCurrentDateAndTimePathFriendly() + ".txt";
 		logFilePath = configPath + logFileName;
 		
-		Print("[RadioTower] Session logfile: " + logFileName);
+		Print("[RadioTower] Session logfile: " + RTConstants.RT_LOG_PREFIX + logFileName);
 	}
 	
 	void LogMessage(string message)
@@ -38,7 +38,7 @@ class RTLogger
 		
 		if(fileHandle != 0)
 		{
-			FPrintln(fileHandle, "[" + GetCurrentDateAndTime() + "]	" + message);
+			//FPrintln(fileHandle, "[" + GetCurrentDateAndTime() + "]	" + message);
 			CloseFile(fileHandle);
 		}
 	}

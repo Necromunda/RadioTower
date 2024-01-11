@@ -6,6 +6,7 @@
 			"captureAreaYAxisOffset": 0,
             "locationTitle": "Green mountain",
             "lootcrateClassName": "RTLootcrate_Red",
+			"zombieCount": 10,
             "locationCoordinatesXYZ": [
                 3706.909912109375,
                 402.010009765625,
@@ -45,15 +46,67 @@
 				"HatchbackWheel",
 				"HatchbackDoors_Driver"
 			],
-            "loot": [
-                {
-                    "lootClassName": "M4A1",
-                    "quantity": 0,
-                    "attachments": [
-                        "M4_Suppressor"
-                    ]
-                }
-            ]
+            "loot": {
+				"lootCount": 3,
+				"lootCategories": [
+					{
+						"lootCategoryTitle": "Weapons",
+						"probability": 1,
+						"limit": 2,
+						"items": [
+							{
+								"lootItemClassName": "M4A1",
+								"probability": 0.33,
+								"quantity": 1,
+								"attachmentCategories": [
+									{
+										"attachmentCategoryTitle": "Magazines",
+										"probability": 1,
+										"attachments": [
+											{
+												"attachmentClassName": "Mag_STANAG_30Rnd",
+												"probability": 0.5
+											},
+											{
+												"attachmentClassName": "Mag_STANAG_60Rnd",
+												"probability": 0.5
+											}
+										]
+									}
+								]
+							},
+							{
+								"lootItemClassName": "AKM",
+								"probability": 0.33,
+								"quantity": 1,
+								"attachmentCategories": [
+									{
+										"attachmentCategoryTitle": "Magazines",
+										"probability": 1,
+										"attachments": [
+											{
+												"attachmentClassName": "Mag_AKM_30Rnd",
+												"probability": 0.5
+											},
+											{
+												"attachmentClassName": "Mag_AKM_Drum75Rnd",
+												"probability": 0.5
+											}
+										]
+									}
+								]
+							},
+							{
+								"lootItemClassName": "Chaos_ScrapMetal",
+								"probability": 0.34,
+								"quantity": 3,
+								"attachmentCategories": [
+								]
+							}
+						]
+					}	
+				]
+			}
         },
 		{
             "captureAreaRadius": 10.0,
@@ -61,6 +114,7 @@
 			"captureAreaYAxisOffset": 0,
             "locationTitle": "Vybor Military Complex",
             "lootcrateClassName": "",
+			"zombieCount": 10,
             "locationCoordinatesXYZ": [
                 4520.569824, 
 				316.013977, 
@@ -100,13 +154,67 @@
 				"HatchbackWheel",
 				"HatchbackDoors_Driver"
 			],
-            "loot": [
-                {
-                    "lootClassName": "M4A1",
-                    "quantity": 0,
-                    "attachments": []
-                }
-            ]
+            "loot": {
+				"lootCount": 3,
+				"lootCategories": [
+					{
+						"lootCategoryTitle": "Weapons",
+						"probability": 1,
+						"limit": 2,
+						"items": [
+							{
+								"lootItemClassName": "M4A1",
+								"probability": 0.33,
+								"quantity": 1,
+								"attachmentCategories": [
+									{
+										"attachmentCategoryTitle": "Magazines",
+										"probability": 1,
+										"attachments": [
+											{
+												"attachmentClassName": "Mag_STANAG_30Rnd",
+												"probability": 0.5
+											},
+											{
+												"attachmentClassName": "Mag_STANAG_60Rnd",
+												"probability": 0.5
+											}
+										]
+									}
+								]
+							},
+							{
+								"lootItemClassName": "AKM",
+								"probability": 0.33,
+								"quantity": 1,
+								"attachmentCategories": [
+									{
+										"attachmentCategoryTitle": "Magazines",
+										"probability": 1,
+										"attachments": [
+											{
+												"attachmentClassName": "Mag_AKM_30Rnd",
+												"probability": 0.5
+											},
+											{
+												"attachmentClassName": "Mag_AKM_Drum75Rnd",
+												"probability": 0.5
+											}
+										]
+									}
+								]
+							},
+							{
+								"lootItemClassName": "Chaos_ScrapMetal",
+								"probability": 0.34,
+								"quantity": 3,
+								"attachmentCategories": [
+								]
+							}
+						]
+					}	
+				]
+			}
         },
 		{
             "captureAreaRadius": 25.0,
@@ -114,6 +222,7 @@
 			"captureAreaYAxisOffset": -10,
             "locationTitle": "Tisy",
             "lootcrateClassName": "RTLootcrate_Grey",
+			"zombieCount": 10,
             "locationCoordinatesXYZ": [
                 1685.167725, 
 				460.633026, 
@@ -153,15 +262,67 @@
 				"HatchbackWheel",
 				"HatchbackDoors_Driver"
 			],
-            "loot": [
-                {
-                    "lootClassName": "M4A1",
-                    "quantity": 0,
-                    "attachments": [
-                        "ImprovisedSuppressor"
-                    ]
-                }
-            ]
+            "loot": {
+				"lootCount": 3,
+				"lootCategories": [
+					{
+						"lootCategoryTitle": "Weapons",
+						"probability": 1,
+						"limit": 2,
+						"items": [
+							{
+								"lootItemClassName": "M4A1",
+								"probability": 0.33,
+								"quantity": 1,
+								"attachmentCategories": [
+									{
+										"attachmentCategoryTitle": "Magazines",
+										"probability": 1,
+										"attachments": [
+											{
+												"attachmentClassName": "Mag_STANAG_30Rnd",
+												"probability": 0.5
+											},
+											{
+												"attachmentClassName": "Mag_STANAG_60Rnd",
+												"probability": 0.5
+											}
+										]
+									}
+								]
+							},
+							{
+								"lootItemClassName": "AKM",
+								"probability": 0.33,
+								"quantity": 1,
+								"attachmentCategories": [
+									{
+										"attachmentCategoryTitle": "Magazines",
+										"probability": 1,
+										"attachments": [
+											{
+												"attachmentClassName": "Mag_AKM_30Rnd",
+												"probability": 0.5
+											},
+											{
+												"attachmentClassName": "Mag_AKM_Drum75Rnd",
+												"probability": 0.5
+											}
+										]
+									}
+								]
+							},
+							{
+								"lootItemClassName": "Chaos_ScrapMetal",
+								"probability": 0.34,
+								"quantity": 3,
+								"attachmentCategories": [
+								]
+							}
+						]
+					}	
+				]
+			}
         },
 		{
             "captureAreaRadius": 25.0,
@@ -169,6 +330,7 @@
 			"captureAreaYAxisOffset": 0,
             "locationTitle": "Altar",
             "lootcrateClassName": "",
+			"zombieCount": 10,
             "locationCoordinatesXYZ": [
 				8166.144531, 
 				475.543579, 
@@ -208,15 +370,67 @@
 				"HatchbackWheel",
 				"HatchbackDoors_Driver"
 			],
-            "loot": [
-                {
-                    "lootClassName": "M4A1",
-                    "quantity": 0,
-                    "attachments": [
-                        "ImprovisedSuppressor"
-                    ]
-                }
-            ]
+            "loot": {
+				"lootCount": 3,
+				"lootCategories": [
+					{
+						"lootCategoryTitle": "Weapons",
+						"probability": 1,
+						"limit": 2,
+						"items": [
+							{
+								"lootItemClassName": "M4A1",
+								"probability": 0.33,
+								"quantity": 1,
+								"attachmentCategories": [
+									{
+										"attachmentCategoryTitle": "Magazines",
+										"probability": 1,
+										"attachments": [
+											{
+												"attachmentClassName": "Mag_STANAG_30Rnd",
+												"probability": 0.5
+											},
+											{
+												"attachmentClassName": "Mag_STANAG_60Rnd",
+												"probability": 0.5
+											}
+										]
+									}
+								]
+							},
+							{
+								"lootItemClassName": "AKM",
+								"probability": 0.33,
+								"quantity": 1,
+								"attachmentCategories": [
+									{
+										"attachmentCategoryTitle": "Magazines",
+										"probability": 1,
+										"attachments": [
+											{
+												"attachmentClassName": "Mag_AKM_30Rnd",
+												"probability": 0.5
+											},
+											{
+												"attachmentClassName": "Mag_AKM_Drum75Rnd",
+												"probability": 0.5
+											}
+										]
+									}
+								]
+							},
+							{
+								"lootItemClassName": "Chaos_ScrapMetal",
+								"probability": 0.34,
+								"quantity": 3,
+								"attachmentCategories": [
+								]
+							}
+						]
+					}	
+				]
+			}
         },
 		{
             "captureAreaRadius": 25.0,
@@ -224,6 +438,7 @@
 			"captureAreaYAxisOffset": 0,
             "locationTitle": "Bashnya",
             "lootcrateClassName": "",
+			"zombieCount": 10,
             "locationCoordinatesXYZ": [
                4147.169434, 
 			   383.651398, 
@@ -263,15 +478,67 @@
 				"HatchbackWheel",
 				"HatchbackDoors_Driver"
 			],
-            "loot": [
-                {
-                    "lootClassName": "M4A1",
-                    "quantity": 0,
-                    "attachments": [
-                        "ImprovisedSuppressor"
-                    ]
-                }
-            ]
+            "loot": {
+				"lootCount": 3,
+				"lootCategories": [
+					{
+						"lootCategoryTitle": "Weapons",
+						"probability": 1,
+						"limit": 2,
+						"items": [
+							{
+								"lootItemClassName": "M4A1",
+								"probability": 0.33,
+								"quantity": 1,
+								"attachmentCategories": [
+									{
+										"attachmentCategoryTitle": "Magazines",
+										"probability": 1,
+										"attachments": [
+											{
+												"attachmentClassName": "Mag_STANAG_30Rnd",
+												"probability": 0.5
+											},
+											{
+												"attachmentClassName": "Mag_STANAG_60Rnd",
+												"probability": 0.5
+											}
+										]
+									}
+								]
+							},
+							{
+								"lootItemClassName": "AKM",
+								"probability": 0.33,
+								"quantity": 1,
+								"attachmentCategories": [
+									{
+										"attachmentCategoryTitle": "Magazines",
+										"probability": 1,
+										"attachments": [
+											{
+												"attachmentClassName": "Mag_AKM_30Rnd",
+												"probability": 0.5
+											},
+											{
+												"attachmentClassName": "Mag_AKM_Drum75Rnd",
+												"probability": 0.5
+											}
+										]
+									}
+								]
+							},
+							{
+								"lootItemClassName": "Chaos_ScrapMetal",
+								"probability": 0.34,
+								"quantity": 3,
+								"attachmentCategories": [
+								]
+							}
+						]
+					}	
+				]
+			}
         }
     ]
 }

@@ -3,7 +3,7 @@
     "eventLifetime": 45.0,
     "eventCapturetime": 15.0,
     "eventHacktime": 1.0,
-    "eventDefaultLootcrate": "RTLootcrate_White",
+    "eventDefaultLootcrate": "SeaChest",
     "enableLogging": 1,
     "allowSameEventSpawnInARow": 0,
 	"enableConcurrentEvents": 0,
@@ -12,6 +12,7 @@
 	"enableEventCaptureNotification": 1,
 	"enableEventEndNotification": 1,
 	"prioritizeOldEvent": 1,
-	"spawnZombies": 0,
-	"showCaptureStatusSmoke": 1
+	"spawnZombies": 1,
+	"showCaptureStatusSmoke": 1,
+	"enableLBMapMarker": 0
 }

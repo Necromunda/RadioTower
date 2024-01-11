@@ -32,7 +32,7 @@ Description: Duration it takes for the server to get hacked
 "eventHacktime": 1.0,
 
 Type: string
-Description: Default lootcrate, must be one of "RTLootcrate_White", "RTLootcrate_Gray", "RTLootcrate_Red" or "RTLootcrate_Yellow"
+Description: Default lootcrate, Use any container classname you wish but i recommend the use of one of these: "RTLootcrate_White", "RTLootcrate_Gray", "RTLootcrate_Red" or "RTLootcrate_Yellow"
 "eventDefaultLootcrate": "RTLootcrate_White",
 
 Type: bool

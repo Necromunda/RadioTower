@@ -10,7 +10,6 @@ modded class MissionServer
 		{
 			g_RTBase = null;
 			GetRTBase();
-			Print("[RadioTower] MissionServer init g_RTBase");
 		}	
 	}
 	
@@ -73,6 +72,6 @@ modded class MissionGameplay
 		RTSettings clientResponse = data.param1;
 		g_Game.ClientSetRTSettings(clientResponse);
 
-		Print(RTConstants.RT_LOG_PREFIX + " Client received settings " + clientResponse);
+		Print("[RadioTower] Client received settings " + clientResponse);
 	}
 }
