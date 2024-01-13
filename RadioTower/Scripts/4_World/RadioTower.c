@@ -38,7 +38,7 @@ class RTEvent
 	protected ref array<EntityAI> m_Zombies;
 	protected EntityAI m_Lootcrate;
 	
-#ifdef LBMaster_Settings
+#ifdef LBmaster_Groups
 	protected ref LBServerMarker m_LBMapMarker;
 #endif
 	
@@ -60,7 +60,7 @@ class RTEvent
 		m_LogMessage = "";
 		m_Zombies = new array<EntityAI>();
 		m_Lootcrate = null;
-#ifdef LBMaster_Settings
+#ifdef LBmaster_Groups
 		m_LBMapMarker = null;
 #endif
 	}
@@ -90,7 +90,7 @@ class RTEvent
 		
 		m_CaptureArea = null;
 		m_Server = null;
-#ifdef LBMaster_Settings
+#ifdef LBmaster_Groups
 		RemoveLBMapMarker();
 		m_LBMapMarker = null;
 #endif
@@ -433,7 +433,7 @@ class RTEvent
 		return m_EventLocation; 
 	}
 	
-#ifdef LBMaster_Settings
+#ifdef LBmaster_Groups
 	LBServerMarker CreateLBMapMarker(string name, vector position, string icon, int argb, bool toSurface, bool display3D, bool displayMap, bool displayGPS)
 	{
 		LBServerMarker marker = LBStaticMarkerManager.Get().AddTempServerMarker(name, position, icon, argb, toSurface, display3D, displayMap, displayGPS);
@@ -783,7 +783,7 @@ class RTBase
 			m_RTEvent.SpawnZombies(zombieCount, position, radius);
 		}
 		
-#ifdef LBMaster_Settings
+#ifdef LBmaster_Groups
 		if (m_Settings.enableLBMapMarker)
 		{
 			string title = string.Format("KOTH: %1 Event", eventLocation.locationTitle);
