@@ -19,6 +19,7 @@ class RTSettings
 	bool spawnZombies;
 	bool showCaptureStatusSmoke;
 	bool enableLBMapMarker;
+	int minimumPlayerCount;
 	
 	void Defaults()
 	{	
@@ -38,6 +39,7 @@ class RTSettings
 		spawnZombies = true;
 		showCaptureStatusSmoke = true;
 		enableLBMapMarker = false;
+		minimumPlayerCount = 1;
 	}
 	
 	static ref RTSettings Load()

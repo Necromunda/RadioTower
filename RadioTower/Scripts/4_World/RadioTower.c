@@ -700,6 +700,15 @@ class RTBase
 	
     void CreateEvent()
     {
+		// Check if theres enough players on the server
+		array<Man> players = new array<Man>;
+		GetGame().GetPlayers(players);
+		int playerCount = players.Count();
+		if (playerCount < m_Settings.minimumPlayerCount) {
+			Print("[RadioTower] Not enough players to spawn an event. Required amount: " + m_Settings.minimumPlayerCount);
+			return;
+		}
+		
 		array<int> exhaustedEventIndexes = {};
 		int eventLocationCount = GetEventLocationCount();
 		int eventLocationIndex = Math.RandomInt(0, eventLocationCount);
@@ -819,31 +828,6 @@ class RTBase
 		}
 	}
 	
-	/*void SpawnZombies(int count, vector centerPos, float radius)
-	{
-		int spawnedZombies = 0;
-        while(spawnedZombies < count)
-        {
-			float angle = Math.RandomFloat(0, 2 * Math.PI);
-			float distance = Math.RandomFloat(0, radius);
-			float x = centerPos[0] + distance * Math.Cos(angle);
-			float z = centerPos[2] + distance * Math.Sin(angle);
-			
-            //float x = Math.RandomFloat(centerPos[0] - radius, centerPos[0] + radius);
-            //float z = Math.RandomFloat(centerPos[2] - radius, centerPos[2] + radius);
-			
-            float y = GetGame().SurfaceY(x, z);
-            vector position = Vector( x, y, z );
-
-            if (IsSafeSpawnPos(position))
-            {
-				spawnedZombies++;
-				GetGame().CreateObject("ZmbM_PatientSkinny", position, false, true);
-			}	
-		}
-	}
-	*/
-	
 	bool IsSafeSpawnPos(vector pos)
     {
         float x = pos[0];
@@ -862,13 +846,13 @@ class RTBase
         int is_interior = GetGame().ConfigGetInt(cfgSurfacePath + " interior");
 
          //Invalid if GetInt(CfgSurfaces >> surface_type >> interior) == 1
-        if(is_interior == 1)
+        if (is_interior == 1)
             return false;
 
         float friction = GetGame().ConfigGetFloat(cfgSurfacePath + " friction");
 
         //Invalid if GetFloat(... friction) < 0.94     
-        if(friction < 0.94)
+        if (friction < 0.94)
             return false;
 
 
@@ -883,7 +867,7 @@ class RTBase
 
         //check if safe from object collisions using same raycast as players tp
         bool m_Hit = DayZPhysics.SphereCastBullet( start, end, radius, collisionLayerMask, NULL, m_HitObject, m_HitPosition, m_HitNormal, m_HitFraction );
-        if(m_Hit)
+        if (m_Hit)
             return false;
 
         return true;
