@@ -44,13 +44,10 @@ class RTEvent
 	
 	void ~RTEvent()
 	{
-		//Print("[RadioTower] RTEvent dtor");
 	}
 	
 	void RTEvent()
 	{
-		//Print("[RadioTower] RTEvent ctor");
-		
 		m_State = RTEventState.DELETED;
 		m_Server = null;
 		m_CaptureArea = null;
@@ -196,13 +193,16 @@ class RTEvent
 			TStringArray vehicleAttachments = m_EventLocation.vehicleAttachments;
 			float vehicleProbability = Math.Clamp(m_EventLocation.vehicleProbability, 0, 1);
 			
-			if (Math.RandomFloat(0, 1) <= vehicleProbability)
+			if (vehicleName != "")
 			{
-				Object obj = g_RTBase.SpawnObject(vehicleName, vehiclePosition, vehicleOrientation);
-				EntityAI entity = EntityAI.Cast(obj);
-				for (int k = 0; k < vehicleAttachments.Count(); k++)
+				if (Math.RandomFloat(0, 1) <= vehicleProbability)
 				{
-					entity.GetInventory().CreateAttachment(vehicleAttachments[k]);
+					Object obj = g_RTBase.SpawnObject(vehicleName, vehiclePosition, vehicleOrientation);
+					EntityAI entity = EntityAI.Cast(obj);
+					for (int k = 0; k < vehicleAttachments.Count(); k++)
+					{
+						entity.GetInventory().CreateAttachment(vehicleAttachments[k]);
+					}
 				}
 			}
 		}
