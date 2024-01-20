@@ -253,7 +253,8 @@ class RTEvent
 	                float cumulativeItemProbability = 0;
 	
 	                // Iterate through the items within the category to determine the spawned item
-	                for (int k = 0; k < items.Count(); k++)
+	                /*
+					for (int k = 0; k < items.Count(); k++)
 	                {
 						RTLootItem item = items[k];
 	                    cumulativeItemProbability += item.probability;
@@ -264,17 +265,52 @@ class RTEvent
 							
 							RTLogger.GetInstance().LogMessage("[Item] " + item.lootItemClassName);
 							
-							if(item.quantity > 1)
+							if (item.quantity > 1)
 							{
-								ItemBase ingameItem = ItemBase.Cast(entity);
-								int quantity = item.quantity;
-								/*if (item.HasRandomQuantity)
+								if (ingameItem.HasQuantity())
 								{
-									quantity = Math.RandomInt(1, quantity);
-								}*/
-								ingameItem.SetQuantity(quantity);
+									ItemBase ingameItem = ItemBase.Cast(entity);
+									int quantity = item.quantity;
+									/*if (item.HasRandomQuantity)
+									{
+										quantity = Math.RandomInt(1, quantity);
+									}
+									ingameItem.SetQuantity(quantity);
+								}
 							}
 	                        SpawnAttachments(entity, item.attachmentCategories);
+	                        break;
+	                    }
+	                }
+					*/
+					for (int k = 0; k < items.Count(); k++)
+	                {
+						RTLootItem item = items[k];
+	                    cumulativeItemProbability += item.probability;
+	
+	                    if (randomItemValue <= cumulativeItemProbability)
+	                    {
+							int quantity = item.quantity;
+							string itemClassName = item.lootItemClassName;
+							
+							for (int l = 0; l < quantity - 1; l++)
+							{
+								RTLogger.GetInstance().LogMessage("[Item] " + itemClassName);
+								entity = target.GetInventory().CreateEntityInCargo(itemClassName);
+								ItemBase ingameItem = ItemBase.Cast(entity);
+								
+								if (ingameItem.HasQuantity())
+								{
+									/*if (item.HasRandomQuantity)
+									{
+										quantity = Math.RandomInt(1, quantity);
+									}*/
+									ingameItem.SetQuantity(quantity);
+									break;
+								}
+								
+								SpawnAttachments(entity, item.attachmentCategories);
+							}
 	                        break;
 	                    }
 	                }
