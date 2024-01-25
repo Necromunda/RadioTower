@@ -220,7 +220,7 @@ class RTEvent
 		{
 			lootCount = totalLimit;
 		}
-	
+		Print("LootCount is " + lootCount);
 	    for (int i = 0; i < lootCount; i++)
 	    {
 	        float randomValue = Math.RandomFloat(0, totalCategoriesProbability);
@@ -293,7 +293,7 @@ class RTEvent
 							int quantity = item.quantity;
 							string itemClassName = item.lootItemClassName;
 							
-							for (int l = 0; l < quantity - 1; l++)
+							for (int l = 0; l < quantity; l++)
 							{
 								RTLogger.GetInstance().LogMessage("[Item] " + itemClassName);
 								entity = target.GetInventory().CreateEntityInCargo(itemClassName);

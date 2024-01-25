@@ -1,544 +1,535 @@
 {
     "eventLocations": [
         {
-            "captureAreaRadius": 5.0,
-            "captureAreaHeight": 5.0,
-			"captureAreaYAxisOffset": 0,
+            "captureAreaHeight": 30,
+            "captureAreaRadius": 20,
+            "captureAreaYAxisOffset": 0,
+            "locationCoordinatesXYZ": [
+                3706.9099,
+                402.01,
+                5982.0601
+            ],
+            "locationOrientationYPR": [
+                -109,
+                0,
+                0
+            ],
             "locationTitle": "Green mountain",
-            "lootcrateClassName": "RTLootcrate_Red",
-			"zombieCount": 10,
-            "locationCoordinatesXYZ": [
-                3706.909912109375,
-                402.010009765625,
-                5982.06005859375
-            ],
-            "locationOrientationYPR": [
-                -109.0,
-                0.0,
-                0.0
-            ],
+            "loot": {
+                "lootCategories": [
+                    {
+                        "items": [
+                            {
+                                "attachmentCategories": [
+                                    {
+                                        "attachmentCategoryTitle": "Optics",
+                                        "attachments": [
+                                            {
+                                                "attachmentClassName": "PSO1Optic",
+                                                "probability": 0.5
+                                            },
+                                            {
+                                                "attachmentClassName": "KobraOptic",
+                                                "probability": 0.5
+                                            }
+                                        ],
+                                        "probability": 0.5
+                                    },
+                                    {
+                                        "attachmentCategoryTitle": "Magazines",
+                                        "attachments": [
+                                            {
+                                                "attachmentClassName": "Mag_AKM_30Rnd",
+                                                "probability": 0.5
+                                            },
+                                            {
+                                                "attachmentClassName": "Mag_AKM_Drum75Rnd",
+                                                "probability": 0.5
+                                            }
+                                        ],
+                                        "probability": 1
+                                    }
+                                ],
+                                "lootItemClassName": "AKM",
+                                "probability": 0.5,
+                                "quantity": 1
+                            },
+                            {
+                                "attachmentCategories": [
+                                    {
+                                        "attachmentCategoryTitle": "Magazines",
+                                        "attachments": [
+                                            {
+                                                "attachmentClassName": "Mag_STANAG_30Rnd",
+                                                "probability": 0.5
+                                            },
+                                            {
+                                                "attachmentClassName": "Mag_STANAG_60Rnd",
+                                                "probability": 0.5
+                                            }
+                                        ],
+                                        "probability": 1
+                                    },
+                                    {
+                                        "attachmentCategoryTitle": "Optics",
+                                        "attachments": [
+                                            {
+                                                "attachmentClassName": "M68Optic",
+                                                "probability": 0.5
+                                            },
+                                            {
+                                                "attachmentClassName": "ACOGOptic",
+                                                "probability": 0.5
+                                            }
+                                        ],
+                                        "probability": 0.5
+                                    }
+                                ],
+                                "lootItemClassName": "M4A1",
+                                "probability": 0.5,
+                                "quantity": 1
+                            }
+                        ],
+                        "limit": 2,
+                        "lootCategoryTitle": "Weapons",
+                        "probability": 0.19999999999999973
+                    },
+                    {
+                        "items": [
+                            {
+                                "attachmentCategories": [
+                                ],
+                                "lootItemClassName": "Battery9V",
+                                "probability": 0.34,
+                                "quantity": 1
+                            },
+                            {
+                                "attachmentCategories": [
+                                    {
+                                        "attachmentCategoryTitle": "Battery",
+                                        "attachments": [
+                                            {
+                                                "attachmentClassName": "Battery9V",
+                                                "probability": 1
+                                            }
+                                        ],
+                                        "probability": 1
+                                    }
+                                ],
+                                "lootItemClassName": "NVGoggles",
+                                "probability": 0.33,
+                                "quantity": 1
+                            },
+                            {
+                                "attachmentCategories": [
+                                ],
+                                "lootItemClassName": "WeaponCleaningKit",
+                                "probability": 0.3300000000000001,
+                                "quantity": 1
+                            }
+                        ],
+                        "limit": 5,
+                        "lootCategoryTitle": "Misc",
+                        "probability": 0.19999999999999973
+                    },
+                    {
+                        "items": [
+                            {
+                                "attachmentCategories": [
+                                    {
+                                        "attachmentCategoryTitle": "Pouches",
+                                        "attachments": [
+                                            {
+                                                "attachmentClassName": "PlateCarrierPouches",
+                                                "probability": 0.5
+                                            },
+                                            {
+                                                "attachmentClassName": "PlateCarrierHolster",
+                                                "probability": 0.5
+                                            }
+                                        ],
+                                        "probability": 0.5
+                                    }
+                                ],
+                                "lootItemClassName": "PlateCarrierVest",
+                                "probability": 0.5,
+                                "quantity": 1
+                            },
+                            {
+                                "attachmentCategories": [
+                                ],
+                                "lootItemClassName": "Mich2001Helmet",
+                                "probability": 0.5,
+                                "quantity": 1
+                            }
+                        ],
+                        "limit": 1,
+                        "lootCategoryTitle": "Clothes",
+                        "probability": 0.20000000000000004
+                    },
+                    {
+                        "items": [
+                            {
+                                "attachmentCategories": [
+                                ],
+                                "lootItemClassName": "RGDG5Grenade",
+                                "probability": 0.33999999999999997,
+                                "quantity": 1
+                            },
+                            {
+                                "attachmentCategories": [
+                                ],
+                                "lootItemClassName": "M67Grenade",
+                                "probability": 0.33999999999999997,
+                                "quantity": 1
+                            },
+                            {
+                                "attachmentCategories": [
+                                ],
+                                "lootItemClassName": "FlashGrenade",
+                                "probability": 0.32,
+                                "quantity": 1
+                            }
+                        ],
+                        "limit": 2,
+                        "lootCategoryTitle": "Explosives",
+                        "probability": 0.2
+                    },
+                    {
+                        "items": [
+                            {
+                                "attachmentCategories": [
+                                ],
+                                "lootItemClassName": "AmmoBox_556x45_20Rnd",
+                                "probability": 0.25000000000000006,
+                                "quantity": 1
+                            },
+                            {
+                                "attachmentCategories": [
+                                ],
+                                "lootItemClassName": "AmmoBox_308Win_20Rnd",
+                                "probability": 0.25000000000000006,
+                                "quantity": 1
+                            },
+                            {
+                                "attachmentCategories": [
+                                ],
+                                "lootItemClassName": "AmmoBox_762x39_20Rnd",
+                                "probability": 0.25000000000000006,
+                                "quantity": 1
+                            },
+                            {
+                                "attachmentCategories": [
+                                ],
+                                "lootItemClassName": "AmmoBox_762x54_20Rnd",
+                                "probability": 0.25,
+                                "quantity": 1
+                            }
+                        ],
+                        "limit": 2,
+                        "lootCategoryTitle": "Ammunition",
+                        "probability": 0.20000000000000004
+                    }
+                ],
+                "lootCount": 10
+            },
+            "lootcrateClassName": "RTLootcrate_Yellow",
             "lootcrateCoordinatesXYZ": [
-                3703.8056640625,
-                401.9999694824219,
-                5977.84912109375
+                3703.8057,
+                402,
+                5977.8491
             ],
             "lootcrateOrientationYPR": [
-                2.0,
-                0.0,
-                0.0
+                2,
+                0,
+                0
             ],
+            "vehicleAttachments": [
+            ],
+            "vehicleClassName": "",
             "vehicleCoordinatesXYZ": [
-				3696.678467, 
-				402.303986, 
-				5992.726074
+                0,
+                0,
+                0
             ],
             "vehicleOrientationYPR": [
-				0,
-				0,
-				0
+                0,
+                0,
+                0
             ],
-            "vehicleProbability": 1.0,
-            "vehicleClassName": "OffroadHatchback",
-			"vehicleAttachments": [
-				"HatchbackWheel",
-				"HatchbackWheel",
-				"HatchbackWheel",
-				"HatchbackWheel",
-				"HatchbackDoors_Driver"
-			],
-            "loot": {
-				"lootCount": 3,
-				"lootCategories": [
-					{
-						"lootCategoryTitle": "Weapons",
-						"probability": 1,
-						"limit": 2,
-						"items": [
-							{
-								"lootItemClassName": "M4A1",
-								"probability": 0.33,
-								"quantity": 1,
-								"attachmentCategories": [
-									{
-										"attachmentCategoryTitle": "Magazines",
-										"probability": 1,
-										"attachments": [
-											{
-												"attachmentClassName": "Mag_STANAG_30Rnd",
-												"probability": 0.5
-											},
-											{
-												"attachmentClassName": "Mag_STANAG_60Rnd",
-												"probability": 0.5
-											}
-										]
-									}
-								]
-							},
-							{
-								"lootItemClassName": "AKM",
-								"probability": 0.33,
-								"quantity": 1,
-								"attachmentCategories": [
-									{
-										"attachmentCategoryTitle": "Magazines",
-										"probability": 1,
-										"attachments": [
-											{
-												"attachmentClassName": "Mag_AKM_30Rnd",
-												"probability": 0.5
-											},
-											{
-												"attachmentClassName": "Mag_AKM_Drum75Rnd",
-												"probability": 0.5
-											}
-										]
-									}
-								]
-							},
-							{
-								"lootItemClassName": "Chaos_ScrapMetal",
-								"probability": 0.34,
-								"quantity": 3,
-								"attachmentCategories": [
-								]
-							}
-						]
-					}	
-				]
-			}
+            "vehicleProbability": 0,
+            "zombieCount": 10
         },
-		{
-            "captureAreaRadius": 10.0,
-            "captureAreaHeight": 10.0,
-			"captureAreaYAxisOffset": 0,
-            "locationTitle": "Vybor Military Complex",
-            "lootcrateClassName": "",
-			"zombieCount": 10,
+        {
+            "captureAreaHeight": 25,
+            "captureAreaRadius": 15,
+            "captureAreaYAxisOffset": 0,
             "locationCoordinatesXYZ": [
-                4520.569824, 
-				316.013977, 
-				8273.550781
+                4147.1694,
+                383.6514,
+                11765.8906
             ],
             "locationOrientationYPR": [
-                12.657836, 
-				2.585529, 
-				-0.357249
+                -124.6439,
+                -0.1742,
+                -0.2513
             ],
-            "lootcrateCoordinatesXYZ": [
-                4524.421875, 
-				316.124512, 
-				8273.518555
-            ],
-            "lootcrateOrientationYPR": [
-                -77.772049, 
-				-2.510887, 
-				-2.104894
-            ],
-            "vehicleCoordinatesXYZ": [
-				4530.252930, 
-				316.095093, 
-				8273.514648
-			],
-            "vehicleOrientationYPR": [
-				15.248120,
-				0,
-				0
-			],
-            "vehicleProbability": 1.0,
-            "vehicleClassName": "OffroadHatchback",
-			"vehicleAttachments": [
-				"HatchbackWheel",
-				"HatchbackWheel",
-				"HatchbackWheel",
-				"HatchbackWheel",
-				"HatchbackDoors_Driver"
-			],
-            "loot": {
-				"lootCount": 3,
-				"lootCategories": [
-					{
-						"lootCategoryTitle": "Weapons",
-						"probability": 1,
-						"limit": 2,
-						"items": [
-							{
-								"lootItemClassName": "M4A1",
-								"probability": 0.33,
-								"quantity": 1,
-								"attachmentCategories": [
-									{
-										"attachmentCategoryTitle": "Magazines",
-										"probability": 1,
-										"attachments": [
-											{
-												"attachmentClassName": "Mag_STANAG_30Rnd",
-												"probability": 0.5
-											},
-											{
-												"attachmentClassName": "Mag_STANAG_60Rnd",
-												"probability": 0.5
-											}
-										]
-									}
-								]
-							},
-							{
-								"lootItemClassName": "AKM",
-								"probability": 0.33,
-								"quantity": 1,
-								"attachmentCategories": [
-									{
-										"attachmentCategoryTitle": "Magazines",
-										"probability": 1,
-										"attachments": [
-											{
-												"attachmentClassName": "Mag_AKM_30Rnd",
-												"probability": 0.5
-											},
-											{
-												"attachmentClassName": "Mag_AKM_Drum75Rnd",
-												"probability": 0.5
-											}
-										]
-									}
-								]
-							},
-							{
-								"lootItemClassName": "Chaos_ScrapMetal",
-								"probability": 0.34,
-								"quantity": 3,
-								"attachmentCategories": [
-								]
-							}
-						]
-					}	
-				]
-			}
-        },
-		{
-            "captureAreaRadius": 25.0,
-            "captureAreaHeight": 25.0,
-			"captureAreaYAxisOffset": -10,
-            "locationTitle": "Tisy",
-            "lootcrateClassName": "RTLootcrate_Grey",
-			"zombieCount": 10,
-            "locationCoordinatesXYZ": [
-                1685.167725, 
-				460.633026, 
-				14219.413086
-            ],
-            "locationOrientationYPR": [
-                162.741241, 
-				-0.001729, 
-				0.000262
-            ],
-            "lootcrateCoordinatesXYZ": [
-                1681.313110, 
-				460.633026, 
-				14219.468750
-            ],
-            "lootcrateOrientationYPR": [
-                162.958603, 
-				-0.001470, 
-				0.001988
-            ],
-            "vehicleCoordinatesXYZ": [
-				1660.900024,
-				451.580597,
-				14222.674805
-			],
-            "vehicleOrientationYPR": [
-				160.805191,
-				0,
-				0
-			],
-            "vehicleProbability": 1.0,
-            "vehicleClassName": "OffroadHatchback",
-			"vehicleAttachments": [
-				"HatchbackWheel",
-				"HatchbackWheel",
-				"HatchbackWheel",
-				"HatchbackWheel",
-				"HatchbackDoors_Driver"
-			],
-            "loot": {
-				"lootCount": 3,
-				"lootCategories": [
-					{
-						"lootCategoryTitle": "Weapons",
-						"probability": 1,
-						"limit": 2,
-						"items": [
-							{
-								"lootItemClassName": "M4A1",
-								"probability": 0.33,
-								"quantity": 1,
-								"attachmentCategories": [
-									{
-										"attachmentCategoryTitle": "Magazines",
-										"probability": 1,
-										"attachments": [
-											{
-												"attachmentClassName": "Mag_STANAG_30Rnd",
-												"probability": 0.5
-											},
-											{
-												"attachmentClassName": "Mag_STANAG_60Rnd",
-												"probability": 0.5
-											}
-										]
-									}
-								]
-							},
-							{
-								"lootItemClassName": "AKM",
-								"probability": 0.33,
-								"quantity": 1,
-								"attachmentCategories": [
-									{
-										"attachmentCategoryTitle": "Magazines",
-										"probability": 1,
-										"attachments": [
-											{
-												"attachmentClassName": "Mag_AKM_30Rnd",
-												"probability": 0.5
-											},
-											{
-												"attachmentClassName": "Mag_AKM_Drum75Rnd",
-												"probability": 0.5
-											}
-										]
-									}
-								]
-							},
-							{
-								"lootItemClassName": "Chaos_ScrapMetal",
-								"probability": 0.34,
-								"quantity": 3,
-								"attachmentCategories": [
-								]
-							}
-						]
-					}	
-				]
-			}
-        },
-		{
-            "captureAreaRadius": 25.0,
-            "captureAreaHeight": 25.0,
-			"captureAreaYAxisOffset": 0,
-            "locationTitle": "Altar",
-            "lootcrateClassName": "",
-			"zombieCount": 10,
-            "locationCoordinatesXYZ": [
-				8166.144531, 
-				475.543579, 
-				9146.650391
-            ],
-            "locationOrientationYPR": [
-               -23.658743, 
-			   0.669780, 
-			   -0.376106
-            ],
-            "lootcrateCoordinatesXYZ": [
-				8163.546875, 
-				475.500305, 
-				9142.974609
-            ],
-            "lootcrateOrientationYPR": [
-				155.203140, 
-				-0.587048, 
-				0.188136
-            ],
-            "vehicleCoordinatesXYZ": [
-				8153.336426,
-				475.328125,
-				9141.594727
-			],
-            "vehicleOrientationYPR": [
-				-120.589294,
-				0,
-				0
-			],
-            "vehicleProbability": 1.0,
-            "vehicleClassName": "OffroadHatchback",
-			"vehicleAttachments": [
-				"HatchbackWheel",
-				"HatchbackWheel",
-				"HatchbackWheel",
-				"HatchbackWheel",
-				"HatchbackDoors_Driver"
-			],
-            "loot": {
-				"lootCount": 3,
-				"lootCategories": [
-					{
-						"lootCategoryTitle": "Weapons",
-						"probability": 1,
-						"limit": 2,
-						"items": [
-							{
-								"lootItemClassName": "M4A1",
-								"probability": 0.33,
-								"quantity": 1,
-								"attachmentCategories": [
-									{
-										"attachmentCategoryTitle": "Magazines",
-										"probability": 1,
-										"attachments": [
-											{
-												"attachmentClassName": "Mag_STANAG_30Rnd",
-												"probability": 0.5
-											},
-											{
-												"attachmentClassName": "Mag_STANAG_60Rnd",
-												"probability": 0.5
-											}
-										]
-									}
-								]
-							},
-							{
-								"lootItemClassName": "AKM",
-								"probability": 0.33,
-								"quantity": 1,
-								"attachmentCategories": [
-									{
-										"attachmentCategoryTitle": "Magazines",
-										"probability": 1,
-										"attachments": [
-											{
-												"attachmentClassName": "Mag_AKM_30Rnd",
-												"probability": 0.5
-											},
-											{
-												"attachmentClassName": "Mag_AKM_Drum75Rnd",
-												"probability": 0.5
-											}
-										]
-									}
-								]
-							},
-							{
-								"lootItemClassName": "Chaos_ScrapMetal",
-								"probability": 0.34,
-								"quantity": 3,
-								"attachmentCategories": [
-								]
-							}
-						]
-					}	
-				]
-			}
-        },
-		{
-            "captureAreaRadius": 25.0,
-            "captureAreaHeight": 25.0,
-			"captureAreaYAxisOffset": 0,
             "locationTitle": "Bashnya",
-            "lootcrateClassName": "",
-			"zombieCount": 10,
-            "locationCoordinatesXYZ": [
-               4147.169434, 
-			   383.651398, 
-			   11765.890625
-            ],
-            "locationOrientationYPR": [
-				-124.643852, 
-				-0.174226, 
-				-0.251320
-            ],
+            "loot": {
+                "lootCategories": [
+                    {
+                        "items": [
+                            {
+                                "attachmentCategories": [
+                                    {
+                                        "attachmentCategoryTitle": "Optics",
+                                        "attachments": [
+                                            {
+                                                "attachmentClassName": "PSO1Optic",
+                                                "probability": 0.5
+                                            },
+                                            {
+                                                "attachmentClassName": "KobraOptic",
+                                                "probability": 0.5
+                                            }
+                                        ],
+                                        "probability": 0.5
+                                    },
+                                    {
+                                        "attachmentCategoryTitle": "Magazines",
+                                        "attachments": [
+                                            {
+                                                "attachmentClassName": "Mag_AKM_30Rnd",
+                                                "probability": 0.5
+                                            },
+                                            {
+                                                "attachmentClassName": "Mag_AKM_Drum75Rnd",
+                                                "probability": 0.5
+                                            }
+                                        ],
+                                        "probability": 1
+                                    }
+                                ],
+                                "lootItemClassName": "AKM",
+                                "probability": 0.5,
+                                "quantity": 1
+                            },
+                            {
+                                "attachmentCategories": [
+                                    {
+                                        "attachmentCategoryTitle": "Magazines",
+                                        "attachments": [
+                                            {
+                                                "attachmentClassName": "Mag_STANAG_30Rnd",
+                                                "probability": 0.5
+                                            },
+                                            {
+                                                "attachmentClassName": "Mag_STANAG_60Rnd",
+                                                "probability": 0.5
+                                            }
+                                        ],
+                                        "probability": 1
+                                    },
+                                    {
+                                        "attachmentCategoryTitle": "Optics",
+                                        "attachments": [
+                                            {
+                                                "attachmentClassName": "M68Optic",
+                                                "probability": 0.5
+                                            },
+                                            {
+                                                "attachmentClassName": "ACOGOptic",
+                                                "probability": 0.5
+                                            }
+                                        ],
+                                        "probability": 0.5
+                                    }
+                                ],
+                                "lootItemClassName": "M4A1",
+                                "probability": 0.5,
+                                "quantity": 1
+                            }
+                        ],
+                        "limit": 2,
+                        "lootCategoryTitle": "Weapons",
+                        "probability": 0.19999999999999973
+                    },
+                    {
+                        "items": [
+                            {
+                                "attachmentCategories": [
+                                ],
+                                "lootItemClassName": "Battery9V",
+                                "probability": 0.34,
+                                "quantity": 1
+                            },
+                            {
+                                "attachmentCategories": [
+                                    {
+                                        "attachmentCategoryTitle": "Battery",
+                                        "attachments": [
+                                            {
+                                                "attachmentClassName": "Battery9V",
+                                                "probability": 1
+                                            }
+                                        ],
+                                        "probability": 1
+                                    }
+                                ],
+                                "lootItemClassName": "NVGoggles",
+                                "probability": 0.33,
+                                "quantity": 1
+                            },
+                            {
+                                "attachmentCategories": [
+                                ],
+                                "lootItemClassName": "WeaponCleaningKit",
+                                "probability": 0.3300000000000001,
+                                "quantity": 1
+                            }
+                        ],
+                        "limit": 5,
+                        "lootCategoryTitle": "Misc",
+                        "probability": 0.19999999999999973
+                    },
+                    {
+                        "items": [
+                            {
+                                "attachmentCategories": [
+                                    {
+                                        "attachmentCategoryTitle": "Pouches",
+                                        "attachments": [
+                                            {
+                                                "attachmentClassName": "PlateCarrierPouches",
+                                                "probability": 0.5
+                                            },
+                                            {
+                                                "attachmentClassName": "PlateCarrierHolster",
+                                                "probability": 0.5
+                                            }
+                                        ],
+                                        "probability": 0.5
+                                    }
+                                ],
+                                "lootItemClassName": "PlateCarrierVest",
+                                "probability": 0.5,
+                                "quantity": 1
+                            },
+                            {
+                                "attachmentCategories": [
+                                ],
+                                "lootItemClassName": "Mich2001Helmet",
+                                "probability": 0.5,
+                                "quantity": 1
+                            }
+                        ],
+                        "limit": 1,
+                        "lootCategoryTitle": "Clothes",
+                        "probability": 0.20000000000000004
+                    },
+                    {
+                        "items": [
+                            {
+                                "attachmentCategories": [
+                                ],
+                                "lootItemClassName": "RGDG5Grenade",
+                                "probability": 0.33999999999999997,
+                                "quantity": 1
+                            },
+                            {
+                                "attachmentCategories": [
+                                ],
+                                "lootItemClassName": "M67Grenade",
+                                "probability": 0.33999999999999997,
+                                "quantity": 1
+                            },
+                            {
+                                "attachmentCategories": [
+                                ],
+                                "lootItemClassName": "FlashGrenade",
+                                "probability": 0.32,
+                                "quantity": 1
+                            }
+                        ],
+                        "limit": 2,
+                        "lootCategoryTitle": "Explosives",
+                        "probability": 0.2
+                    },
+                    {
+                        "items": [
+                            {
+                                "attachmentCategories": [
+                                ],
+                                "lootItemClassName": "AmmoBox_556x45_20Rnd",
+                                "probability": 0.25000000000000006,
+                                "quantity": 1
+                            },
+                            {
+                                "attachmentCategories": [
+                                ],
+                                "lootItemClassName": "AmmoBox_308Win_20Rnd",
+                                "probability": 0.25000000000000006,
+                                "quantity": 1
+                            },
+                            {
+                                "attachmentCategories": [
+                                ],
+                                "lootItemClassName": "AmmoBox_762x39_20Rnd",
+                                "probability": 0.25000000000000006,
+                                "quantity": 1
+                            },
+                            {
+                                "attachmentCategories": [
+                                ],
+                                "lootItemClassName": "AmmoBox_762x54_20Rnd",
+                                "probability": 0.25,
+                                "quantity": 1
+                            }
+                        ],
+                        "limit": 2,
+                        "lootCategoryTitle": "Ammunition",
+                        "probability": 0.20000000000000004
+                    }
+                ],
+                "lootCount": 10
+            },
+            "lootcrateClassName": "RTLootcrate_Yellow",
             "lootcrateCoordinatesXYZ": [
-				4150.496582, 
-				383.645844, 
-				11764.840820
+                4150.4966,
+                383.6458,
+                11764.8408
             ],
             "lootcrateOrientationYPR": [
-				58.225235, 
-				0.159724, 
-				0.263068
+                58.2252,
+                0.1597,
+                0.2631
             ],
-            "vehicleCoordinatesXYZ": [
-				4155.114746,
-				383.482819,
-				11761.680664
-			],
-            "vehicleOrientationYPR": [
-				160.805191,
-				0,
-				0
-			],
-            "vehicleProbability": 1.0,
+            "vehicleAttachments": [
+                "HatchbackWheel",
+                "HatchbackWheel",
+                "HatchbackWheel",
+                "HatchbackWheel",
+                "HatchbackDoors_Driver",
+                "HatchbackDoors_CoDriver",
+                "HatchbackHood",
+                "HatchbackTrunk",
+                "CarBattery",
+                "CarRadiator",
+                "SparkPlug"
+            ],
             "vehicleClassName": "OffroadHatchback",
-			"vehicleAttachments": [
-				"HatchbackWheel",
-				"HatchbackWheel",
-				"HatchbackWheel",
-				"HatchbackWheel",
-				"HatchbackDoors_Driver"
-			],
-            "loot": {
-				"lootCount": 3,
-				"lootCategories": [
-					{
-						"lootCategoryTitle": "Weapons",
-						"probability": 1,
-						"limit": 2,
-						"items": [
-							{
-								"lootItemClassName": "M4A1",
-								"probability": 0.33,
-								"quantity": 1,
-								"attachmentCategories": [
-									{
-										"attachmentCategoryTitle": "Magazines",
-										"probability": 1,
-										"attachments": [
-											{
-												"attachmentClassName": "Mag_STANAG_30Rnd",
-												"probability": 0.5
-											},
-											{
-												"attachmentClassName": "Mag_STANAG_60Rnd",
-												"probability": 0.5
-											}
-										]
-									}
-								]
-							},
-							{
-								"lootItemClassName": "AKM",
-								"probability": 0.33,
-								"quantity": 1,
-								"attachmentCategories": [
-									{
-										"attachmentCategoryTitle": "Magazines",
-										"probability": 1,
-										"attachments": [
-											{
-												"attachmentClassName": "Mag_AKM_30Rnd",
-												"probability": 0.5
-											},
-											{
-												"attachmentClassName": "Mag_AKM_Drum75Rnd",
-												"probability": 0.5
-											}
-										]
-									}
-								]
-							},
-							{
-								"lootItemClassName": "Chaos_ScrapMetal",
-								"probability": 0.34,
-								"quantity": 3,
-								"attachmentCategories": [
-								]
-							}
-						]
-					}	
-				]
-			}
+            "vehicleCoordinatesXYZ": [
+                4155.1147,
+                383.4828,
+                11761.6807
+            ],
+            "vehicleOrientationYPR": [
+                160.8052,
+                0,
+                0
+            ],
+            "vehicleProbability": 0.75,
+            "zombieCount": 10
         }
     ]
 }

@@ -1,10 +1,10 @@
 {
-    "eventSpawnInterval": 2700.0,
-    "eventLifetime": 1800.0,
-    "eventCapturetime": 300.0,
-    "eventHacktime": 5.0,
-    "eventDefaultLootcrate": "RTLootcrate_Red",
-    "enableLogging": 1,
+    "eventSpawnInterval": 2700,
+    "eventLifetime": 1800,
+    "eventCapturetime": 300,
+    "eventHacktime": 10,
+    "eventDefaultLootcrate": "RTLootcrate_White",
+    "enableLogging": 0,
     "allowSameEventSpawnInARow": 0,
 	"enableConcurrentEvents": 0,
 	"enableNotifications": 1,
@@ -14,5 +14,6 @@
 	"prioritizeOldEvent": 1,
 	"spawnZombies": 1,
 	"showCaptureStatusSmoke": 1,
-	"enableLBMapMarker": 0
+	"enableLBMapMarker": 0,
+	"minimumPlayerCount": 0
 }
