@@ -2,20 +2,8 @@
 <modded_inputs>
     <inputs>
         <actions>
-			<input name="RTShowCaptureUIDebug" loc="Capture UI" />
-            <!-- <input name="InputRadioTower_debug" loc="Crafting Menu Debug" />
-            <input name="UASchanaPartyPingClear" loc="Party Ping Clear" />  -->
         </actions>
     </inputs>
     <preset>
-		<input name="RTShowCaptureUIDebug">
-            <btn name="kUP" />
-        </input>
-        <!-- <input name="InputRadioTower_debug">
-            <btn name="kT" />
-        </input>
-        <input name="UASchanaPartyPingClear">
-            <btn name="kY" />
-        </input> -->
     </preset>
 </modded_inputs>

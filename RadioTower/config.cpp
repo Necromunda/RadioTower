@@ -1,4 +1,3 @@
-
 class CfgPatches
 {
 	class RadioTower_Scripts
@@ -23,7 +22,9 @@ class CfgMods
 		type = "mod";
 		dependencies[] =
 		{
-			"Game", "World", "Mission"
+			"Game", 
+			"World", 
+			"Mission"
 		};
 		class defs
 		{

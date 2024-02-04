@@ -220,7 +220,7 @@ class RTEvent
 		{
 			lootCount = totalLimit;
 		}
-		Print("LootCount is " + lootCount);
+
 	    for (int i = 0; i < lootCount; i++)
 	    {
 	        float randomValue = Math.RandomFloat(0, totalCategoriesProbability);

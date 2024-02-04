@@ -29,7 +29,7 @@ class RTServer extends Container_Base
 	
 	void RTServer()
 	{	
-		Print("[RadioTower] RTServer ctor");
+		//Print("[RadioTower] RTServer ctor");
 		RegisterNetSyncVariableBool("m_IsSoundSynchRemote");
 		RegisterNetSyncVariableBool("m_IsOpened");
 		RegisterNetSyncVariableBool("m_IsHacked");
@@ -41,7 +41,7 @@ class RTServer extends Container_Base
 	
 	void ~RTServer() 
 	{ 
-		Print("[RadioTower] RTServer dtor");
+		//Print("[RadioTower] RTServer dtor");
 	}
 	
 	override void EEInit()
@@ -110,13 +110,10 @@ class RTServer extends Container_Base
 		if (!g_Game.IsCaptureStatusSmokeEnabled())
 			return;
 		
-		//vector pclPos = GetProgressPclPosition();
-		//Print("[RadioTower] Particle pos: " + m_ParticlePlayPos);
 		//DestroyAllParticles();
 		switch (m_CaptureStateLocal)
 		{				
 			case CaptureState.DEFAULT:			
-				Print("[RadioTower] RTServer DEFAULT CaptureState: Red particle");
 				if (!m_ParDefaultFire)
 				{
 					DestroyAllParticles();
@@ -127,7 +124,6 @@ class RTServer extends Container_Base
 				break;
 				
 			case CaptureState.CAPTURING:
-				Print("[RadioTower] RTServer CAPTURING CaptureState: Yellow particle");
 				if (!m_ParCapturingFire)
 				{
 					//DestroyAllParticles();
@@ -139,7 +135,6 @@ class RTServer extends Container_Base
 				break;	
 				
 			case CaptureState.CAPTURED:
-				Print("[RadioTower] RTServer CAPTURED CaptureState: Green particle");
 				if (!m_ParCapturedFire)
 				{
 					//DestroyAllParticles();
@@ -150,9 +145,6 @@ class RTServer extends Container_Base
 				DestroyParticleEx(m_ParCapturingFire);
 				break;
 		}
-		Print("Particle m_ParDefaultFire: " + m_ParDefaultFire);
-		Print("Particle m_ParCapturingFire: " + m_ParCapturingFire);
-		Print("Particle m_ParCapturedFire: " + m_ParCapturedFire);
 	}
 	
 	// Destroys the given particle
@@ -222,9 +214,7 @@ class RTServer extends Container_Base
 	
 	void Hack()
 	{
-		//Print("Hack() Caller server: " + GetGame().IsDedicatedServer());
 		m_IsHacked = true;
-		//m_CaptureState = CaptureState.CAPTURING;
 		SetSynchDirty();
 	}
 	

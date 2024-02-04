@@ -100,7 +100,7 @@ class CfgVehicles
 	};
 	class USBStick: USBStick_Base
 	{
-		scope=2;
+		scope=0;
 		displayName="USB Stick";
 		descriptionShort="Plug into a server and see what happens.";
 	};
