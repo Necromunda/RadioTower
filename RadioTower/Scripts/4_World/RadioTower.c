@@ -198,11 +198,16 @@ class RTEvent
 				if (Math.RandomFloat(0, 1) <= vehicleProbability)
 				{
 					Object obj = g_RTBase.SpawnObject(vehicleName, vehiclePosition, vehicleOrientation);
-					EntityAI entity = EntityAI.Cast(obj);
+					EntityAI carAI = EntityAI.Cast(obj);
+					
 					for (int k = 0; k < vehicleAttachments.Count(); k++)
 					{
-						entity.GetInventory().CreateAttachment(vehicleAttachments[k]);
+						carAI.GetInventory().CreateAttachment(vehicleAttachments[k]);
 					}
+					
+					CarScript vehicle = CarScript.Cast(carAI);
+					vehicle.Fill(CarFluid.FUEL, 200);
+					vehicle.Fill(CarFluid.COOLANT, 1000);
 				}
 			}
 		}
@@ -298,14 +303,17 @@ class RTEvent
 								RTLogger.GetInstance().LogMessage("[Item] " + itemClassName);
 								entity = target.GetInventory().CreateEntityInCargo(itemClassName);
 								ItemBase ingameItem = ItemBase.Cast(entity);
-								
+								Print("Spawning item: " + ingameItem.ClassName());
 								if (ingameItem.HasQuantity())
 								{
 									/*if (item.HasRandomQuantity)
 									{
 										quantity = Math.RandomInt(1, quantity);
 									}*/
-									ingameItem.SetQuantity(quantity);
+									if (quantity > 1)
+									{
+										ingameItem.SetQuantity(quantity);
+									}
 									break;
 								}
 								
@@ -670,6 +678,7 @@ class RTBase
 	bool IsEventLocationValid(RTLocation location)
 	{
 		string locationTitle = location.locationTitle;
+		Print("Trying location: " + locationTitle);
 		
 		// Check if we have 0 events
 		int eventLocationCount = GetEventLocationCount();
