@@ -141,7 +141,7 @@ class RTEvent
             float z = Math.RandomFloat(centerPos[2] - radius, centerPos[2] + radius);
 			*/
             float y = GetGame().SurfaceY(x, z);
-            vector position = Vector( x, y, z );
+            vector position = Vector(x, y, z);
 
             if (g_RTBase.IsSafeSpawnPos(position))
             {
@@ -258,36 +258,6 @@ class RTEvent
 	                float cumulativeItemProbability = 0;
 	
 	                // Iterate through the items within the category to determine the spawned item
-	                /*
-					for (int k = 0; k < items.Count(); k++)
-	                {
-						RTLootItem item = items[k];
-	                    cumulativeItemProbability += item.probability;
-	
-	                    if (randomItemValue <= cumulativeItemProbability)
-	                    {
-	                        entity = target.GetInventory().CreateEntityInCargo(item.lootItemClassName);
-							
-							RTLogger.GetInstance().LogMessage("[Item] " + item.lootItemClassName);
-							
-							if (item.quantity > 1)
-							{
-								if (ingameItem.HasQuantity())
-								{
-									ItemBase ingameItem = ItemBase.Cast(entity);
-									int quantity = item.quantity;
-									/*if (item.HasRandomQuantity)
-									{
-										quantity = Math.RandomInt(1, quantity);
-									}
-									ingameItem.SetQuantity(quantity);
-								}
-							}
-	                        SpawnAttachments(entity, item.attachmentCategories);
-	                        break;
-	                    }
-	                }
-					*/
 					for (int k = 0; k < items.Count(); k++)
 	                {
 						RTLootItem item = items[k];
@@ -303,17 +273,14 @@ class RTEvent
 								RTLogger.GetInstance().LogMessage("[Item] " + itemClassName);
 								entity = target.GetInventory().CreateEntityInCargo(itemClassName);
 								ItemBase ingameItem = ItemBase.Cast(entity);
-								Print("Spawning item: " + ingameItem.ClassName());
+								//Print("Spawning item: " + ingameItem.ClassName());
 								if (ingameItem.HasQuantity())
 								{
 									/*if (item.HasRandomQuantity)
 									{
 										quantity = Math.RandomInt(1, quantity);
 									}*/
-									if (quantity > 1)
-									{
-										ingameItem.SetQuantity(quantity);
-									}
+									ingameItem.SetQuantity(Math.Clamp(quantity, ingameItem.GetQuantityMin(), ingameItem.GetQuantityMax()));
 									break;
 								}
 								
@@ -524,13 +491,10 @@ class RTBase
 	void ~RTBase()
 	{
 		RTLogger.ClearInstance();
-		//Print("[RadioTower] RTBase dtor");
 	}
 	
 	void RTBase()
 	{
-		//Print("[RadioTower] RTBase ctor");
-		
 		m_Settings = RTSettings.Load();
 		m_Props = RTProps.Load();
 		m_Locations = RTLocations.Load();
@@ -678,7 +642,7 @@ class RTBase
 	bool IsEventLocationValid(RTLocation location)
 	{
 		string locationTitle = location.locationTitle;
-		Print("Trying location: " + locationTitle);
+		Print("[RadioTower] Trying location: " + locationTitle);
 		
 		// Check if we have 0 events
 		int eventLocationCount = GetEventLocationCount();
@@ -840,7 +804,12 @@ class RTBase
 #ifdef LBmaster_Groups
 		if (m_Settings.enableLBMapMarker)
 		{
-			string title = string.Format("KOTH: %1 Event", eventLocation.locationTitle);
+			string mapMarkerText = m_Settings.mapMarkerText;
+			if (!mapMarkerText.Contains("%"))
+			{
+				mapMarkerText = RTConstants.RT_MAP_MARKER_TEXT;
+			}
+			string title = string.Format(mapMarkerText, eventLocation.locationTitle);
 			ref LBServerMarker marker = m_RTEvent.CreateLBMapMarker(title, position, "LBmaster_Groups/gui/icons/skull.paa", ARGB(255, 200, 0, 0), false, false, true, true);
 			m_RTEvent.SetLBMapMarker(marker);
 		}

@@ -3,6 +3,7 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 class RTSettings
 {
+	//int version;
 	int eventSpawnInterval;
 	int eventLifetime;
 	int eventCapturetime;
@@ -20,6 +21,7 @@ class RTSettings
 	bool showCaptureStatusSmoke;
 	bool enableLBMapMarker;
 	int minimumPlayerCount;
+	string mapMarkerText;
 	
 	void Defaults()
 	{	
@@ -39,9 +41,11 @@ class RTSettings
 		spawnZombies = true;
 		showCaptureStatusSmoke = true;
 		enableLBMapMarker = false;
-		minimumPlayerCount = 1;
+		minimumPlayerCount = 0;
+		mapMarkerText = RTConstants.RT_MAP_MARKER_TEXT;
 	}
 	
+	/*
 	static ref RTSettings Load()
 	{
 		ref RTSettings m_Settings = new RTSettings();
@@ -79,6 +83,58 @@ class RTSettings
 		
 		return m_Settings;
 	}
+	*/
+	
+	static ref RTSettings Load()
+	{
+		ref RTSettings m_Settings = new RTSettings();
+		
+		// Check if RadioTower folder exists in Profiles
+		if (!FileExist(RTConstants.RT_ROOTPATH))
+		{
+			MakeDirectory(RTConstants.RT_ROOTPATH);
+			Print("[RadioTower] Root folder created");
+		}
+		
+		// Check if RadioTower/Logs folder exists in Profiles
+		if (!FileExist(RTConstants.RT_LOGPATH))
+		{
+			MakeDirectory(RTConstants.RT_LOGPATH);
+			Print("[RadioTower] Logs folder created");
+		}
+		
+		// Check if RadioTower/RadioTowerSettings.json file exists in Profiles
+		if (FileExist(RTConstants.RT_SETTINGS_CONFIGPATH))
+		{
+			m_Settings.Defaults();
+			// Load it
+			JsonFileLoader<RTSettings>.JsonLoadFile(RTConstants.RT_SETTINGS_CONFIGPATH, m_Settings);
+			// Compare versions and update settings
+			//m_Settings = RTSettings.Validate(m_Settings);
+			Print("[RadioTower] RTSettings.json loaded");
+		}
+		else
+		{
+			// Create default settings
+			m_Settings.Defaults();
+			// Log the folders & settings creation
+			Print("[RadioTower] RTSettings.json created & defaults loaded.");
+		}
+		JsonFileLoader<RTSettings>.JsonSaveFile(RTConstants.RT_SETTINGS_CONFIGPATH, m_Settings);
+		
+		return m_Settings;
+	}
+	
+	/*static protected RTSettings Validate(RTSettings settings)
+	{
+		if (settings.version != RTConstants.RT_VERSION)
+		{
+			Print("[RadioTower] Old version detected, updating " + settings.version + " -> " + RTConstants.RT_VERSION);
+			settings.version = RTConstants.RT_VERSION;
+		}
+		
+		return settings;
+	}*/
 }
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
@@ -132,6 +188,7 @@ class RTProps
 			// Log the folders & settings creation
 			Print("[RadioTower] RTProps.json created & defaults loaded.");
 		}
+		//JsonFileLoader<RTProps>.JsonSaveFile(RTConstants.RT_PROPS_CONFIGPATH, m_Props);
 		
 		return m_Props;
 	}
@@ -216,6 +273,7 @@ class RTLocations
 			// Log the folders & settings creation
 			Print("[RadioTower] RTLocations.json created & defaults loaded.");
 		}
+		//JsonFileLoader<RTLocations>.JsonSaveFile(RTConstants.RT_LOCATIONS_CONFIGPATH, m_Locations);
 		
 		return m_Locations;
 	}

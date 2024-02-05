@@ -1,5 +1,6 @@
 class RTConstants
 {
+	static const int RT_VERSION = 106022024;
 	/* ACTION CONDITION DEFAULTS */
 	static const float RT_DISTANCE_DEFAULT = 2.0;
 	/* EVENT DEFAULTS */
@@ -13,6 +14,7 @@ class RTConstants
 	static const float RT_TIMETOHACK_DEFAULT = 1;
 	static const bool RT_ALLOW_SAME_EVENT_SPAWN_IN_A_ROW = true;
 	static const bool RT_ENABLE_LOGGING = false;
+	static const string RT_MAP_MARKER_TEXT = "KOTH: %1";
 	/* PATHS */
 	static const string RT_ROOTPATH = "$profile:RadioTower/";
 	static const string RT_LOGPATH = "$profile:RadioTower/Logs/";
