@@ -1,9 +1,11 @@
+const int RT_VERSION = 115022024;
+
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~RTSettings.json~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 class RTSettings
 {
-	//int version;
+	int version;
 	int eventSpawnInterval;
 	int eventLifetime;
 	int eventCapturetime;
@@ -25,6 +27,7 @@ class RTSettings
 	
 	void Defaults()
 	{	
+		version = RT_VERSION;
 		eventSpawnInterval = 2700;
 		eventLifetime = 1800;
 		eventCapturetime = 900;
@@ -45,72 +48,17 @@ class RTSettings
 		mapMarkerText = RTConstants.RT_MAP_MARKER_TEXT;
 	}
 	
-	/*
 	static ref RTSettings Load()
 	{
 		ref RTSettings m_Settings = new RTSettings();
 		
-		// Check if RadioTower folder exists in Profiles
-		if (!FileExist(RTConstants.RT_ROOTPATH))
-		{
-			MakeDirectory(RTConstants.RT_ROOTPATH);
-			Print("[RadioTower] Root folder created");
-		}
-		
-		// Check if RadioTower/Logs folder exists in Profiles
-		if (!FileExist(RTConstants.RT_LOGPATH))
-		{
-			MakeDirectory(RTConstants.RT_LOGPATH);
-			Print("[RadioTower] Logs folder created");
-		}
-		
 		// Check if RadioTower/RadioTowerSettings.json file exists in Profiles
 		if (FileExist(RTConstants.RT_SETTINGS_CONFIGPATH))
 		{
-			// Load it
-			JsonFileLoader<RTSettings>.JsonLoadFile(RTConstants.RT_SETTINGS_CONFIGPATH, m_Settings);
-			Print("[RadioTower] RTSettings.json loaded");
-		}
-		else
-		{
-			// Create default settings
-			m_Settings.Defaults();
-			// Save it (with updated & reformatted values)
-			JsonFileLoader<RTSettings>.JsonSaveFile(RTConstants.RT_SETTINGS_CONFIGPATH, m_Settings);
-			// Log the folders & settings creation
-			Print("[RadioTower] RTSettings.json created & defaults loaded.");
-		}
-		
-		return m_Settings;
-	}
-	*/
-	
-	static ref RTSettings Load()
-	{
-		ref RTSettings m_Settings = new RTSettings();
-		
-		// Check if RadioTower folder exists in Profiles
-		if (!FileExist(RTConstants.RT_ROOTPATH))
-		{
-			MakeDirectory(RTConstants.RT_ROOTPATH);
-			Print("[RadioTower] Root folder created");
-		}
-		
-		// Check if RadioTower/Logs folder exists in Profiles
-		if (!FileExist(RTConstants.RT_LOGPATH))
-		{
-			MakeDirectory(RTConstants.RT_LOGPATH);
-			Print("[RadioTower] Logs folder created");
-		}
-		
-		// Check if RadioTower/RadioTowerSettings.json file exists in Profiles
-		if (FileExist(RTConstants.RT_SETTINGS_CONFIGPATH))
-		{
-			m_Settings.Defaults();
 			// Load it
 			JsonFileLoader<RTSettings>.JsonLoadFile(RTConstants.RT_SETTINGS_CONFIGPATH, m_Settings);
 			// Compare versions and update settings
-			//m_Settings = RTSettings.Validate(m_Settings);
+			RTSettings.CheckVersion(m_Settings);
 			Print("[RadioTower] RTSettings.json loaded");
 		}
 		else
@@ -125,16 +73,25 @@ class RTSettings
 		return m_Settings;
 	}
 	
-	/*static protected RTSettings Validate(RTSettings settings)
+	static protected void CheckVersion(RTSettings settings)
 	{
-		if (settings.version != RTConstants.RT_VERSION)
+		if (settings.version != RT_VERSION)
 		{
-			Print("[RadioTower] Old version detected, updating " + settings.version + " -> " + RTConstants.RT_VERSION);
-			settings.version = RTConstants.RT_VERSION;
+			string backupFileName = "v_" + settings.version.ToString() + "_RTSettings.json";
+			string backupFilePath = RTConstants.RT_BACKUPPATH_SETTINGS + backupFileName;
+			
+			if (!FileExist(RTConstants.RT_BACKUPPATH_SETTINGS))
+			{
+				MakeDirectory(RTConstants.RT_BACKUPPATH_SETTINGS);
+				Print("[RadioTower] RTSettings backup folder created");
+			}
+			
+			JsonFileLoader<RTSettings>.JsonSaveFile(backupFilePath, settings);
+			
+			Print("[RadioTower] RTSetings.json update version " + settings.version + " -> " + RT_VERSION);
+			settings.version = RT_VERSION;
 		}
-		
-		return settings;
-	}*/
+	}
 }
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
@@ -142,55 +99,58 @@ class RTSettings
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 class RTProps
 {
+	int version;
 	ref array<ref RTLocationProps> eventProps;
 
 	void Defaults()
 	{
+		version = RT_VERSION;
 		eventProps = new array<ref RTLocationProps>();
-		//ref RTLocationProps location = new RTLocationProps();
-		//location.locationProps = new array<ref RTProp>();
-		//ref RTProp eventProp = new RTProp();
-		//location.locationProps.Insert(eventProp);
-		//eventProps.Insert(location);
 	}
 	
 	static ref RTProps Load()
 	{
 		ref RTProps m_Props = new RTProps();
 		
-		// Check if RadioTower folder exists in Profiles
-		if (!FileExist(RTConstants.RT_ROOTPATH))
-		{
-			MakeDirectory(RTConstants.RT_ROOTPATH);
-			Print("[RadioTower] Root folder created");
-		}
-		
-		// Check if RadioTower/Logs folder exists in Profiles
-		if (!FileExist(RTConstants.RT_LOGPATH))
-		{
-			MakeDirectory(RTConstants.RT_LOGPATH);
-			Print("[RadioTower] Logs folder created");
-		}
-		
 		// Check if RadioTower/RadioTowerSettings.json file exists in Profiles
 		if (FileExist(RTConstants.RT_PROPS_CONFIGPATH))
 		{
 			// Load it
 			JsonFileLoader<RTProps>.JsonLoadFile(RTConstants.RT_PROPS_CONFIGPATH, m_Props);
+			// Compare versions and update props
+			RTProps.CheckVersion(m_Props);
 			Print("[RadioTower] RTProps.json loaded");
 		}
 		else
 		{
 			// Create default settings
 			m_Props.Defaults();
-			// Save it (with updated & reformatted values)
-			JsonFileLoader<RTProps>.JsonSaveFile(RTConstants.RT_PROPS_CONFIGPATH, m_Props);
 			// Log the folders & settings creation
 			Print("[RadioTower] RTProps.json created & defaults loaded.");
 		}
-		//JsonFileLoader<RTProps>.JsonSaveFile(RTConstants.RT_PROPS_CONFIGPATH, m_Props);
+		JsonFileLoader<RTProps>.JsonSaveFile(RTConstants.RT_PROPS_CONFIGPATH, m_Props);
 		
 		return m_Props;
+	}
+	
+	static protected void CheckVersion(RTProps props)
+	{
+		if (props.version != RT_VERSION)
+		{
+			string backupFileName = "v_" + props.version.ToString() + "_RTProps.json";
+			string backupFilePath = RTConstants.RT_BACKUPPATH_PROPS + backupFileName;
+			
+			if (!FileExist(RTConstants.RT_BACKUPPATH_PROPS))
+			{
+				MakeDirectory(RTConstants.RT_BACKUPPATH_PROPS);
+				Print("[RadioTower] RTProps backup folder created");
+			}
+			
+			JsonFileLoader<RTProps>.JsonSaveFile(backupFilePath, props);
+			
+			Print("[RadioTower] RTProps.json update version " + props.version + " -> " + RT_VERSION);
+			props.version = RT_VERSION;
+		}
 	}
 }
 
@@ -212,10 +172,12 @@ class RTProp
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 class RTLocations
 {
+	int version;
 	ref array<ref RTLocation> eventLocations;
 
 	void Defaults()
 	{
+		version = RT_VERSION;
 		eventLocations = new array<ref RTLocation>();
 	
 		ref RTLocation eventLocation = new RTLocation();
@@ -235,6 +197,7 @@ class RTLocations
 		eventLocation.vehicleProbability = 0.5;
 		eventLocation.vehicleClassName = "OffroadHatchback";
 		eventLocation.vehicleAttachments = {"HatchbackWheel", "HatchbackWheel", "HatchbackWheel", "HatchbackWheel", "HatchbackDoors_Driver"};
+		eventLocation.zombies = {};
 		
 		eventLocations.Insert(eventLocation);
 	}
@@ -243,39 +206,44 @@ class RTLocations
 	{
 		ref RTLocations m_Locations = new RTLocations();
 		
-		// Check if RadioTower folder exists in Profiles
-		if (!FileExist(RTConstants.RT_ROOTPATH))
-		{
-			MakeDirectory(RTConstants.RT_ROOTPATH);
-			Print("[RadioTower] Root folder created");
-		}
-		
-		// Check if RadioTower/Logs folder exists in Profiles
-		if (!FileExist(RTConstants.RT_LOGPATH))
-		{
-			MakeDirectory(RTConstants.RT_LOGPATH);
-			Print("[RadioTower] Logs folder created");
-		}
-		
 		// Check if RadioTower/RadioTowerSettings.json file exists in Profiles
 		if (FileExist(RTConstants.RT_LOCATIONS_CONFIGPATH))
 		{
 			// Load it
 			JsonFileLoader<RTLocations>.JsonLoadFile(RTConstants.RT_LOCATIONS_CONFIGPATH, m_Locations);
+			RTLocations.CheckVersion(m_Locations);
 			Print("[RadioTower] RTLocations.json loaded");
 		}
 		else
 		{
 			// Create default settings
 			m_Locations.Defaults();
-			// Save it (with updated & reformatted values)
-			JsonFileLoader<RTLocations>.JsonSaveFile(RTConstants.RT_LOCATIONS_CONFIGPATH, m_Locations);
 			// Log the folders & settings creation
 			Print("[RadioTower] RTLocations.json created & defaults loaded.");
 		}
-		//JsonFileLoader<RTLocations>.JsonSaveFile(RTConstants.RT_LOCATIONS_CONFIGPATH, m_Locations);
+		JsonFileLoader<RTLocations>.JsonSaveFile(RTConstants.RT_LOCATIONS_CONFIGPATH, m_Locations);
 		
 		return m_Locations;
+	}
+	
+	static protected void CheckVersion(RTLocations locations)
+	{
+		if (locations.version != RT_VERSION)
+		{
+			string backupFileName = "v_" + locations.version.ToString() + "_RTLocations.json";
+			string backupFilePath = RTConstants.RT_BACKUPPATH_LOCATIONS + backupFileName;
+			
+			if (!FileExist(RTConstants.RT_BACKUPPATH_LOCATIONS))
+			{
+				MakeDirectory(RTConstants.RT_BACKUPPATH_LOCATIONS);
+				Print("[RadioTower] RTLocations backup folder created");
+			}
+			
+			JsonFileLoader<RTLocations>.JsonSaveFile(backupFilePath, locations);
+			
+			Print("[RadioTower] RTLocations.json update version " + locations.version + " -> " + RT_VERSION);
+			locations.version = RT_VERSION;
+		}
 	}
 }
 
@@ -298,6 +266,15 @@ class RTLocation
 	string vehicleClassName;
 	ref TStringArray vehicleAttachments;
 	ref RTLoot loot;
+	ref TStringArray zombies;
+	
+	string GetRandomZombieClassname()
+	{	
+		if (zombies.Count() == 0)
+			return "";
+		
+		return zombies[zombies.GetRandomIndex()];
+	}
 }
 
 class RTLoot
@@ -342,7 +319,6 @@ class RTLootCategory
 	string lootCategoryTitle;
 	float probability;
 	int limit;
-	int lootedCount;
 	ref array<ref RTLootItem> items;
 	
 	float GetTotalItemsProbability()
@@ -366,6 +342,7 @@ class RTLootItem
 	string lootItemClassName;
 	float probability;
 	int quantity;
+	bool hasRandomQuantity;
 	ref array<ref RTLootItemAttachmentCategory> attachmentCategories;
 	
 	float GetTotalAttachmentCategoriesProbability()

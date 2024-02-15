@@ -130,8 +130,17 @@ class RTEvent
 	void SpawnZombies(int count, vector centerPos, float radius)
 	{
 		int spawnedZombies = 0;
-        while(spawnedZombies < count)
+		int tries = 0;
+        while (spawnedZombies < count)
         {
+			// Prevent infinite loop
+			if (tries > 10000)
+			{
+				Print("[RadioTower] Not enough space for spawning zombies, reduce zombie count!");
+				RTLogger.GetInstance().LogMessage("[RadioTower] Not enough space for spawning zombies, reduce zombie count!");
+				break;			
+			}
+			
 			float angle = Math.RandomFloat(0, 2 * Math.PI);
 			float distance = Math.RandomFloat(0, radius);
 			float x = centerPos[0] + distance * Math.Cos(angle);
@@ -145,12 +154,30 @@ class RTEvent
 
             if (g_RTBase.IsSafeSpawnPos(position))
             {
-				string zombieClassname = RTConstants.GetRandomZombieClassname();
+				string zombieClassname;
+				if (m_EventLocation.zombies)
+				{
+					zombieClassname = m_EventLocation.GetRandomZombieClassname();
+					//Print("[RadioTower] Location has overriden zombies, spawning " + zombieClassname);
+				}
+				if (zombieClassname == "")
+				{
+					zombieClassname = RTConstants.GetRandomZombieClassname();
+					//Print("[RadioTower] Location uses default zombies, spawning " + zombieClassname);
+				}
 				ref EntityAI zombie;
 				if (EntityAI.CastTo(zombie, GetGame().CreateObject(zombieClassname, position, false, true)))
+				{
 					m_Zombies.Insert(zombie);
+				}
+				else
+				{
+					Print("[RadioTower] Error spawning zombie, check that " + zombieClassname + " is a valid classname!");
+					RTLogger.GetInstance().LogMessage("[RadioTower] Error spawning zombie, check that " + zombieClassname + " is a valid classname!");
+				}
 				spawnedZombies++;
 			}	
+			tries++;
 		}
 	}
 	
@@ -216,6 +243,8 @@ class RTEvent
 	//void SpawnLoot(RTLootcrate_Base target)
 	void SpawnLoot(EntityAI target)
 	{
+		TStringIntMap lootedCountCategoryMap = new TStringIntMap();
+		
 		array<ref RTLootCategory> categories = m_EventLocation.loot.lootCategories;
 	    float totalCategoriesProbability = m_EventLocation.loot.GetTotalCategoriesProbability();
 		int lootCount = m_EventLocation.loot.lootCount;
@@ -225,14 +254,21 @@ class RTEvent
 		{
 			lootCount = totalLimit;
 		}
-
+		
+		// Init lootedCount to 0 for all categories
+		for (int m = 0; m < categories.Count(); m++)
+		{
+			RTLootCategory cat = categories[m];
+			lootedCountCategoryMap.Insert(cat.lootCategoryTitle, 0);
+		}
+		
 	    for (int i = 0; i < lootCount; i++)
 	    {
 	        float randomValue = Math.RandomFloat(0, totalCategoriesProbability);
 	        float cumulativeProbability = 0;
 	        EntityAI entity = null;
 	
-	        // Iterate through each category and its items to determine the spawned item
+	        // Iterate through each category and pick one
 	        for (int j = 0; j < categories.Count(); j++)
 	        {
 				RTLootCategory category = categories[j];
@@ -242,7 +278,8 @@ class RTEvent
 	            {
 	                array<ref RTLootItem> items = category.items;
 					int lootLimit = category.limit;
-					int lootedCount = category.lootedCount;
+					//int lootedCount = category.lootedCount;
+					int lootedCount = lootedCountCategoryMap.Get(category.lootCategoryTitle);
 					
 					if(lootLimit > 0 && lootedCount >= lootLimit)
 					{
@@ -250,14 +287,15 @@ class RTEvent
 						break;
 					}
 					
-					category.lootedCount++;
+					//category.lootedCount++;
+					lootedCountCategoryMap.Set(category.lootCategoryTitle, lootedCount++);
 	
 	                // Calculate the total probability for items within the category
 	                float totalItemProbability = category.GetTotalItemsProbability();
 	                float randomItemValue = Math.RandomFloat(0, totalItemProbability);
 	                float cumulativeItemProbability = 0;
 	
-	                // Iterate through the items within the category to determine the spawned item
+	                // Iterate through the items within the category and pick one
 					for (int k = 0; k < items.Count(); k++)
 	                {
 						RTLootItem item = items[k];
@@ -276,10 +314,10 @@ class RTEvent
 								//Print("Spawning item: " + ingameItem.ClassName());
 								if (ingameItem.HasQuantity())
 								{
-									/*if (item.HasRandomQuantity)
+									if (item.hasRandomQuantity)
 									{
 										quantity = Math.RandomInt(1, quantity);
-									}*/
+									}
 									ingameItem.SetQuantity(Math.Clamp(quantity, ingameItem.GetQuantityMin(), ingameItem.GetQuantityMax()));
 									break;
 								}
@@ -495,8 +533,26 @@ class RTBase
 	
 	void RTBase()
 	{
-		m_Settings = RTSettings.Load();
-		m_Props = RTProps.Load();
+		if (!FileExist(RTConstants.RT_ROOTPATH))
+		{
+			MakeDirectory(RTConstants.RT_ROOTPATH);
+			Print("[RadioTower] Root folder created");
+		}
+		
+		if (!FileExist(RTConstants.RT_LOGPATH))
+		{
+			MakeDirectory(RTConstants.RT_LOGPATH);
+			Print("[RadioTower] Logs folder created");
+		}
+		
+		if (!FileExist(RTConstants.RT_BACKUPPATH))
+		{
+			MakeDirectory(RTConstants.RT_BACKUPPATH);
+			Print("[RadioTower] Logs folder created");
+		}
+		
+		m_Settings 	= RTSettings.Load();
+		m_Props 	= RTProps.Load();
 		m_Locations = RTLocations.Load();
 		
 		m_RTEvent = null;
