@@ -38,6 +38,12 @@ modded class MissionGameplay
 		GetRPCManager().AddRPC("RadioTower", "SendConfigToClient", this, SingleplayerExecutionType.Client);	
 	}
 	
+	void ~MissionGameplay()
+	{
+		if (m_CaptureAreaUI)
+			delete m_CaptureAreaUI;
+	}
+	
 	override void OnUpdate(float timeslice)
     {
         super.OnUpdate(timeslice);
@@ -45,6 +51,13 @@ modded class MissionGameplay
 		PlayerBase player;
 		if (PlayerBase.CastTo(player, GetGame().GetPlayer()) && player.GetIsInsideCaptureArea())
 		{
+			#ifdef LBmaster_Groups
+			if (LBMarkerVisibilityManager.Get().compassEnabled)
+				m_CaptureAreaUI.SetYOffset(65);
+			else
+				m_CaptureAreaUI.SetYOffset(0);
+			#endif
+			
 			if (!m_CaptureAreaUI.IsCaptureUIVisible())
 				m_CaptureAreaUI.ToggleCaptureUI();
 			
