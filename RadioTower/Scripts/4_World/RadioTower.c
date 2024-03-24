@@ -1,8 +1,10 @@
 class RTBase
 {
+	ref RTSettingsOld m_SettingsOld;
 	ref RTSettings m_Settings;
 	ref RTLocations m_Locations;
 	ref RTProps m_Props;
+	ref RTLootSets m_LootSets;
 
 	ref Timer m_EventSpawnTimer;
 	protected ref RTEvent m_RTEvent;
@@ -37,12 +39,22 @@ class RTBase
 		if (!FileExist(RTConstants.RT_BACKUPPATH))
 		{
 			MakeDirectory(RTConstants.RT_BACKUPPATH);
-			Print("[RadioTower] Logs folder created");
+			Print("[RadioTower] Backup folder created");
 		}
 		
-		m_Settings 	= RTSettings.Load();
+		m_SettingsOld = RTSettingsOld.Load();
+		if (m_SettingsOld && m_SettingsOld.version == RT_VERSION_NEEDS_CONVERSION)
+		{
+			m_Settings = new ref RTSettings();
+			m_SettingsOld.ConvertSettings(m_Settings);
+		}
+		else
+		{
+			m_Settings 	= RTSettings.Load();
+		}
 		m_Props 	= RTProps.Load();
 		m_Locations = RTLocations.Load();
+		m_LootSets 	= RTLootSets.Load();
 		
 		m_RTEvent = null;
 		m_EventSpawnTimer = new Timer;
@@ -56,11 +68,18 @@ class RTBase
 		
 		if (m_Settings)
 		{
+			/*
 			spawnInterval = m_Settings.eventSpawnInterval;
 			m_AllowSameEventSpawnInARow = m_Settings.allowSameEventSpawnInARow;
 			enableLogging = m_Settings.enableLogging;
 			m_DefaultLootcrate = m_Settings.eventDefaultLootcrate;
 			m_NotificationState = m_Settings.enableNotifications;
+			*/
+			spawnInterval = m_Settings.kothEvent.spawnInterval;
+			m_AllowSameEventSpawnInARow = m_Settings.kothEvent.enableSameEventSpawnInARow;
+			enableLogging = m_Settings.logging.enableLogging;
+			m_DefaultLootcrate = m_Settings.kothEvent.defaultLootcrate;
+			m_NotificationState = m_Settings.notifications.enableNotifications;
 		}
 		
 		RTLogger.CreateInstance();
@@ -85,9 +104,9 @@ class RTBase
 		if (!isAllowed)
 			return false;
 		
-		bool allowCreateNotification = m_Settings.enableEventCreateNotification;
-		bool allowCaptureNotification = m_Settings.enableEventCaptureNotification;
-		bool allowEndNotification = m_Settings.enableEventEndNotification;
+		bool allowCreateNotification = m_Settings.notifications.enableEventCreateNotification;
+		bool allowCaptureNotification = m_Settings.notifications.enableEventCaptureNotification;
+		bool allowEndNotification = m_Settings.notifications.enableEventEndNotification;
 		
 		switch (type)
 		{
@@ -103,6 +122,16 @@ class RTBase
 		}
 		
 		return isAllowed;
+	}
+	
+	RTLootSet GetRTLootSet(string name)
+	{
+		foreach (RTLootSet lootSet : m_LootSets.lootSets)
+		{
+			if (lootSet.name == name)
+				return lootSet;
+		}
+		return null;
 	}
 	
 	Object SpawnObject( string type, vector position, vector orientation )
@@ -163,7 +192,6 @@ class RTBase
 		}
 		return null;
 	}
-	
 	
 	RTEvent GetLastRTEvent()
 	{
@@ -231,7 +259,8 @@ class RTBase
 			if (!pastEvent.IsDeleted())
 			{
 				// If allowing multiple events, ignore prioritizeOldEvent
-				if (m_Settings && m_Settings.prioritizeOldEvent && !m_Settings.enableConcurrentEvents)
+				//if (m_Settings && m_Settings.prioritizeOldEvent && !m_Settings.enableConcurrentEvents)
+				if (m_Settings && m_Settings.kothEvent.prioritizeOldEvent && !m_Settings.kothEvent.enableConcurrentEvents)
 				{
 					Print("[RadioTower] Trying to create event but " + pastEventTitle + " is still active!");
 					return false;
@@ -252,14 +281,22 @@ class RTBase
 		return true;
 	}
 	
-    void CreateEvent()
-    {
+	int GetPlayerCount()
+	{
 		// Check if theres enough players on the server
 		array<Man> players = new array<Man>;
 		GetGame().GetPlayers(players);
 		int playerCount = players.Count();
-		if (playerCount < m_Settings.minimumPlayerCount) {
-			Print("[RadioTower] Not enough players to spawn an event. Required amount: " + m_Settings.minimumPlayerCount);
+		return playerCount;
+	}
+	
+    void CreateEvent()
+    {
+		int playerCount = GetPlayerCount();
+		//if (playerCount < m_Settings.minimumPlayerCount) 
+		if (playerCount < m_Settings.kothEvent.minPlayerCountForSpawn) 
+		{
+			Print("[RadioTower] Not enough players to spawn an event. Required amount: " + m_Settings.kothEvent.minPlayerCountForSpawn);
 			return;
 		}
 		
@@ -291,7 +328,8 @@ class RTBase
 			isValid = IsEventLocationValid(eventLocation);
 		}
 		
-		if (m_Settings && !m_Settings.enableConcurrentEvents)
+		//if (m_Settings && !m_Settings.enableConcurrentEvents)
+		if (m_Settings && !m_Settings.kothEvent.enableConcurrentEvents)
 			CleanupPastEvents();
 		
 		//RTEventType type = eventLocation.spawnGas;
@@ -338,7 +376,8 @@ class RTBase
 			}
 		}
 
-		if (m_Settings.spawnZombies)
+		//if (m_Settings.spawnZombies)
+		if (m_Settings.kothEvent.spawnZombies)
 		{
 			int zombieCount = eventLocation.zombieCount;
 			float radius = Math.AbsFloat(eventLocation.captureAreaRadius);
@@ -347,15 +386,23 @@ class RTBase
 		}
 		
 		#ifdef LBmaster_Groups
-		if (m_Settings.enableLBMapMarker)
+		//if (m_Settings.enableLBMapMarker)
+		if (m_Settings.mapMarkers.enableLBMapMarker)
 		{
-			string mapMarkerText = m_Settings.mapMarkerText;
+			/*
+			string mapMarkerText = m_Settings.mapMarkers.mapMarkerText;
 			if (!mapMarkerText.Contains("%"))
 			{
 				mapMarkerText = RTConstants.RT_MAP_MARKER_TEXT;
 			}
 			string title = string.Format(mapMarkerText, eventLocation.locationTitle);
-			ref LBServerMarker marker = m_RTEvent.CreateLBMapMarker(title, position, "LBmaster_Groups/gui/icons/skull.paa", ARGB(255, 200, 0, 0), false, false, true, true);
+			*/
+			string mapMarkerText = settings.mapMarkers.mapMarkerText
+			if (mapMarkerText.Contains("%1"))
+			{
+				mapMarkerText = string.Format(mapMarkerText, currentLocation.locationTitle);
+			}
+			ref LBServerMarker marker = m_RTEvent.CreateLBMapMarker(mapMarkerText, position, "LBmaster_Groups/gui/icons/skull.paa", ARGB(255, 200, 0, 0), false, false, true, true);
 			m_RTEvent.SetLBMapMarker(marker);
 		}
 		#endif
@@ -370,6 +417,8 @@ class RTBase
 			RTMsgHandler.RTSendChatMessage(ingame_msg);
 			RTMsgHandler.RTSendClientAlert(RTConstants.RT_ICON, ingame_msg, 3);
 		}
+		
+		GetRPCManager().SendRPC("RadioTower", "ClientSetLatestEventLocation", new Param1< RTLocation >(eventLocation), true, null);
     }
 	
 	void StartEvent(RTServer server)

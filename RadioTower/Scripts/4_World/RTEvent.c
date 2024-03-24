@@ -207,15 +207,22 @@ class RTEvent
 					
 					CarScript vehicle = CarScript.Cast(carAI);
 					vehicle.Fill(CarFluid.FUEL, 200);
-					vehicle.Fill(CarFluid.COOLANT, 1000);
+					if (vehicleAttachments.Find("CarRadiator") != -1)
+						vehicle.Fill(CarFluid.COOLANT, 1000);
 				}
 			}
 		}
 	}
 	
-	//void SpawnLoot(RTLootcrate_Base target)
 	void SpawnLoot(EntityAI target)
 	{
+		//if (g_RTBase.m_Settings.useLootSets)
+		if (g_RTBase.m_Settings.kothEvent.useLootSets)
+		{
+			SpawnLootSets(target);
+			return;
+		}
+			
 		TStringIntMap lootedCountCategoryMap = new TStringIntMap();
 		
 		array<ref RTLootCategory> categories = m_EventLocation.loot.lootCategories;
@@ -235,11 +242,18 @@ class RTEvent
 			lootedCountCategoryMap.Insert(cat.lootCategoryTitle, 0);
 		}
 		
+		Print(lootedCountCategoryMap);
+		
 	    for (int i = 0; i < lootCount; i++)
 	    {
 	        float randomValue = Math.RandomFloat(0, totalCategoriesProbability);
 	        float cumulativeProbability = 0;
 	        EntityAI entity = null;
+			
+			for (int g = 0; g < lootedCountCategoryMap.Count(); g++)
+			{
+				Print("Key: " + lootedCountCategoryMap.GetKey(g) + ", value: " + lootedCountCategoryMap.Get(lootedCountCategoryMap.GetKey(g)));
+			}
 	
 	        // Iterate through each category and pick one
 	        for (int j = 0; j < categories.Count(); j++)
@@ -254,14 +268,17 @@ class RTEvent
 					//int lootedCount = category.lootedCount;
 					int lootedCount = lootedCountCategoryMap.Get(category.lootCategoryTitle);
 					
-					if(lootLimit > 0 && lootedCount >= lootLimit)
+					if (lootLimit <= 0 || lootedCount >= lootLimit)
 					{
+						Print("Exit loop");
 						i--;
 						break;
 					}
 					
 					//category.lootedCount++;
-					lootedCountCategoryMap.Set(category.lootCategoryTitle, lootedCount++);
+					lootedCount = lootedCount + 1;
+					lootedCountCategoryMap.Set(category.lootCategoryTitle, lootedCount);
+					Print("Spawn item, Key: " + category.lootCategoryTitle + ", value: " + lootedCount);
 	
 	                // Calculate the total probability for items within the category
 	                float totalItemProbability = category.GetTotalItemsProbability();
@@ -281,17 +298,24 @@ class RTEvent
 							
 							for (int l = 0; l < quantity; l++)
 							{
+								Print("Spawning " + itemClassName);
 								RTLogger.GetInstance().LogMessage("[Item] " + itemClassName);
 								entity = target.GetInventory().CreateEntityInCargo(itemClassName);
 								ItemBase ingameItem = ItemBase.Cast(entity);
 								//Print("Spawning item: " + ingameItem.ClassName());
 								if (ingameItem.HasQuantity())
+								//if (ingameItem.GetTargetQuantityMax() > 1)
 								{
 									if (item.hasRandomQuantity)
 									{
 										quantity = Math.RandomInt(1, quantity);
 									}
-									ingameItem.SetQuantity(Math.Clamp(quantity, ingameItem.GetQuantityMin(), ingameItem.GetQuantityMax()));
+									
+									if (ingameItem.HasEnergyManager())
+										ingameItem.GetCompEM().SetEnergy(quantity);
+									else
+										ingameItem.SetQuantity(Math.Clamp(quantity, ingameItem.GetQuantityMin(), ingameItem.GetQuantityMax()));
+									
 									break;
 								}
 								
@@ -351,6 +375,105 @@ class RTEvent
 					}
 				}
 			}
+		}
+	}
+	
+	void SpawnLootSets(EntityAI target)
+	{
+		foreach (string lootSetName : m_EventLocation.lootSets)
+		{
+			RTLootSet lootSet = g_RTBase.GetRTLootSet(lootSetName);
+			if (lootSet)
+			{
+				foreach (RTLootSetItem lootSetItem : lootSet.items)
+				{
+					//EntityAI entity = target.GetInventory().CreateEntityInCargo(lootSetItem.name);
+					EntityAI entity = target.GetInventory().CreateInInventory(lootSetItem.name);
+					ItemBase ingameItem = ItemBase.Cast(entity);
+					if (lootSetItem.quantity != -1)
+					{
+						if (ingameItem.IsMagazine() || ingameItem.IsAmmoPile())
+						{
+							Magazine_Base ammo = Magazine_Base.Cast(entity);
+							ammo.ServerSetAmmoCount(lootSetItem.quantity);
+						}
+						else
+						{
+							if (ingameItem.HasEnergyManager())
+							{
+								ingameItem.GetCompEM().SetEnergy(lootSetItem.quantity);
+							}
+							else
+							{
+								ingameItem.SetQuantity(lootSetItem.quantity);
+							}
+						}
+					}
+
+					SpawnLootSetItemAttachments(entity, lootSetItem);
+					SpawnLootSetItemCargo(entity, lootSetItem);
+				}
+			}
+		}
+	}
+	
+	void SpawnLootSetItemAttachments(EntityAI target, RTLootSetItem lootSetItem)
+	{		
+		foreach (RTLootSetItem lootSetItemAttachment : lootSetItem.attachments)
+		{
+			EntityAI attachment = target.GetInventory().CreateAttachment(lootSetItemAttachment.name);
+			ItemBase ingameItem = ItemBase.Cast(attachment);
+					
+			if (lootSetItemAttachment.quantity != -1)
+			{
+				if (ingameItem.IsMagazine() || ingameItem.IsAmmoPile())
+				{
+					Magazine_Base ammo = Magazine_Base.Cast(attachment);
+					ammo.ServerSetAmmoCount(lootSetItemAttachment.quantity);
+				}
+				else
+				{
+					if (ingameItem.HasEnergyManager())
+					{
+						ingameItem.GetCompEM().SetEnergy(lootSetItem.quantity);
+					}
+					else
+					{
+						ingameItem.SetQuantity(lootSetItemAttachment.quantity);
+					}
+				}
+			}
+			SpawnLootSetItemAttachments(attachment, lootSetItemAttachment);
+		}
+	}
+	
+	void SpawnLootSetItemCargo(EntityAI target, RTLootSetItem lootSetItem)
+	{		
+		foreach (RTLootSetItem lootSetItemCargoItem : lootSetItem.cargo)
+		{
+			EntityAI cargoItem = target.GetInventory().CreateEntityInCargo(lootSetItemCargoItem.name);
+			ItemBase ingameItem = ItemBase.Cast(cargoItem);
+					
+			if (lootSetItemCargoItem.quantity != -1)
+			{
+				if (ingameItem.IsMagazine() || ingameItem.IsAmmoPile())
+				{
+					Magazine_Base ammo = Magazine_Base.Cast(cargoItem);
+					ammo.ServerSetAmmoCount(lootSetItemCargoItem.quantity);
+				}
+				else
+				{
+					if (ingameItem.HasEnergyManager())
+					{
+						ingameItem.GetCompEM().SetEnergy(lootSetItem.quantity);
+					}
+					else
+					{
+						ingameItem.SetQuantity(lootSetItemCargoItem.quantity);
+					}
+				}
+			}
+			SpawnLootSetItemCargo(cargoItem, lootSetItemCargoItem);
 		}
 	}
 	
@@ -473,6 +596,7 @@ class RTEvent
 	void SetLBMapMarker(LBServerMarker markerObject)
 	{
 		m_LBMapMarker = markerObject;
+		markerObject.SetRadius(Math.AbsFloat(m_EventLocation.captureAreaRadius), 255,200,0,0, false);
 	}
 	
 	LBServerMarker GetLBMapMarker()

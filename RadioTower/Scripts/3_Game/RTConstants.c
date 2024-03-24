@@ -1,6 +1,5 @@
 class RTConstants
 {
-	//static const int RT_VERSION = 111022024;
 	/* ACTION CONDITION DEFAULTS */
 	static const float RT_DISTANCE_DEFAULT = 2.0;
 	/* EVENT DEFAULTS */
@@ -15,16 +14,20 @@ class RTConstants
 	static const bool RT_ALLOW_SAME_EVENT_SPAWN_IN_A_ROW = true;
 	static const bool RT_ENABLE_LOGGING = false;
 	static const string RT_MAP_MARKER_TEXT = "KOTH: %1";
-	/* PATHS */
+	/* PATHS/DIRS */
 	static const string RT_ROOTPATH = "$profile:RadioTower/";
 	static const string RT_LOGPATH = "$profile:RadioTower/Logs/";
 	static const string RT_BACKUPPATH = "$profile:RadioTower/Backups/";
+	/* PATHS/BACKUPS */
 	static const string RT_BACKUPPATH_SETTINGS = "$profile:RadioTower/Backups/RTSettings/";
 	static const string RT_BACKUPPATH_LOCATIONS = "$profile:RadioTower/Backups/RTLocations/";
 	static const string RT_BACKUPPATH_PROPS = "$profile:RadioTower/Backups/RTProps/";
+	static const string RT_BACKUPPATH_LOOTSETS = "$profile:RadioTower/Backups/RTLootSets/";
+	/* PATHS/CONFIGS */
     static const string RT_SETTINGS_CONFIGPATH = "$profile:RadioTower/RTSettings.json";
 	static const string RT_LOCATIONS_CONFIGPATH = "$profile:RadioTower/RTLocations.json";
 	static const string RT_PROPS_CONFIGPATH = "$profile:RadioTower/RTProps.json";
+	static const string RT_LOOTSETS_CONFIGPATH = "$profile:RadioTower/RTLootSets.json";
 	/* LOGGING */
 	static const string RT_LOG_PREFIX = "RT_";
 	/* ICONS */

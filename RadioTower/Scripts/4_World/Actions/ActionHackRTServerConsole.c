@@ -6,13 +6,15 @@ class ActionHackRTServerConsoleCB : ActionContinuousBaseCB
 
 		if (g_RTBase && GetGame().IsServer())
 		{
-			hackTime = g_RTBase.m_Settings.eventHacktime;
+			//hackTime = g_RTBase.m_Settings.eventHacktime;
+			hackTime = g_RTBase.m_Settings.kothEvent.hackTime;
 		}
 		else
 		{
 			RTSettings settings = g_Game.GetRTSettings();
 			if (settings && GetGame().IsClient())
-				hackTime = settings.eventHacktime;
+				//hackTime = settings.eventHacktime;
+				hackTime = settings.kothEvent.hackTime;
 		}
 
 		m_ActionData.m_ActionComponent = new CAContinuousTime(hackTime);
@@ -73,7 +75,7 @@ class ActionHackRTServerConsole: ActionContinuousBase
 		string msg = action_data.m_Player.GetIdentity().GetPlainName() + " started an event";
 		RTLogger.GetInstance().LogMessage("[Event start] " + msg);
 		RTServer server = RTServer.Cast(action_data.m_Target.GetObject());
-		if(server)
+		if (server)
 		{	
 			server.Disable();
 			server.SetCaptureStateSynchronized(CaptureState.CAPTURING);

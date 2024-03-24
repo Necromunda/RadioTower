@@ -48,6 +48,11 @@ class CaptureAreaUI: UIScriptedMenu
 	
 	void SetInsiderCount(string text)
 	{
+		RTSettings settings = g_Game.GetRTSettings();
+		if (settings && settings.ui && !settings.ui.showPlayerCount)
+		{
+			text = "??";
+		}
 		m_PlayersInCaptureZoneTextWidget.SetText(text);
 	}
 	
@@ -60,7 +65,6 @@ class CaptureAreaUI: UIScriptedMenu
 	void SetCaptureText(float value)
 	{
 		string text = MiscGameplayFunctions.TruncateToS(value, 2) + "% captured";
-		//string text = value.ToString() + "% captured";
 		m_CaptureTextWidget.SetText(text);
 	}
 };

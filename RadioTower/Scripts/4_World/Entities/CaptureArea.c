@@ -89,8 +89,13 @@ class CaptureArea: Trigger
 		{
 			if (g_RTBase.m_Settings)
 			{
-				m_Event_Capturetime = g_RTBase.m_Settings.eventCapturetime;
-				m_Event_Lifetime = g_RTBase.m_Settings.eventLifetime;
+				//m_Event_Capturetime = g_RTBase.m_Settings.eventCapturetime;
+				//m_Event_Lifetime = g_RTBase.m_Settings.eventLifetime;
+				m_Event_Capturetime = g_RTBase.m_Settings.kothEvent.captureTime;
+				// Absolutely make sure that not dividing with 0 on line 108
+				if (m_Event_Capturetime <= 0)
+					m_Event_Capturetime = RTConstants.RT_EVENT_CAPTURETIME_DEFAULT;
+				m_Event_Lifetime = g_RTBase.m_Settings.kothEvent.lifeTime;
 			}
 			
 			RTEvent rtEvent = g_RTBase.GetRTEvent();
@@ -168,6 +173,7 @@ class CaptureArea: Trigger
 		//if (m_Event_Lifetime.ToString().ToInt() % 60 == 0)
 			//Print(date + " CaptureArea lifetime " + m_Event_Lifetime);
 		m_Event_Lifetime -= LIFETIME_TICKRATE;
+		
 		if (m_Event_Lifetime < 0)
 		{
 			OnEventFinish();
@@ -214,10 +220,12 @@ class CaptureArea: Trigger
 					}
 				}
 				rtEvent.SetState(RTEventState.DELETED);
-#ifdef LBmaster_Groups
+				#ifdef LBmaster_Groups
 				//LBServerMarker marker = rtEvent.GetLBMapMarker();
 				rtEvent.RemoveLBMapMarker();
-#endif
+				#endif
+				
+				GetRPCManager().SendRPC("RadioTower", "ClientDeleteLatestEventLocation", null, true, null);
 			}
 		}
 		
@@ -367,11 +375,19 @@ class CaptureArea: Trigger
 		//Print(entity.GetType() + " is player " + entity.IsPlayer());
 		if (m_CapturePct < m_TotalCapturePct)
 		{
-			if (entity.IsPlayer())
+			bool hasEnoughPlayers = false;
+			if (g_RTBase && g_RTBase.m_Settings)
+				hasEnoughPlayers = g_RTBase.GetPlayerCount() >= g_RTBase.m_Settings.kothEvent.minPlayerCountToStartCapture;
+			
+			if (entity.IsPlayer() && g_RTBase && hasEnoughPlayers)
 			{
 				//Print("Area captured " + m_CapturePct + "%");
 				m_CapturePct += m_CaptureSlice;
 				m_CapturePct = Math.Clamp(m_CapturePct, 0, m_TotalCapturePct);	
+			}
+			else
+			{
+				// Add drain mechanic
 			}
 			m_InsiderCount = GetInsiders().Count();
 			SetSynchDirty();

@@ -15,7 +15,8 @@ modded class MissionServer
 	
 	void ~MissionServer()
 	{
-		delete g_RTBase;
+		if (g_RTBase)
+			delete g_RTBase;
 	}
 	
 	override void InvokeOnConnect(PlayerBase player, PlayerIdentity identity)
@@ -23,6 +24,8 @@ modded class MissionServer
 		super.InvokeOnConnect(player,identity);
     
 		GetRPCManager().SendRPC("RadioTower", "SendConfigToClient", new Param1<RTSettings>(g_RTBase.m_Settings), true, identity); 
+		if (g_RTBase.GetRTEvent())
+			GetRPCManager().SendRPC("RadioTower", "ClientSetLatestEventLocation", new Param1<RTLocation>(g_RTBase.GetRTEvent().GetEventLocation()), true, null);
   	}
 };
 
@@ -36,10 +39,15 @@ modded class MissionGameplay
         	m_CaptureAreaUI = new CaptureAreaUI();
 		
 		GetRPCManager().AddRPC("RadioTower", "SendConfigToClient", this, SingleplayerExecutionType.Client);	
+		GetRPCManager().AddRPC("RadioTower", "ClientSetLatestEventLocation", this, SingleplayerExecutionType.Client);
+		GetRPCManager().AddRPC("RadioTower", "ClientDeleteLatestEventLocation", this, SingleplayerExecutionType.Client);
 	}
 	
 	void ~MissionGameplay()
 	{
+		if (g_RTBase)
+			delete g_RTBase;
+		
 		if (m_CaptureAreaUI)
 			delete m_CaptureAreaUI;
 	}
@@ -86,5 +94,18 @@ modded class MissionGameplay
 		g_Game.ClientSetRTSettings(clientResponse);
 
 		Print("[RadioTower] Client received settings " + clientResponse);
+	}
+	
+	void ClientSetLatestEventLocation( CallType type, ParamsReadContext ctx, PlayerIdentity sender, Object target )
+	{
+		Param1<ref RTLocation> location;
+		if ( !ctx.Read( location ) ) return;
+
+		g_Game.SetLatestEventLocation(location.param1);
+	}
+	
+	void ClientDeleteLatestEventLocation( CallType type, ParamsReadContext ctx, PlayerIdentity sender, Object target )
+	{
+		g_Game.DeleteLatestEventLocation();
 	}
 }
