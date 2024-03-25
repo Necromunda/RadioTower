@@ -30,6 +30,7 @@ class RTSettingsOld
 	bool useLootSets;
 	bool showPlayerCount;
 	int minPlayerCountToStartCapture;
+	bool depleteProgressWhenNoPlayersCapturing;
 	
 	void Defaults()
 	{	
@@ -45,7 +46,7 @@ class RTSettingsOld
 		enableNotifications = true;
 		enableEventCreateNotification = true;
 		enableEventCaptureNotification = true;
-		enableEventEndNotification = false;
+		enableEventEndNotification = true;
 		prioritizeOldEvent = true;
 		spawnZombies = true;
 		showCaptureStatusSmoke = true;
@@ -56,6 +57,7 @@ class RTSettingsOld
 		useLootSets = 0;
 		showPlayerCount = true;
 		minPlayerCountToStartCapture = 1;
+		depleteProgressWhenNoPlayersCapturing = false;
 	}
 	
 	static ref RTSettingsOld Load()
@@ -90,6 +92,7 @@ class RTSettingsOld
 		settings.kothEvent.enableConcurrentEvents = enableConcurrentEvents;
 		settings.kothEvent.enableCaptureStatusSmoke = showCaptureStatusSmoke;
 		settings.kothEvent.minPlayerCountToStartCapture = minPlayerCountToStartCapture;
+		settings.kothEvent.depleteProgressWhenNoPlayersCapturing = depleteProgressWhenNoPlayersCapturing;
 		settings.logging.enableLogging = enableLogging;
 		settings.notifications.enableNotifications = enableNotifications;
 		settings.notifications.enableEventCreateNotification = enableEventCreateNotification;
@@ -154,6 +157,7 @@ class RTSettings
 		kothEvent.enableSameEventSpawnInARow 			= Math.Clamp(kothEvent.enableSameEventSpawnInARow, 0, 1);
 		kothEvent.enableConcurrentEvents 				= Math.Clamp(kothEvent.enableConcurrentEvents, 0, 1);
 		kothEvent.enableCaptureStatusSmoke 				= Math.Clamp(kothEvent.enableCaptureStatusSmoke, 0, 1);
+		kothEvent.depleteProgressWhenNoPlayersCapturing = Math.Clamp(kothEvent.depleteProgressWhenNoPlayersCapturing, 0, 1);
 		logging.enableLogging 							= Math.Clamp(logging.enableLogging, 0, 1);
 		notifications.enableNotifications 				= Math.Clamp(notifications.enableNotifications, 0, 1);
 		notifications.enableEventCreateNotification 	= Math.Clamp(notifications.enableEventCreateNotification, 0, 1);
@@ -223,6 +227,7 @@ class RTSettingsEvent
 	bool enableSameEventSpawnInARow;
 	bool enableConcurrentEvents;
 	bool enableCaptureStatusSmoke;
+	bool depleteProgressWhenNoPlayersCapturing;
 	
 	void Defaults()
 	{	
@@ -239,6 +244,7 @@ class RTSettingsEvent
 		enableSameEventSpawnInARow = false;
 		enableConcurrentEvents = false;
 		enableCaptureStatusSmoke = true;
+		depleteProgressWhenNoPlayersCapturing = false;
 	}
 }
 
@@ -690,22 +696,22 @@ class RTLootSets
 	
 	static ref RTLootSets Load()
 	{
-		ref RTLootSets lootSets = new RTLootSets();
+		ref RTLootSets _lootSets = new RTLootSets();
 		
 		if (FileExist(RTConstants.RT_LOOTSETS_CONFIGPATH))
 		{
-			JsonFileLoader<RTLootSets>.JsonLoadFile(RTConstants.RT_LOOTSETS_CONFIGPATH, lootSets);
-			lootSets.CheckVersion();
+			JsonFileLoader<RTLootSets>.JsonLoadFile(RTConstants.RT_LOOTSETS_CONFIGPATH, _lootSets);
+			_lootSets.CheckVersion();
 			Print("[RadioTower] RTLootSets.json loaded");
 		}
 		else
 		{
-			lootSets.Defaults();
+			_lootSets.Defaults();
 			Print("[RadioTower] RTLootSets.json created & defaults loaded.");
 		}
-		JsonFileLoader<RTLootSets>.JsonSaveFile(RTConstants.RT_LOOTSETS_CONFIGPATH, lootSets);
+		JsonFileLoader<RTLootSets>.JsonSaveFile(RTConstants.RT_LOOTSETS_CONFIGPATH, _lootSets);
 		
-		return lootSets;
+		return _lootSets;
 	}
 	
 	void CheckVersion()

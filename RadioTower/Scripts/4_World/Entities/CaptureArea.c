@@ -92,7 +92,7 @@ class CaptureArea: Trigger
 				//m_Event_Capturetime = g_RTBase.m_Settings.eventCapturetime;
 				//m_Event_Lifetime = g_RTBase.m_Settings.eventLifetime;
 				m_Event_Capturetime = g_RTBase.m_Settings.kothEvent.captureTime;
-				// Absolutely make sure that not dividing with 0 on line 108
+				// Make sure that not dividing with 0 on line 108
 				if (m_Event_Capturetime <= 0)
 					m_Event_Capturetime = RTConstants.RT_EVENT_CAPTURETIME_DEFAULT;
 				m_Event_Lifetime = g_RTBase.m_Settings.kothEvent.lifeTime;
@@ -108,6 +108,21 @@ class CaptureArea: Trigger
 		m_CaptureSlice = (m_TotalCapturePct / m_Event_Capturetime) * m_UpdateInterval;
 		
 		m_LifetimeTimer.Run(LIFETIME_TICKRATE, this, "Tick", NULL, true);
+	}
+	
+	void ~CaptureArea()
+	{
+		if (m_LifetimeTimer)
+		{
+			m_LifetimeTimer.Stop();
+			delete m_LifetimeTimer;			
+		}
+		
+		if (m_CaptureTimer)
+		{
+			m_CaptureTimer.Stop();
+			delete m_CaptureTimer;
+		}
 	}
 	
 	override void EOnInit(IEntity other, int extra)
@@ -159,6 +174,11 @@ class CaptureArea: Trigger
 			g_Game.SetInsiderCount(m_InsiderCountLocal);
 			m_StartCaptureLocal = m_StartCapture;
 		}
+	}
+	
+	bool NeedsSync()
+	{
+		return m_CapturePct != m_CapturePctLocal || m_InsiderCount != m_InsiderCountLocal || m_StartCapture != m_StartCaptureLocal;
 	}
 	
 	void SetCapture(bool value)
@@ -360,35 +380,88 @@ class CaptureArea: Trigger
 		//Print("SERVER OnLeave");
 		if (!m_StartCapture) return;
 		
+		// Edit 25.3.2024
+		/*
 		if (m_CaptureTimer.IsRunning())
 				m_CaptureTimer.Stop();
+		*/
 		
 		m_InsiderCount = GetInsiders().Count();
 		SetSynchDirty();
 	}
+
+	void AddProgress()
+	{
+		if (m_CapturePct < m_TotalCapturePct)
+		{
+			m_InsiderCount = GetInsiders().Count();
+			//Print("Insider count " + m_InsiderCount);
+			//int minPlayersRequired = 1;
+			bool hasEnoughPlayers = false;
+			bool depleteProgress = false;
+			if (g_RTBase && g_RTBase.m_Settings)
+			{
+				//minPlayersRequired = g_RTBase.m_Settings.kothEvent.minPlayerCountToStartCapture;
+				//hasEnoughPlayers = g_RTBase.GetPlayerCount() >= minPlayersRequired;
+				hasEnoughPlayers = m_InsiderCount >= g_RTBase.m_Settings.kothEvent.minPlayerCountToStartCapture;
+				depleteProgress = g_RTBase.m_Settings.kothEvent.depleteProgressWhenNoPlayersCapturing;
+			}
+			
+			if (hasEnoughPlayers)
+			{
+				//Print("Area captured " + m_CapturePct + "%");
+				m_CapturePct += m_CaptureSlice;
+				m_CapturePct = Math.Clamp(m_CapturePct, 0, m_TotalCapturePct);	
+				//Print("Add progress, current: " + m_CapturePct);
+			}
+			else if (depleteProgress && m_CapturePct > 0)
+			{
+				m_CapturePct -= m_CaptureSlice;
+				m_CapturePct = Math.Clamp(m_CapturePct, 0, m_TotalCapturePct);
+				//Print("Deplete progress, current: " + m_CapturePct);
+			}
+			
+			if (NeedsSync())
+				SetSynchDirty();
+		}
+		else
+		{
+			g_RTBase.OnEventCapture(this);
+			m_Event_Lifetime = 0;
+		}
+	}
 	
+	/*
 	void AddProgress(TriggerInsider insider)
 	{
 		EntityAI entity = EntityAI.Cast(insider.GetObject());
+		//EntityAI entity = EntityAI.Cast(insider.GetObject());
 		
 		//Print("INSIDER COUNT: " + m_InsiderCount);
 		//Print(entity.GetType() + " is player " + entity.IsPlayer());
 		if (m_CapturePct < m_TotalCapturePct)
 		{
+			m_InsiderCount = GetInsiders().Count();
+			
+			int minPlayersRequired = 1;
 			bool hasEnoughPlayers = false;
+			bool depleteProgress = false;
 			if (g_RTBase && g_RTBase.m_Settings)
 				hasEnoughPlayers = g_RTBase.GetPlayerCount() >= g_RTBase.m_Settings.kothEvent.minPlayerCountToStartCapture;
+			{
+				minPlayersRequired = g_RTBase.m_Settings.kothEvent.minPlayerCountToStartCapture;
+				hasEnoughPlayers = g_RTBase.GetPlayerCount() >= minPlayersRequired;
+				depleteProgress = g_RTBase.m_Settings.kothEvent.depleteProgressWhenNoPlayersCapturing;
+			}
 			
 			if (entity.IsPlayer() && g_RTBase && hasEnoughPlayers)
 			{
 				//Print("Area captured " + m_CapturePct + "%");
 				m_CapturePct += m_CaptureSlice;
 				m_CapturePct = Math.Clamp(m_CapturePct, 0, m_TotalCapturePct);	
+				Print("Add progress, current: " + m_CapturePct);
 			}
-			else
-			{
-				// Add drain mechanic
-			}
+
 			m_InsiderCount = GetInsiders().Count();
 			SetSynchDirty();
 			/*PlayerBase player;
@@ -399,7 +472,8 @@ class CaptureArea: Trigger
 				m_InsiderCount = GetInsiders().Count();
 				SetSynchDirty();
 			}*/
-		}
+/*		
+}
 		else
 		{
 			//OnEventCapture();
@@ -408,6 +482,7 @@ class CaptureArea: Trigger
 			//g_RTBase.OnEventCapture(this);
 		}
 	}
+	*/
 	
 	override void OnStayClientEvent(TriggerInsider insider, float deltaTime)
 	{
@@ -419,6 +494,8 @@ class CaptureArea: Trigger
 		if (Class.CastTo(player, insider.GetObject()))
 			if (!player.GetIsInsideCaptureArea())
 				player.SetIsInsideCaptureArea(true);
+		
+		//Print("CapturePct is " + m_CapturePctLocal);
 	}
 	
 	override void OnStayServerEvent(TriggerInsider insider, float deltaTime)
@@ -428,7 +505,10 @@ class CaptureArea: Trigger
 		if (!m_StartCapture) return;
 
 		if (!m_CaptureTimer.IsRunning())
-			m_CaptureTimer.Run(m_UpdateInterval, this, "AddProgress", new Param1<TriggerInsider>(insider), true);
+			m_CaptureTimer.Run(m_UpdateInterval, this, "AddProgress", null, true);
+			//m_CaptureTimer.Run(m_UpdateInterval, this, "AddProgress", new Param1<TriggerInsider>(insider), true);
+		
+		//Print("CapturePct is " + m_CapturePct);
 	}
 	
 	/*override void OnStayServerEvent(TriggerInsider insider, float deltaTime)
