@@ -332,10 +332,8 @@ class RTBase
 		if (m_Settings && !m_Settings.kothEvent.enableConcurrentEvents)
 			CleanupPastEvents();
 		
-		//RTEventType type = eventLocation.spawnGas;
-		m_RTEvent = new RTEvent();
-		m_RTEvent.SetEventLocation(eventLocation);
-		//m_RTEvent.SetEventType(type);
+		m_RTEvent = new RTEvent(eventLocation);
+		//m_RTEvent.SetEventLocation(eventLocation);
 		
 		vector position = eventLocation.locationCoordinatesXYZ;
 		vector orientation = eventLocation.locationOrientationYPR;
@@ -345,6 +343,7 @@ class RTBase
 		RTServer item;
 		if (RTServer.CastTo(item, GetGame().CreateObjectEx("RTServer", position, ECE_KEEPHEIGHT)))
 		{
+			item.SetAllowDamage(false);
 			item.SetPosition(position);
 			item.SetOrientation(orientation);
 			item.SetFlags(EntityFlags.STATIC, false);
@@ -418,8 +417,14 @@ class RTBase
 			RTMsgHandler.RTSendClientAlert(RTConstants.RT_ICON, ingame_msg, 3);
 		}
 		
-		GetRPCManager().SendRPC("RadioTower", "ClientSetLatestEventLocation", new Param1< RTLocation >(eventLocation), true, null);
-    }
+		GetRPCManager().SendRPC("RadioTower", "ClientSetLatestEventLocation", new Param1<RTLocation>(eventLocation), true, null);
+		
+		// 1.4.2024 - TODO
+		/*
+		if (true || eventLocation.spawnGas)
+			m_RTEvent.SpawnGas();
+    	*/
+	}
 	
 	void StartEvent(RTServer server)
 	{

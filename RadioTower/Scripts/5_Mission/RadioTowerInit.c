@@ -10,7 +10,9 @@ modded class MissionServer
 		{
 			g_RTBase = null;
 			GetRTBase();
-		}	
+		}
+		
+		//GetRPCManager().AddRPC("RadioTower", "SendConfigToClient", this, SingleplayerExecutionType.Client);		
 	}
 	
 	void ~MissionServer()

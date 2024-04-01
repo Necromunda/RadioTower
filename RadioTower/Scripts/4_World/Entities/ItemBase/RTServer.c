@@ -86,6 +86,11 @@ class RTServer extends Container_Base
 		return m_Trigger;
 	}*/
 	
+	bool NeedsSync()
+	{
+		return m_IsOpened != m_IsOpenedLocal || m_IsHacked != m_IsHackedLocal || m_CaptureState != m_CaptureStateLocal;
+	}
+	
 	int GetCaptureState()
 	{
 		return m_CaptureState;

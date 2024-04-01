@@ -2,6 +2,7 @@ class RTEvent
 {
 	protected RTServer m_Server;
 	protected CaptureArea m_CaptureArea;
+	protected CaptureAreaGas m_CaptureAreaGas;
 	protected RTLocation m_EventLocation;
 	protected RTLocationProps m_EventProps;
 	protected RTEventState m_State;
@@ -10,6 +11,7 @@ class RTEvent
 	protected RTEventType m_EventType;
 	protected ref array<EntityAI> m_Zombies;
 	protected EntityAI m_Lootcrate;
+	protected bool m_IsGasEvent;
 	
 	#ifdef LBmaster_Groups
 	protected ref LBServerMarker m_LBMapMarker;
@@ -19,20 +21,33 @@ class RTEvent
 	{
 	}
 	
-	void RTEvent()
+	void RTEvent(RTLocation _location, bool _isGasEvent = false)
 	{
 		m_State = RTEventState.DELETED;
-		m_Server = null;
-		m_CaptureArea = null;
-		m_EventLocation = null;
-		m_EventProps = null;
+		//m_Server = null;
+		//m_CaptureArea = null;
+		//m_CaptureAreaGas = null;
+		m_EventLocation = _location;
+		m_IsGasEvent = _isGasEvent;
+		//m_EventProps = null;
 		m_PropObjects = new array<Object>();
 		m_LogMessage = "";
 		m_Zombies = new array<EntityAI>();
-		m_Lootcrate = null;
+		//m_Lootcrate = null;
+		/*
 		#ifdef LBmaster_Groups
 		m_LBMapMarker = null;
 		#endif
+		*/
+	}
+	
+	void SpawnGas()
+	{
+		m_CaptureAreaGas = CaptureAreaGas.Cast(GetGame().CreateObject("CaptureAreaGas", m_EventLocation.locationCoordinatesXYZ));
+		//GetGame().CreateObject("ContaminatedArea_Dynamic", m_EventLocation.locationCoordinatesXYZ);
+		//Print(m_CaptureAreaGas);
+		//Print(m_EventLocation.locationCoordinatesXYZ);
+		//Print(m_Server.GetPosition());
 	}
 	
 	// Delete all event objects except lootbox and car
@@ -42,6 +57,9 @@ class RTEvent
 		
 		if (m_CaptureArea)
 			GetGame().ObjectDelete(m_CaptureArea);
+		
+		if (m_CaptureAreaGas)
+			GetGame().ObjectDelete(m_CaptureAreaGas);
 		
 		if (m_Server)
 			GetGame().ObjectDelete(m_Server);
@@ -59,6 +77,7 @@ class RTEvent
 		}
 		
 		m_CaptureArea = null;
+		m_CaptureAreaGas = null;
 		m_Server = null;
 		#ifdef LBmaster_Groups
 		RemoveLBMapMarker();
@@ -110,7 +129,7 @@ class RTEvent
 			if (tries > 10000)
 			{
 				Print("[RadioTower] Not enough space for spawning zombies, reduce zombie count!");
-				RTLogger.GetInstance().LogMessage("[RadioTower] Not enough space for spawning zombies, reduce zombie count!");
+				RTLogger.GetInstance().LogMessage("Not enough space for spawning zombies, increase capture radius or reduce zombie count!");
 				break;			
 			}
 			
@@ -146,13 +165,32 @@ class RTEvent
 				else
 				{
 					Print("[RadioTower] Error spawning zombie, check that " + zombieClassname + " is a valid classname!");
-					RTLogger.GetInstance().LogMessage("[RadioTower] Error spawning zombie, check that " + zombieClassname + " is a valid classname!");
+					RTLogger.GetInstance().LogMessage("Error spawning zombie, check that " + zombieClassname + " is a valid classname!");
 				}
 				spawnedZombies++;
+				tries = 0;
 			}	
 			tries++;
 		}
 	}
+	
+	/*
+	void SpawnZombies(int count, vector centerPos, float radius)
+	{
+		for (int i = 0; i < count; i++)
+		{
+			vector randomDir2d = vector.RandomDir2D();
+			float randomDist = Math.RandomFloatInclusive(Math.RandomIntInclusive(1, 5), Math.RandomIntInclusive(6, radius));
+			vector spawnPos = centerPos + (randomDir2d * randomDist);
+			InventoryLocation il = new InventoryLocation;
+			vector mat[4];
+			Math3D.MatrixIdentity4(mat);
+			mat[3] = spawnPos;
+			il.SetGround(NULL, mat);
+			GetGame().CreateObject(SPAWN_ITEM_TYPE[j], il.GetPos(), false, true, true);
+		}
+	}
+	*/
 	
 	void SpawnEventLootCrate()
 	{
@@ -230,10 +268,13 @@ class RTEvent
 		int lootCount = m_EventLocation.loot.lootCount;
 		int totalLimit = m_EventLocation.loot.GetTotalCategoriesLimit();
 		
+		lootCount = Math.Clamp(lootCount, 0, totalLimit);
+		/*
 		if (lootCount > totalLimit)
 		{
 			lootCount = totalLimit;
 		}
+		*/
 		
 		// Init lootedCount to 0 for all categories
 		for (int m = 0; m < categories.Count(); m++)
@@ -242,7 +283,7 @@ class RTEvent
 			lootedCountCategoryMap.Insert(cat.lootCategoryTitle, 0);
 		}
 		
-		Print(lootedCountCategoryMap);
+		//Print(lootedCountCategoryMap);
 		
 	    for (int i = 0; i < lootCount; i++)
 	    {
@@ -250,10 +291,12 @@ class RTEvent
 	        float cumulativeProbability = 0;
 	        EntityAI entity = null;
 			
+			/*
 			for (int g = 0; g < lootedCountCategoryMap.Count(); g++)
 			{
 				Print("Key: " + lootedCountCategoryMap.GetKey(g) + ", value: " + lootedCountCategoryMap.Get(lootedCountCategoryMap.GetKey(g)));
 			}
+			*/
 	
 	        // Iterate through each category and pick one
 	        for (int j = 0; j < categories.Count(); j++)
@@ -270,7 +313,7 @@ class RTEvent
 					
 					if (lootLimit <= 0 || lootedCount >= lootLimit)
 					{
-						Print("Exit loop");
+						//Print("Exit loop");
 						i--;
 						break;
 					}
@@ -278,7 +321,7 @@ class RTEvent
 					//category.lootedCount++;
 					lootedCount = lootedCount + 1;
 					lootedCountCategoryMap.Set(category.lootCategoryTitle, lootedCount);
-					Print("Spawn item, Key: " + category.lootCategoryTitle + ", value: " + lootedCount);
+					//Print("Spawn item, Key: " + category.lootCategoryTitle + ", value: " + lootedCount);
 	
 	                // Calculate the total probability for items within the category
 	                float totalItemProbability = category.GetTotalItemsProbability();
@@ -295,15 +338,19 @@ class RTEvent
 	                    {
 							int quantity = item.quantity;
 							string itemClassName = item.lootItemClassName;
+							bool useMaxQuantity = item.quantity == -1;
+							int itemSpawnCount = 1;
+							if (!useMaxQuantity)
+								itemSpawnCount = item.quantity;
 							
-							for (int l = 0; l < quantity; l++)
+							for (int l = 0; l < itemSpawnCount; l++)
 							{
-								Print("Spawning " + itemClassName);
+								//Print("Spawning " + itemClassName);
 								RTLogger.GetInstance().LogMessage("[Item] " + itemClassName);
 								entity = target.GetInventory().CreateEntityInCargo(itemClassName);
 								ItemBase ingameItem = ItemBase.Cast(entity);
 								//Print("Spawning item: " + ingameItem.ClassName());
-								if (ingameItem.HasQuantity())
+								if (!useMaxQuantity && ingameItem.HasQuantity())
 								//if (ingameItem.GetTargetQuantityMax() > 1)
 								{
 									if (item.hasRandomQuantity)
@@ -340,7 +387,7 @@ class RTEvent
 		
 		array<string> spawnedAttachments = {};
 
-		for(int l = 0; l < attachmentCategories.Count(); l++)
+		for (int l = 0; l < attachmentCategories.Count(); l++)
 		{
 			RTLootItemAttachmentCategory category = attachmentCategories[l];
 			
@@ -355,7 +402,7 @@ class RTEvent
 				float randomAttachmentValue = Math.RandomFloat(0, totalItemAttachmentsProbability);
 				float cumulativeItemAttachmentsProbability = 0;
 
-				for(int m = 0; m < category.attachments.Count(); m++)
+				for (int m = 0; m < category.attachments.Count(); m++)
 				{
 					RTLootItemAttachment attachment = category.attachments[m];
 					if (attachment.probability < 1)
@@ -369,7 +416,7 @@ class RTEvent
 						{
 							spawnedAttachments.Insert(attachment.attachmentClassName);
 							target.GetInventory().CreateAttachment(attachment.attachmentClassName);
-							RTLogger.GetInstance().LogMessage("[Att] " + attachment.attachmentClassName);
+							RTLogger.GetInstance().LogMessage("[Item][Att] " + attachment.attachmentClassName);
 						}
 						break;
 					}
@@ -388,6 +435,7 @@ class RTEvent
 				foreach (RTLootSetItem lootSetItem : lootSet.items)
 				{
 					//EntityAI entity = target.GetInventory().CreateEntityInCargo(lootSetItem.name);
+					RTLogger.GetInstance().LogMessage("[Item] " + lootSetItem.name);
 					EntityAI entity = target.GetInventory().CreateInInventory(lootSetItem.name);
 					ItemBase ingameItem = ItemBase.Cast(entity);
 					if (lootSetItem.quantity != -1)
@@ -421,6 +469,7 @@ class RTEvent
 	{		
 		foreach (RTLootSetItem lootSetItemAttachment : lootSetItem.attachments)
 		{
+			RTLogger.GetInstance().LogMessage("[Item][Att] " + lootSetItemAttachment.name);
 			EntityAI attachment = target.GetInventory().CreateAttachment(lootSetItemAttachment.name);
 			ItemBase ingameItem = ItemBase.Cast(attachment);
 					
@@ -435,7 +484,8 @@ class RTEvent
 				{
 					if (ingameItem.HasEnergyManager())
 					{
-						ingameItem.GetCompEM().SetEnergy(lootSetItem.quantity);
+						//ingameItem.SetQuantity(lootSetItemAttachment.quantity);
+						ingameItem.GetCompEM().SetEnergy(lootSetItemAttachment.quantity);
 					}
 					else
 					{
@@ -444,6 +494,7 @@ class RTEvent
 				}
 			}
 			SpawnLootSetItemAttachments(attachment, lootSetItemAttachment);
+			SpawnLootSetItemCargo(attachment, lootSetItemAttachment);
 		}
 	}
 	
@@ -451,6 +502,7 @@ class RTEvent
 	{		
 		foreach (RTLootSetItem lootSetItemCargoItem : lootSetItem.cargo)
 		{
+			RTLogger.GetInstance().LogMessage("[Item][Cargo] " + lootSetItemCargoItem.name);
 			EntityAI cargoItem = target.GetInventory().CreateEntityInCargo(lootSetItemCargoItem.name);
 			ItemBase ingameItem = ItemBase.Cast(cargoItem);
 					
@@ -465,7 +517,7 @@ class RTEvent
 				{
 					if (ingameItem.HasEnergyManager())
 					{
-						ingameItem.GetCompEM().SetEnergy(lootSetItem.quantity);
+						ingameItem.GetCompEM().SetEnergy(lootSetItemCargoItem.quantity);
 					}
 					else
 					{
