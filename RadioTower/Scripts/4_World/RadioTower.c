@@ -396,11 +396,12 @@ class RTBase
 			}
 			string title = string.Format(mapMarkerText, eventLocation.locationTitle);
 			*/
-			string mapMarkerText = settings.mapMarkers.mapMarkerText
+			string mapMarkerText = m_Settings.mapMarkers.mapMarkerText
 			if (mapMarkerText.Contains("%1"))
 			{
-				mapMarkerText = string.Format(mapMarkerText, currentLocation.locationTitle);
+				mapMarkerText = string.Format(mapMarkerText, eventLocation.locationTitle);
 			}
+			Print(mapMarkerText);
 			ref LBServerMarker marker = m_RTEvent.CreateLBMapMarker(mapMarkerText, position, "LBmaster_Groups/gui/icons/skull.paa", ARGB(255, 200, 0, 0), false, false, true, true);
 			m_RTEvent.SetLBMapMarker(marker);
 		}

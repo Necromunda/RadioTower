@@ -26,7 +26,7 @@ modded class VPPMapMenu extends UIScriptedMenu {
 					}
 					m_MapWidget.AddUserMark(currentLocation.locationCoordinatesXYZ, mapMarkerText, ARGB(255, 255, 0, 0), "VanillaPPMap\\GUI\\Textures\\CustomMapIcons\\waypoint_CA.paa");
 				}
-			}
+			} 
 		}
 		m_Adapter.UpdateContent();
     }
