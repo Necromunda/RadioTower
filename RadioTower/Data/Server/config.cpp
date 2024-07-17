@@ -48,8 +48,6 @@ class CfgVehicles
 		// }; 
 		// carveNavmesh=1;
 		// heavyItem=1;
-		// hiddenSelections[]={};
-		// hiddenSelectionsTextures[]={};
 		// hiddenSelectionsMaterials[]={};
 		// hologramMaterial="power_generator";
 		// hologramMaterialPath="dz\gear\camping\data";

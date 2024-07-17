@@ -30,7 +30,7 @@ class CaptureAreaGas : EffectArea
 	
 	override void EEInit()
 	{
-		Print("EEInit");
+		//Print("EEInit");
 		if ( !m_ToxicClouds )
 			m_ToxicClouds = new array<Particle>;
 		
@@ -121,7 +121,17 @@ class CaptureAreaGas : EffectArea
 		if ( !m_ToxicClouds )
 			m_ToxicClouds = new array<Particle>;
 
-		PlaceParticles(GetWorldPosition(), m_Radius, m_InnerRings, m_InnerSpacing, m_OuterRingToggle, m_OuterSpacing, m_OuterRingOffset, m_ParticleID);		
+		//PlaceParticles(GetWorldPosition(), m_Radius, m_InnerRings, m_InnerSpacing, m_OuterRingToggle, m_OuterSpacing, m_OuterRingOffset, m_ParticleID);	
+		PlaceParticles(m_Position, m_Radius, m_InnerRings, m_InnerSpacing, m_OuterRingToggle, m_OuterSpacing, m_OuterRingOffset, m_ParticleID);	
+		
+		/*
+		for (int i = 0; i < m_ToxicClouds.Count(); i++)
+		{
+			Print(i.ToString() + ": " + GetWorldPosition());
+			Print(i.ToString() + ": " + m_ToxicClouds[i]);
+			m_ToxicClouds[i].PlayInWorld(ParticleList.CONTAMINATED_AREA_GAS_BIGASS, GetWorldPosition());
+		}
+		*/
 	}
 	
 	override void OnVariablesSynchronized()

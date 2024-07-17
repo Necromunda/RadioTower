@@ -1,3 +1,11 @@
+enum RTLogType
+{
+	INFO,
+	DEBUG,
+	WARNING,
+	ERROR
+}
+
 class RTLogger
 {
 	protected static ref RTLogger instance; 
@@ -7,25 +15,51 @@ class RTLogger
 	protected string logFilePath;
 	protected bool createLogs;
 	
-	void RTLogger()
+	void RTLogger(bool doLogs)
 	{
 		Print("[RadioTower] Logger created!");
 		
 		logFileName = GetCurrentDateAndTimePathFriendly() + ".txt";
 		logFilePath = configPath + logFileName;
+		createLogs = doLogs;
 		
 		Print("[RadioTower] Session logfile: " + RTConstants.RT_LOG_PREFIX + logFileName);
 	}
 	
-	void LogMessage(string message)
+	string GetLogTypePrefix(RTLogType type)
+	{
+		string prefix = "[INFO]";
+		switch (type)
+		{
+			case RTLogType.DEBUG:
+				prefix = "[DEBUG]";
+				break;
+			case RTLogType.WARNING:
+				prefix = "[WARNING]";
+				break;
+			case RTLogType.ERROR:
+				prefix = "[ERROR]";
+				break;
+		}
+		
+		return prefix;
+	}
+	
+	string GetCurrentDateAndTimePretty()
+	{
+		return "[" + GetCurrentDateAndTime() + "]";
+	}
+	
+	void LogMessage(RTLogType type, string message)
 	{
 		if (!createLogs) return;
 		
 		FileHandle fileHandle = OpenFile(logFilePath, FileMode.APPEND);
 		
-		if(fileHandle != 0)
+		if (fileHandle != 0)
 		{
-			FPrintln(fileHandle, "[" + GetCurrentDateAndTime() + "]	" + message);
+			string msg = GetCurrentDateAndTimePretty() + " " + GetLogTypePrefix(type) + " " + message;
+			FPrintln(fileHandle, msg);
 			CloseFile(fileHandle);
 		}
 	}
@@ -36,16 +70,11 @@ class RTLogger
 		
 		FileHandle fileHandle = OpenFile(logFilePath, FileMode.APPEND);
 		
-		if(fileHandle != 0)
+		if (fileHandle != 0)
 		{
 			//FPrintln(fileHandle, "[" + GetCurrentDateAndTime() + "]	" + message);
 			CloseFile(fileHandle);
 		}
-	}
-	
-	void SetCreateLogs(bool value)
-	{
-		createLogs = value;
 	}
 
 	string GetCurrentTime()
@@ -127,9 +156,10 @@ class RTLogger
 		delete instance; 
 	}
 	
-	static void CreateInstance()
+	static RTLogger CreateInstance(bool doLogs = false)
 	{
 		ClearInstance();
-		instance = new RTLogger; 
+		instance = new RTLogger(doLogs); 
+		return instance;
 	}
 }

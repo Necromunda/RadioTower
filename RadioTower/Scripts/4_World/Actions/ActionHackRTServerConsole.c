@@ -73,13 +73,13 @@ class ActionHackRTServerConsole: ActionContinuousBase
 	{
 		//Print("[RadioTower] Debug: Hack action OnFinishProgressServer()");
 		string msg = action_data.m_Player.GetIdentity().GetPlainName() + " started an event";
-		RTLogger.GetInstance().LogMessage("[Event start] " + msg);
+		g_RTBase.Log(RTLogType.INFO, "Server hacked. " + msg);
 		RTServer server = RTServer.Cast(action_data.m_Target.GetObject());
 		if (server)
 		{	
 			server.Disable();
 			server.SetCaptureStateSynchronized(CaptureState.CAPTURING);
+			g_RTBase.StartEvent(server);	
 		}
-		g_RTBase.StartEvent(server);	
 	}	
 };

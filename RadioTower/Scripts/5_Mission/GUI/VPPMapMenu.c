@@ -11,14 +11,6 @@ modded class VPPMapMenu extends UIScriptedMenu {
 			{
 				if (settings && settings.mapMarkers)
 				{
-					/*
-					string mapMarkerText = settings.mapMarkers.mapMarkerText
-					if (!mapMarkerText.Contains("%"))
-					{
-						mapMarkerText = RTConstants.RT_MAP_MARKER_TEXT;
-					}
-					string title = string.Format(mapMarkerText, currentLocation.locationTitle);
-					*/
 					string mapMarkerText = settings.mapMarkers.mapMarkerText
 					if (mapMarkerText.Contains("%1"))
 					{

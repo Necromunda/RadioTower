@@ -123,6 +123,7 @@ class RTServer extends Container_Base
 				{
 					DestroyAllParticles();
 					m_ParDefaultFire = ParticleManager.GetInstance().PlayOnObject( PARTICLE_DEFAULT_FIRE, this, m_ParticlePlayPos);
+					//m_ParDefaultFire = ParticleManager.GetInstance().PlayOnObject( ParticleList.CONTAMINATED_AREA_GAS_BIGASS, this, m_ParticlePlayPos);
 					//m_ParDefaultFire = ParticleManager.GetInstance().PlayInWorld(PARTICLE_DEFAULT_FIRE, pclPos);
 					//m_ParDefaultFire.SetWiggle( 10, 0.3 );
 				}

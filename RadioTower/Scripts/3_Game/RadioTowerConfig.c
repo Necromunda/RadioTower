@@ -1,5 +1,5 @@
 const int RT_VERSION_NEEDS_CONVERSION = 115022024;
-const int RT_VERSION = 101042024;
+const int RT_VERSION = 104052024;
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~RTSettings.json~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
@@ -31,6 +31,7 @@ class RTSettingsOld
 	bool showPlayerCount;
 	int minPlayerCountToStartCapture;
 	bool depleteProgressWhenNoPlayersCapturing;
+	bool enableBasicMapMarker;
 	
 	void Defaults()
 	{	
@@ -58,6 +59,7 @@ class RTSettingsOld
 		showPlayerCount = true;
 		minPlayerCountToStartCapture = 1;
 		depleteProgressWhenNoPlayersCapturing = false;
+		enableBasicMapMarker = false;
 	}
 	
 	static ref RTSettingsOld Load()
@@ -101,7 +103,7 @@ class RTSettingsOld
 		settings.mapMarkers.mapMarkerText = mapMarkerText;
 		settings.mapMarkers.enableLBMapMarker = enableLBMapMarker;
 		settings.mapMarkers.enableVPPMapMarker = enableVPPMapMarker;
-		settings.mapMarkers.enableVPPMapMarker = enableVPPMapMarker;
+		settings.mapMarkers.enableBasicMapMarker = enableBasicMapMarker;
 		settings.ui.showPlayerCount = true;
 		settings.Validate();
 		JsonFileLoader<RTSettings>.JsonSaveFile(RTConstants.RT_SETTINGS_CONFIGPATH, settings);
@@ -143,8 +145,8 @@ class RTSettings
 			kothEvent.minPlayerCountForSpawn = 1;
 		if (kothEvent.spawnInterval <= 0)
 			kothEvent.spawnInterval = RTConstants.RT_EVENT_SPAWN_INTERVAL_DEFAULT;
-		if (kothEvent.lifeTime <= 0)
-			kothEvent.lifeTime = RTConstants.RT_EVENT_LIFETIME_DEFAULT;
+		//if (kothEvent.lifeTime <= 0)
+		//	kothEvent.lifeTime = RTConstants.RT_EVENT_LIFETIME_DEFAULT;
 		if (kothEvent.captureTime <= 0)
 			kothEvent.captureTime = RTConstants.RT_EVENT_CAPTURETIME_DEFAULT;
 		if (kothEvent.hackTime < 0)
@@ -167,6 +169,7 @@ class RTSettings
 			//mapMarkers.mapMarkerText = RTConstants.RT_MAP_MARKER_TEXT;
 		mapMarkers.enableLBMapMarker 					= Math.Clamp(mapMarkers.enableLBMapMarker, 0, 1);
 		mapMarkers.enableVPPMapMarker 					= Math.Clamp(mapMarkers.enableVPPMapMarker, 0, 1);
+		mapMarkers.enableBasicMapMarker 				= Math.Clamp(mapMarkers.enableBasicMapMarker, 0, 1);
 		ui.showPlayerCount 								= Math.Clamp(ui.showPlayerCount, 0, 1);
 	}
 	
@@ -279,12 +282,14 @@ class RTSettingsMapMarkers
 	string mapMarkerText;
 	bool enableLBMapMarker;
 	bool enableVPPMapMarker;
+	bool enableBasicMapMarker;
 	
 	void Defaults()
 	{
 		mapMarkerText = RTConstants.RT_MAP_MARKER_TEXT;
 		enableLBMapMarker = false;
 		enableVPPMapMarker = false;
+		enableBasicMapMarker = false;
 	}
 }
 
@@ -451,7 +456,7 @@ class RTProps
 
 class RTLocationProps
 {
-	string locationTitle;
+	string locationId;
 	ref array<ref RTProp> locationProps;
 }
 
@@ -477,6 +482,9 @@ class RTLocations
 	
 		ref RTLocation eventLocation = new RTLocation();
 		eventLocation.loot = new RTLoot();
+		int uuid[4];
+		UUIDApi.Generate(uuid);
+		eventLocation.id = UUIDApi.FormatString(uuid);
 		eventLocation.captureAreaRadius = 25;
 		eventLocation.captureAreaHeight = 25;
 		eventLocation.captureAreaYAxisOffset = 0;
@@ -493,13 +501,31 @@ class RTLocations
 		eventLocation.vehicleClassName = "OffroadHatchback";
 		eventLocation.vehicleAttachments = {"HatchbackWheel", "HatchbackWheel", "HatchbackWheel", "HatchbackWheel", "HatchbackDoors_Driver"};
 		eventLocation.zombies = {};
+		eventLocation.createdNotificationTitle = "KOTH event created";
+		eventLocation.capturedNotificationTitle = "KOTH event captured";
+		eventLocation.endedNotificationTitle = "KOTH event ended";
 		
 		eventLocations.Insert(eventLocation);
+	}
+	
+	void Validate()
+	{
+		foreach (RTLocation loc : eventLocations)
+		{
+			if (loc.id == "")
+			{
+				int uuid[4];
+				UUIDApi.Generate(uuid);
+				loc.id = UUIDApi.FormatString(uuid);
+				Print("Generated id: " + loc.id + " for " + loc.locationTitle);
+			}
+		}
 	}
 	
 	static ref RTLocations Load()
 	{
 		ref RTLocations locations = new RTLocations();
+		//locations.Defaults();
 		
 		if (FileExist(RTConstants.RT_LOCATIONS_CONFIGPATH))
 		{
@@ -509,9 +535,10 @@ class RTLocations
 		}
 		else
 		{
-			locations.Defaults();
 			Print("[RadioTower] RTLocations.json created & defaults loaded.");
 		}
+		
+		locations.Validate();
 		JsonFileLoader<RTLocations>.JsonSaveFile(RTConstants.RT_LOCATIONS_CONFIGPATH, locations);
 		
 		return locations;
@@ -540,6 +567,7 @@ class RTLocations
 
 class RTLocation
 {
+	string id;
 	float captureAreaRadius;
 	float captureAreaHeight;
 	float captureAreaYAxisOffset;
@@ -554,6 +582,9 @@ class RTLocation
     vector vehicleOrientationYPR;
 	float vehicleProbability;
 	string vehicleClassName;
+	string createdNotificationTitle;
+	string capturedNotificationTitle;
+	string endedNotificationTitle;
 	ref TStringArray vehicleAttachments;
 	ref RTLoot loot;
 	ref TStringArray lootSets;
@@ -597,7 +628,10 @@ class RTLoot
 		{
 			for (int i = 0; i < lootCategories.Count(); i++)
 			{
-				totalLimit += lootCategories[i].limit;
+				int limit = lootCategories[i].limit;
+				
+				if (limit > -1)
+					totalLimit += limit;
 			}
 		}
 		

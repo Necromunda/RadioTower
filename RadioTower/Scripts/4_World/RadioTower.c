@@ -12,10 +12,11 @@ class RTBase
 	ref array<ref RTEvent> m_Events;
 	
 	protected string m_DefaultLootcrate;
-	protected string m_LogMessage;
 	protected bool m_AllowSameEventSpawnInARow;
 	
 	protected RTNotificationState m_NotificationState;
+	
+	protected RTLogger m_Logger;
 	
 	void ~RTBase()
 	{
@@ -59,7 +60,6 @@ class RTBase
 		m_RTEvent = null;
 		m_EventSpawnTimer = new Timer;
 		m_Events = new array<ref RTEvent>();
-		m_LogMessage = "";
 		m_NotificationState = RTNotificationState.ENABLED;
 		
 		m_AllowSameEventSpawnInARow = RTConstants.RT_ALLOW_SAME_EVENT_SPAWN_IN_A_ROW;
@@ -82,8 +82,7 @@ class RTBase
 			m_NotificationState = m_Settings.notifications.enableNotifications;
 		}
 		
-		RTLogger.CreateInstance();
-		RTLogger.GetInstance().SetCreateLogs(enableLogging);
+		m_Logger = RTLogger.CreateInstance(enableLogging);
 		
 		m_EventSpawnTimer.Run(spawnInterval, this, "CreateEvent", NULL, true);	
 	}
@@ -122,6 +121,20 @@ class RTBase
 		}
 		
 		return isAllowed;
+	}
+	
+	void SendNotification(RTNotificationType type, string message)
+	{
+		if (IsNotificationAllowed(type))
+		{
+			RTMsgHandler.RTSendChatMessage(message);
+			RTMsgHandler.RTSendClientAlert(RTConstants.RT_ICON, message, 3);
+		}
+	}
+	
+	void Log(RTLogType type, string message)
+	{
+		m_Logger.LogMessage(type, message);
 	}
 	
 	RTLootSet GetRTLootSet(string name)
@@ -214,16 +227,14 @@ class RTBase
 	
 	bool IsEventLocationValid(RTLocation location)
 	{
-		string locationTitle = location.locationTitle;
-		Print("[RadioTower] Trying location: " + locationTitle);
+		string locationId = location.id;
+		Log(RTLogType.DEBUG, "Trying location: " + location.locationTitle);
 		
 		// Check if we have 0 events
 		int eventLocationCount = GetEventLocationCount();
 		if (eventLocationCount == 0)
 		{
-			m_LogMessage = "Possible misconfiguration! RTLocations.json has 0 locations";
-			Print("[RadioTower] " + m_LogMessage);
-			RTLogger.GetInstance().LogMessage("[Warning] " + m_LogMessage);
+			Log(RTLogType.WARNING, "Possible misconfiguration! RTLocations.json has 0 locations");
 			m_EventSpawnTimer.Stop();
 			return false;
 		}
@@ -233,18 +244,16 @@ class RTBase
 		{
 			RTEvent lastEvent = GetLastRTEvent();
 			// Check if new event is the same as last event
-			if (lastEvent && lastEvent.GetEventTitle() == locationTitle)
+			if (lastEvent && lastEvent.GetEventLocationId() == locationId)
 			{
 				if (eventLocationCount == 1)
 				{
-					m_LogMessage = "Possible misconfiguration! Event could not be created because allowSameEventSpawnInARow = true and RTLocations.json only has one location";
-					Print("[RadioTower] " + m_LogMessage);
-					RTLogger.GetInstance().LogMessage("[Warning] " + m_LogMessage);
+					Log(RTLogType.WARNING, "Possible misconfiguration! Event could not be created because allowSameEventSpawnInARow = false and RTLocations.json only has one location");
 					m_EventSpawnTimer.Stop();
 				}
 				else
 				{
-					Print("[RadioTower] Can't create event in " + locationTitle + " because it was the last event");
+					Log(RTLogType.DEBUG, "Can't create event in " + location.locationTitle + " because it was the last event");
 				}
 				return false;
 			}
@@ -255,29 +264,29 @@ class RTBase
 			// Check if past event is still active
 			RTEvent pastEvent = RTEvent.Cast(m_Events[i]);
 			string pastEventTitle = pastEvent.GetEventTitle();
+			string pastEventId = pastEvent.GetEventLocationId();
 			
 			if (!pastEvent.IsDeleted())
 			{
 				// If allowing multiple events, ignore prioritizeOldEvent
-				//if (m_Settings && m_Settings.prioritizeOldEvent && !m_Settings.enableConcurrentEvents)
 				if (m_Settings && m_Settings.kothEvent.prioritizeOldEvent && !m_Settings.kothEvent.enableConcurrentEvents)
 				{
-					Print("[RadioTower] Trying to create event but " + pastEventTitle + " is still active!");
+					Log(RTLogType.DEBUG, "Trying to create event but " + pastEventTitle + " is still active!");
 					return false;
 				}
 				
-				if (locationTitle == pastEventTitle)
+				if (locationId == pastEventId)
 				{
 					if (pastEvent.IsCaptureInProgress())
 					{
-						Print("[RadioTower] Trying to create event but " + pastEventTitle + " is still being captured!");
+						Log(RTLogType.DEBUG, "Trying to create event but " + pastEventTitle + " is still being captured!");
 						return false;
 					}
 				}
 			} 
 		}
 		
-		Print("[RadioTower] Valid event location");
+		Log(RTLogType.DEBUG, "Valid event location");
 		return true;
 	}
 	
@@ -296,7 +305,7 @@ class RTBase
 		//if (playerCount < m_Settings.minimumPlayerCount) 
 		if (playerCount < m_Settings.kothEvent.minPlayerCountForSpawn) 
 		{
-			Print("[RadioTower] Not enough players to spawn an event. Required amount: " + m_Settings.kothEvent.minPlayerCountForSpawn);
+			//Print("[RadioTower] Not enough players to spawn an event. Required amount: " + m_Settings.kothEvent.minPlayerCountForSpawn);
 			return;
 		}
 		
@@ -318,7 +327,7 @@ class RTBase
 			{
 				if (exhaustedEventIndexes.Count() == eventLocationCount)
 				{
-					Print("[RadioTower] No available event locations");
+					//Print("[RadioTower] No available event locations");
 					return;
 				}
 				eventLocationIndex = Math.RandomInt(0, eventLocationCount);
@@ -363,14 +372,19 @@ class RTBase
 			m_RTEvent.SetEventTrigger(trigger);
 		}
 		
-		for (int i = 0; i < m_Props.eventProps.Count(); i++)
+		string locationId = m_RTEvent.GetEventLocationId();
+		if (locationId != "")
 		{
-			RTLocationProps locationProps;
-			if (RTLocationProps.CastTo(locationProps, m_Props.eventProps[i]))
+			for (int i = 0; i < m_Props.eventProps.Count(); i++)
 			{
-				if (m_RTEvent.GetEventTitle() == locationProps.locationTitle)
+				RTLocationProps locationProps;
+				if (RTLocationProps.CastTo(locationProps, m_Props.eventProps[i]))
 				{
-					m_RTEvent.SpawnProps(locationProps);
+					//if (m_RTEvent.GetEventTitle() == locationProps.locationTitle)
+					if (locationId == locationProps.locationId)
+					{
+						m_RTEvent.SpawnProps(locationProps);
+					}
 				}
 			}
 		}
@@ -401,7 +415,7 @@ class RTBase
 			{
 				mapMarkerText = string.Format(mapMarkerText, eventLocation.locationTitle);
 			}
-			Print(mapMarkerText);
+			//Print(mapMarkerText);
 			ref LBServerMarker marker = m_RTEvent.CreateLBMapMarker(mapMarkerText, position, "LBmaster_Groups/gui/icons/skull.paa", ARGB(255, 200, 0, 0), false, false, true, true);
 			m_RTEvent.SetLBMapMarker(marker);
 		}
@@ -410,21 +424,10 @@ class RTBase
 		m_RTEvent.SetState(RTEventState.ACTIVE);
 		m_Events.Insert(m_RTEvent);
 		
-		RTLogger.GetInstance().LogMessage("[Event created] " + eventLocation.locationTitle);
-		if (IsNotificationAllowed(RTNotificationType.CREATE))
-		{
-			string ingame_msg = "Server has been located in " + eventLocation.locationTitle + "!";
-			RTMsgHandler.RTSendChatMessage(ingame_msg);
-			RTMsgHandler.RTSendClientAlert(RTConstants.RT_ICON, ingame_msg, 3);
-		}
+		Log(RTLogType.INFO, "Event created in " + eventLocation.locationTitle);
+		SendNotification(RTNotificationType.CREATE, eventLocation.createdNotificationTitle);
 		
 		GetRPCManager().SendRPC("RadioTower", "ClientSetLatestEventLocation", new Param1<RTLocation>(eventLocation), true, null);
-		
-		// 1.4.2024 - TODO
-		/*
-		if (true || eventLocation.spawnGas)
-			m_RTEvent.SpawnGas();
-    	*/
 	}
 	
 	void StartEvent(RTServer server)
@@ -434,10 +437,7 @@ class RTBase
 		if (rtEvent)
 		{
 			rtEvent.SetState(RTEventState.CAPTURING);
-			string title = rtEvent.GetEventTitle();
-			Print("[RadioTower] Event capture started in " + title);
-			RTLogger.GetInstance().LogMessage("[Capture start] " + title);
-			CaptureArea trigger = rtEvent.GetEventTrigger();
+			Log(RTLogType.INFO, "Event capture started in " + rtEvent.GetEventTitle());
 			rtEvent.GetEventTrigger().SetCapture(true);
 		}
 	}
@@ -489,24 +489,18 @@ class RTBase
 	void OnEventCapture(CaptureArea trigger)
 	{
 		RTEvent rtEvent = GetRTEventWithTrigger(trigger);
-		RTServer rtServer = rtEvent.GetEventServer();
-		if (rtServer)
-		{
-			rtServer.SetCaptureStateSynchronized(CaptureState.CAPTURED);
-		}
-		
 		if (rtEvent)
 		{
+			RTServer rtServer = rtEvent.GetEventServer();
+			if (rtServer)
+			{
+				rtServer.SetCaptureStateSynchronized(CaptureState.CAPTURED);
+			}
 			rtEvent.SetState(RTEventState.CAPTURED);
 		
-			string title = rtEvent.GetEventTitle();
-			RTLogger.GetInstance().LogMessage("[Event captured] " + title);
-			if (IsNotificationAllowed(RTNotificationType.CAPTURE))
-			{
-				string ingame_msg = title + " has been captured!";
-				RTMsgHandler.RTSendChatMessage(ingame_msg);
-				RTMsgHandler.RTSendClientAlert(RTConstants.RT_ICON, ingame_msg, 3);
-			}
+			RTLocation loc = rtEvent.GetEventLocation();
+			Log(RTLogType.INFO, "Event captured in " + loc.locationTitle);
+			SendNotification(RTNotificationType.CAPTURE, loc.capturedNotificationTitle);
 			rtEvent.SpawnEventLootCrate();
 		}		
 	}

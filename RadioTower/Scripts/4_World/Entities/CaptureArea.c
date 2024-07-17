@@ -63,6 +63,8 @@ class CaptureArea: Trigger
 	protected bool m_StartCapture;
 	protected bool m_StartCaptureLocal;
 	
+	protected Shape dbgShape;
+	
 	void CaptureArea()
 	{
 		RegisterNetSyncVariableFloat("m_CapturePct");
@@ -92,9 +94,10 @@ class CaptureArea: Trigger
 				//m_Event_Capturetime = g_RTBase.m_Settings.eventCapturetime;
 				//m_Event_Lifetime = g_RTBase.m_Settings.eventLifetime;
 				m_Event_Capturetime = g_RTBase.m_Settings.kothEvent.captureTime;
+				// 24.4.2024 this should not be needed
 				// Make sure that not dividing with 0 on line 108
-				if (m_Event_Capturetime <= 0)
-					m_Event_Capturetime = RTConstants.RT_EVENT_CAPTURETIME_DEFAULT;
+				//if (m_Event_Capturetime <= 0)
+				//	m_Event_Capturetime = RTConstants.RT_EVENT_CAPTURETIME_DEFAULT;
 				m_Event_Lifetime = g_RTBase.m_Settings.kothEvent.lifeTime;
 			}
 			
@@ -141,11 +144,11 @@ class CaptureArea: Trigger
 					{
 						m_CollisionCylinderRadius = rtEvent.GetEventLocation().captureAreaRadius;
 						m_CollisionCylinderHeight = rtEvent.GetEventLocation().captureAreaHeight;
+						Print("EOnInit radius " + m_CollisionCylinderRadius + ", height " + m_CollisionCylinderHeight);
 					}
 				}
 			}
 		}
-		//Print("CaptureArea radius: " + m_CollisionCylinderRadius + ", height: " + m_CollisionCylinderHeight);
 		SetCollisionCylinder(m_CollisionCylinderRadius, m_CollisionCylinderHeight);
 	}
 	
@@ -189,32 +192,17 @@ class CaptureArea: Trigger
 	
 	void Tick()
 	{
-		string date = CF_Date.Now().Format("DD-MM-YYYY hh:mm:ss");
-		//if (m_Event_Lifetime.ToString().ToInt() % 60 == 0)
-			//Print(date + " CaptureArea lifetime " + m_Event_Lifetime);
-		m_Event_Lifetime -= LIFETIME_TICKRATE;
-		
-		if (m_Event_Lifetime < 0)
+		// If lifetime is set to -1 (or lower), event can stay up until it is captured
+		if (m_Event_Lifetime >= 0) 
 		{
-			OnEventFinish();
+			m_Event_Lifetime -= LIFETIME_TICKRATE;
+		
+			if (m_Event_Lifetime <= 0)
+			{
+				OnEventFinish();
+			}
 		}
 	}
-	
-	float GetEventLifetime()
-	{
-		return m_Event_Lifetime;
-	}
-	
-	/*void OnEventCapture()
-	{
-		m_Event_Lifetime = 0;
-		g_RTBase.SpawnEventLootCrate();
-		string title = g_RTBase.GetRTEvent().GetEventTitle();
-		string msg = title + " has been captured!";
-		RTLogger.GetInstance().LogMessage(msg);
-		RTMsgHandler.RTSendChatMessage(msg);
-		RTMsgHandler.RTSendClientAlert(RTConstants.RT_ICON, msg, 3);
-	}*/
 	
 	void OnEventFinish()
 	{
@@ -229,19 +217,13 @@ class CaptureArea: Trigger
 					if (rtEvent.GetState() != RTEventState.CAPTURED)
 					{
 						server.Disable();
-						RTLogger.GetInstance().LogMessage("[Event finish] " + rtEvent.GetEventTitle());
-						if (g_RTBase.IsNotificationAllowed(RTNotificationType.END))
-						{
-							string ingame_msg = rtEvent.GetEventTitle() + " event finished";
-							RTMsgHandler.RTSendChatMessage(ingame_msg);
-							RTMsgHandler.RTSendClientAlert(RTConstants.RT_ICON, ingame_msg, 3);
-						}
+						g_RTBase.Log(RTLogType.INFO, "Event ended in " + rtEvent.GetEventTitle());
+						g_RTBase.SendNotification(RTNotificationType.END, rtEvent.GetEventLocation().endedNotificationTitle);
 						server.SetCaptureStateSynchronized(CaptureState.DEFAULT);
 					}
 				}
 				rtEvent.SetState(RTEventState.DELETED);
 				#ifdef LBmaster_Groups
-				//LBServerMarker marker = rtEvent.GetLBMapMarker();
 				rtEvent.RemoveLBMapMarker();
 				#endif
 				
@@ -249,18 +231,6 @@ class CaptureArea: Trigger
 			}
 		}
 		
-		/*if (GetGame().IsClient())
-		{
-			Print("client eventfinish");
-			array<ref TriggerInsider> insiders = GetInsiders();
-			for (int i = 0; i < insiders.Count(); i++)
-			{
-				PlayerBase player;
-				if (PlayerBase.CastTo(player, insiders[i].GetObject()))
-					player.SetIsInsideCaptureArea(false);
-			}
-		}*/
-		//Print("[RadioTower] Capture area deleted");
 		DeleteSafe();
 	}
 	
@@ -364,8 +334,10 @@ class CaptureArea: Trigger
 		
 		PlayerBase player = PlayerBase.Cast(insider.GetObject());
 		if (player && player.GetIdentity())
-			RTLogger.GetInstance().LogMessage("Player " + player.GetIdentity().GetPlainName() + " entered capture area");
-		//Print("SERVER OnEnter");
+		{
+			g_RTBase.Log(RTLogType.INFO, "Player " + player.GetIdentity().GetPlainName() + " entered capture area");
+		}
+
 		m_InsiderCount = GetInsiders().Count();
 		SetSynchDirty();
 	}
@@ -376,8 +348,10 @@ class CaptureArea: Trigger
 		
 		PlayerBase player = PlayerBase.Cast(insider.GetObject());
 		if (player && player.GetIdentity())
-			RTLogger.GetInstance().LogMessage("Player " + player.GetIdentity().GetPlainName() + " left capture area");
-		//Print("SERVER OnLeave");
+		{
+			g_RTBase.Log(RTLogType.INFO, "Player " + player.GetIdentity().GetPlainName() + " left capture area");
+		}
+
 		if (!m_StartCapture) return;
 		
 		// Edit 25.3.2024

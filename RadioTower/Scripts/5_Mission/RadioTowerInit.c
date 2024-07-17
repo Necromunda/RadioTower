@@ -62,7 +62,7 @@ modded class MissionGameplay
 		if (PlayerBase.CastTo(player, GetGame().GetPlayer()) && player.GetIsInsideCaptureArea())
 		{
 			#ifdef LBmaster_Groups
-			if (LBMarkerVisibilityManager.Get().compassEnabled)
+			if (LBMarkerVisibilityManager.Get.compassEnabled)
 				m_CaptureAreaUI.SetYOffset(65);
 			else
 				m_CaptureAreaUI.SetYOffset(0);

@@ -4,10 +4,9 @@ class RTEvent
 	protected CaptureArea m_CaptureArea;
 	protected CaptureAreaGas m_CaptureAreaGas;
 	protected RTLocation m_EventLocation;
-	protected RTLocationProps m_EventProps;
+	
 	protected RTEventState m_State;
 	protected ref array<Object> m_PropObjects;
-	protected string m_LogMessage;
 	protected RTEventType m_EventType;
 	protected ref array<EntityAI> m_Zombies;
 	protected EntityAI m_Lootcrate;
@@ -31,7 +30,6 @@ class RTEvent
 		m_IsGasEvent = _isGasEvent;
 		//m_EventProps = null;
 		m_PropObjects = new array<Object>();
-		m_LogMessage = "";
 		m_Zombies = new array<EntityAI>();
 		//m_Lootcrate = null;
 		/*
@@ -43,11 +41,7 @@ class RTEvent
 	
 	void SpawnGas()
 	{
-		m_CaptureAreaGas = CaptureAreaGas.Cast(GetGame().CreateObject("CaptureAreaGas", m_EventLocation.locationCoordinatesXYZ));
-		//GetGame().CreateObject("ContaminatedArea_Dynamic", m_EventLocation.locationCoordinatesXYZ);
-		//Print(m_CaptureAreaGas);
-		//Print(m_EventLocation.locationCoordinatesXYZ);
-		//Print(m_Server.GetPosition());
+		//m_CaptureAreaGas = CaptureAreaGas.Cast(GetGame().CreateObject("CaptureAreaGas", m_EventLocation.locationCoordinatesXYZ));
 	}
 	
 	// Delete all event objects except lootbox and car
@@ -128,8 +122,7 @@ class RTEvent
 			// Prevent infinite loop
 			if (tries > 10000)
 			{
-				Print("[RadioTower] Not enough space for spawning zombies, reduce zombie count!");
-				RTLogger.GetInstance().LogMessage("Not enough space for spawning zombies, increase capture radius or reduce zombie count!");
+				g_RTBase.Log(RTLogType.WARNING, "Not enough space for spawning zombies, increase capture radius or reduce zombie count!");
 				break;			
 			}
 			
@@ -164,8 +157,7 @@ class RTEvent
 				}
 				else
 				{
-					Print("[RadioTower] Error spawning zombie, check that " + zombieClassname + " is a valid classname!");
-					RTLogger.GetInstance().LogMessage("Error spawning zombie, check that " + zombieClassname + " is a valid classname!");
+					g_RTBase.Log(RTLogType.ERROR, "Error spawning zombie, check that " + zombieClassname + " is a valid classname!");
 				}
 				spawnedZombies++;
 				tries = 0;
@@ -174,30 +166,26 @@ class RTEvent
 		}
 	}
 	
-	/*
-	void SpawnZombies(int count, vector centerPos, float radius)
+	EntityAI CreateInInventory(notnull EntityAI container, string type)
 	{
-		for (int i = 0; i < count; i++)
+		EntityAI item = GetGame().CreateObject(type, container.GetPosition());
+		if (container.GetInventory().CanAddEntityInto(item))
 		{
-			vector randomDir2d = vector.RandomDir2D();
-			float randomDist = Math.RandomFloatInclusive(Math.RandomIntInclusive(1, 5), Math.RandomIntInclusive(6, radius));
-			vector spawnPos = centerPos + (randomDir2d * randomDist);
-			InventoryLocation il = new InventoryLocation;
-			vector mat[4];
-			Math3D.MatrixIdentity4(mat);
-			mat[3] = spawnPos;
-			il.SetGround(NULL, mat);
-			GetGame().CreateObject(SPAWN_ITEM_TYPE[j], il.GetPos(), false, true, true);
+			container.GetInventory().TakeEntityToCargo(InventoryMode.SERVER, item);
+			return item;
 		}
+		else
+		{
+			if (item)
+				GetGame().ObjectDelete(item);
+		}
+		
+		return null;
 	}
-	*/
 	
 	void SpawnEventLootCrate()
 	{
-		string msg = "Spawning lootcrate in " + GetEventTitle();
-		Print("[RadioTower] " + msg);
-		m_LogMessage = "[Spawn loot] " + GetEventTitle();
-		RTLogger.GetInstance().LogMessage(m_LogMessage);
+		g_RTBase.Log(RTLogType.INFO, "Spawning lootcrate in " + GetEventTitle());
 		
 		if (m_EventLocation)
 		{
@@ -206,16 +194,7 @@ class RTEvent
 			string lootcrate = m_EventLocation.lootcrateClassName;
 			if (!lootcrate || lootcrate == "")
 				lootcrate = g_RTBase.GetDefaultLootcrateClassName();
-			
-			/*
-			RTLootcrate_Base crate;
-			if (RTLootcrate_Base.CastTo(crate, GetGame().CreateObject(lootcrate, pos, ECE_LOCAL | ECE_KEEPHEIGHT)))
-			{
-				crate.SetOrientation(orientation);
 
-				SpawnLoot(crate);
-			}
-			*/
 			ref EntityAI crate;
 			if (EntityAI.CastTo(crate, GetGame().CreateObject(lootcrate, pos, ECE_LOCAL | ECE_KEEPHEIGHT)))
 			{
@@ -268,7 +247,6 @@ class RTEvent
 		int lootCount = m_EventLocation.loot.lootCount;
 		int totalLimit = m_EventLocation.loot.GetTotalCategoriesLimit();
 		
-		lootCount = Math.Clamp(lootCount, 0, totalLimit);
 		/*
 		if (lootCount > totalLimit)
 		{
@@ -281,12 +259,27 @@ class RTEvent
 		{
 			RTLootCategory cat = categories[m];
 			lootedCountCategoryMap.Insert(cat.lootCategoryTitle, 0);
+			
+			if (categories[m].limit < 0)
+				totalLimit = lootCount;
 		}
 		
-		//Print(lootedCountCategoryMap);
+		lootCount = Math.Clamp(lootCount, 0, totalLimit);
+		
+		int totalTries = 0;
 		
 	    for (int i = 0; i < lootCount; i++)
 	    {
+			if (totalTries > 1000)
+			{
+				g_RTBase.Log(RTLogType.DEBUG, "Loot spawning stopped");
+				break;
+			}
+			else
+			{
+				totalTries++;
+			}
+			
 	        float randomValue = Math.RandomFloat(0, totalCategoriesProbability);
 	        float cumulativeProbability = 0;
 	        EntityAI entity = null;
@@ -311,16 +304,15 @@ class RTEvent
 					//int lootedCount = category.lootedCount;
 					int lootedCount = lootedCountCategoryMap.Get(category.lootCategoryTitle);
 					
-					if (lootLimit <= 0 || lootedCount >= lootLimit)
+					// Pick new loot category if limit is 0 or enough items has already been spawned and limit is not unlimited == -1
+					if (lootLimit == 0 || (lootedCount >= lootLimit && lootLimit >= 0))
 					{
-						//Print("Exit loop");
 						i--;
 						break;
 					}
 					
-					//category.lootedCount++;
-					lootedCount = lootedCount + 1;
-					lootedCountCategoryMap.Set(category.lootCategoryTitle, lootedCount);
+					//lootedCount = lootedCount + 1;
+					//lootedCountCategoryMap.Set(category.lootCategoryTitle, lootedCount);
 					//Print("Spawn item, Key: " + category.lootCategoryTitle + ", value: " + lootedCount);
 	
 	                // Calculate the total probability for items within the category
@@ -345,13 +337,21 @@ class RTEvent
 							
 							for (int l = 0; l < itemSpawnCount; l++)
 							{
-								//Print("Spawning " + itemClassName);
-								RTLogger.GetInstance().LogMessage("[Item] " + itemClassName);
-								entity = target.GetInventory().CreateEntityInCargo(itemClassName);
+								g_RTBase.Log(RTLogType.INFO, "Spawning item " + itemClassName);
+								
+								entity = CreateInInventory(target, itemClassName);
+								if (!entity)
+								{
+									g_RTBase.Log(RTLogType.DEBUG, "No space for item " + itemClassName);
+									j--;
+									break;
+								}
+								
+								lootedCount = lootedCount + 1;
+								lootedCountCategoryMap.Set(category.lootCategoryTitle, lootedCount);
+																
 								ItemBase ingameItem = ItemBase.Cast(entity);
-								//Print("Spawning item: " + ingameItem.ClassName());
 								if (!useMaxQuantity && ingameItem.HasQuantity())
-								//if (ingameItem.GetTargetQuantityMax() > 1)
 								{
 									if (item.hasRandomQuantity)
 									{
@@ -387,9 +387,9 @@ class RTEvent
 		
 		array<string> spawnedAttachments = {};
 
-		for (int l = 0; l < attachmentCategories.Count(); l++)
+		for (int i = 0; i < attachmentCategories.Count(); i++)
 		{
-			RTLootItemAttachmentCategory category = attachmentCategories[l];
+			RTLootItemAttachmentCategory category = attachmentCategories[i];
 			
 			if (category.probability <= 0)
 				continue;
@@ -402,9 +402,9 @@ class RTEvent
 				float randomAttachmentValue = Math.RandomFloat(0, totalItemAttachmentsProbability);
 				float cumulativeItemAttachmentsProbability = 0;
 
-				for (int m = 0; m < category.attachments.Count(); m++)
+				for (int j = 0; j < category.attachments.Count(); j++)
 				{
-					RTLootItemAttachment attachment = category.attachments[m];
+					RTLootItemAttachment attachment = category.attachments[j];
 					if (attachment.probability < 1)
 					{
 						cumulativeItemAttachmentsProbability += attachment.probability;
@@ -416,7 +416,7 @@ class RTEvent
 						{
 							spawnedAttachments.Insert(attachment.attachmentClassName);
 							target.GetInventory().CreateAttachment(attachment.attachmentClassName);
-							RTLogger.GetInstance().LogMessage("[Item][Att] " + attachment.attachmentClassName);
+							g_RTBase.Log(RTLogType.INFO, "Spawning attachment " + attachment.attachmentClassName);
 						}
 						break;
 					}
@@ -435,7 +435,7 @@ class RTEvent
 				foreach (RTLootSetItem lootSetItem : lootSet.items)
 				{
 					//EntityAI entity = target.GetInventory().CreateEntityInCargo(lootSetItem.name);
-					RTLogger.GetInstance().LogMessage("[Item] " + lootSetItem.name);
+					g_RTBase.Log(RTLogType.INFO, "Spawning item " + lootSetItem.name);
 					EntityAI entity = target.GetInventory().CreateInInventory(lootSetItem.name);
 					ItemBase ingameItem = ItemBase.Cast(entity);
 					if (lootSetItem.quantity != -1)
@@ -469,7 +469,7 @@ class RTEvent
 	{		
 		foreach (RTLootSetItem lootSetItemAttachment : lootSetItem.attachments)
 		{
-			RTLogger.GetInstance().LogMessage("[Item][Att] " + lootSetItemAttachment.name);
+			g_RTBase.Log(RTLogType.INFO, "Spawning attachment " + lootSetItemAttachment.name);
 			EntityAI attachment = target.GetInventory().CreateAttachment(lootSetItemAttachment.name);
 			ItemBase ingameItem = ItemBase.Cast(attachment);
 					
@@ -502,7 +502,7 @@ class RTEvent
 	{		
 		foreach (RTLootSetItem lootSetItemCargoItem : lootSetItem.cargo)
 		{
-			RTLogger.GetInstance().LogMessage("[Item][Cargo] " + lootSetItemCargoItem.name);
+			g_RTBase.Log(RTLogType.INFO, "Spawning item in cargo " + lootSetItemCargoItem.name);
 			EntityAI cargoItem = target.GetInventory().CreateEntityInCargo(lootSetItemCargoItem.name);
 			ItemBase ingameItem = ItemBase.Cast(cargoItem);
 					
@@ -582,10 +582,12 @@ class RTEvent
 		m_EventLocation = location; 
 	}
 	
+	/*
 	void SetEventProps(RTLocationProps locationProps)		
 	{ 
 		m_EventProps = locationProps; 
 	}
+	*/
 	
 	void SetEventType(RTEventType type)
 	{
@@ -630,19 +632,33 @@ class RTEvent
 		return m_EventLocation; 
 	}
 	
+	string GetEventLocationId()
+	{
+		return m_EventLocation.id;
+	}
+	
 	#ifdef LBmaster_Groups
 	LBServerMarker CreateLBMapMarker(string name, vector position, string icon, int argb, bool toSurface, bool display3D, bool displayMap, bool displayGPS)
 	{
-		LBServerMarker marker = LBStaticMarkerManager.Get().AddTempServerMarker(name, position, icon, argb, toSurface, display3D, displayMap, displayGPS);
-
-		return marker;
+		if (g_RTBase.m_Settings.mapMarkers.enableLBMapMarker)
+		{
+			//LBServerMarker marker = LBStaticMarkerManager.Get().AddTempServerMarker(name, position, icon, argb, toSurface, display3D, displayMap, displayGPS);
+			LBServerMarker marker = LBStaticMarkerManager.Get.AddTempServerMarker(name, position, icon, argb, toSurface, display3D, displayMap, displayGPS);
+	
+			return marker;
+		}
+		return null;
 	}
 	
 	bool RemoveLBMapMarker()
 	{	
-		bool success = LBStaticMarkerManager.Get().RemoveServerMarker(m_LBMapMarker);
-
-		return success;
+		if (g_RTBase.m_Settings.mapMarkers.enableLBMapMarker)
+		{
+			bool success = LBStaticMarkerManager.Get.RemoveServerMarker(m_LBMapMarker);
+	
+			return success;
+		}
+		return false;
 	}
 	
 	void SetLBMapMarker(LBServerMarker markerObject)
