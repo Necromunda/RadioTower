@@ -63,8 +63,6 @@ class CaptureArea: Trigger
 	protected bool m_StartCapture;
 	protected bool m_StartCaptureLocal;
 	
-	protected Shape dbgShape;
-	
 	void CaptureArea()
 	{
 		RegisterNetSyncVariableFloat("m_CapturePct");
@@ -192,10 +190,14 @@ class CaptureArea: Trigger
 	
 	void Tick()
 	{
+		Print("Lifetime: " + m_Event_Lifetime);
+		
 		// If lifetime is set to -1 (or lower), event can stay up until it is captured
 		if (m_Event_Lifetime >= 0) 
 		{
-			m_Event_Lifetime -= LIFETIME_TICKRATE;
+			RTEvent rtEvent = g_RTBase.GetRTEventWithTrigger(this);
+			if (!(g_RTBase.m_Settings.kothEvent.pauseLifetimeDepleteDuringCapturing && GetInsiders().Count() >= 1 && rtEvent.IsCaptureInProgress()))
+				m_Event_Lifetime -= LIFETIME_TICKRATE;
 		
 			if (m_Event_Lifetime <= 0)
 			{

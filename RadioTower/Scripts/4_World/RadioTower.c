@@ -84,6 +84,21 @@ class RTBase
 		
 		m_Logger = RTLogger.CreateInstance(enableLogging);
 		
+		foreach (RTLocation loc : m_Locations.eventLocations)
+		{
+			for (int i = 0; i < loc.loot.lootCategories.Count(); i++)
+			{
+				for (int j = 1 + i; j < loc.loot.lootCategories.Count(); j++)
+				{
+					if (loc.loot.lootCategories[i].lootCategoryTitle == loc.loot.lootCategories[j].lootCategoryTitle)
+					{
+						Log(RTLogType.WARNING, "Duplicate lootCategoryTitle: " + loc.loot.lootCategories[i].lootCategoryTitle + "! Location id: " + loc.id);
+						break;
+					}
+				}
+			}
+		}
+		
 		m_EventSpawnTimer.Run(spawnInterval, this, "CreateEvent", NULL, true);	
 	}
 	
@@ -398,28 +413,28 @@ class RTBase
 			m_RTEvent.SpawnZombies(zombieCount, position, radius);
 		}
 		
+		string mapMarkerText = m_Settings.mapMarkers.mapMarkerText;
+		if (mapMarkerText.Contains("%1"))
+		{
+			mapMarkerText = string.Format(mapMarkerText, eventLocation.locationTitle);
+		}
 		#ifdef LBmaster_Groups
 		//if (m_Settings.enableLBMapMarker)
 		if (m_Settings.mapMarkers.enableLBMapMarker)
 		{
-			/*
-			string mapMarkerText = m_Settings.mapMarkers.mapMarkerText;
-			if (!mapMarkerText.Contains("%"))
-			{
-				mapMarkerText = RTConstants.RT_MAP_MARKER_TEXT;
-			}
-			string title = string.Format(mapMarkerText, eventLocation.locationTitle);
-			*/
-			string mapMarkerText = m_Settings.mapMarkers.mapMarkerText
-			if (mapMarkerText.Contains("%1"))
-			{
-				mapMarkerText = string.Format(mapMarkerText, eventLocation.locationTitle);
-			}
-			//Print(mapMarkerText);
 			ref LBServerMarker marker = m_RTEvent.CreateLBMapMarker(mapMarkerText, position, "LBmaster_Groups/gui/icons/skull.paa", ARGB(255, 200, 0, 0), false, false, true, true);
 			m_RTEvent.SetLBMapMarker(marker);
 		}
 		#endif
+		
+		/*
+		#ifdef EXPANSIONMODNAVIGATION
+		if (m_Settings.mapMarkers.enableExpansionMapMArker)
+		{
+			m_RTEvent.CreateMissionMarker(mapMarkerText, position, 0);
+		}
+		#endif
+		*/
 		
 		m_RTEvent.SetState(RTEventState.ACTIVE);
 		m_Events.Insert(m_RTEvent);

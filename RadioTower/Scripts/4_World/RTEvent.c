@@ -16,6 +16,13 @@ class RTEvent
 	protected ref LBServerMarker m_LBMapMarker;
 	#endif
 	
+	/*
+	#ifdef EXPANSIONMODNAVIGATION
+    private ExpansionMarkerModule m_MarkerModule;
+    private ExpansionMarkerData m_ServerMarker;
+	#endif
+	*/
+	
 	void ~RTEvent()
 	{
 	}
@@ -233,7 +240,6 @@ class RTEvent
 	
 	void SpawnLoot(EntityAI target)
 	{
-		//if (g_RTBase.m_Settings.useLootSets)
 		if (g_RTBase.m_Settings.kothEvent.useLootSets)
 		{
 			SpawnLootSets(target);
@@ -246,13 +252,6 @@ class RTEvent
 	    float totalCategoriesProbability = m_EventLocation.loot.GetTotalCategoriesProbability();
 		int lootCount = m_EventLocation.loot.lootCount;
 		int totalLimit = m_EventLocation.loot.GetTotalCategoriesLimit();
-		
-		/*
-		if (lootCount > totalLimit)
-		{
-			lootCount = totalLimit;
-		}
-		*/
 		
 		// Init lootedCount to 0 for all categories
 		for (int m = 0; m < categories.Count(); m++)
@@ -283,13 +282,6 @@ class RTEvent
 	        float randomValue = Math.RandomFloat(0, totalCategoriesProbability);
 	        float cumulativeProbability = 0;
 	        EntityAI entity = null;
-			
-			/*
-			for (int g = 0; g < lootedCountCategoryMap.Count(); g++)
-			{
-				Print("Key: " + lootedCountCategoryMap.GetKey(g) + ", value: " + lootedCountCategoryMap.Get(lootedCountCategoryMap.GetKey(g)));
-			}
-			*/
 	
 	        // Iterate through each category and pick one
 	        for (int j = 0; j < categories.Count(); j++)
@@ -301,7 +293,6 @@ class RTEvent
 	            {
 	                array<ref RTLootItem> items = category.items;
 					int lootLimit = category.limit;
-					//int lootedCount = category.lootedCount;
 					int lootedCount = lootedCountCategoryMap.Get(category.lootCategoryTitle);
 					
 					// Pick new loot category if limit is 0 or enough items has already been spawned and limit is not unlimited == -1
@@ -436,7 +427,14 @@ class RTEvent
 				{
 					//EntityAI entity = target.GetInventory().CreateEntityInCargo(lootSetItem.name);
 					g_RTBase.Log(RTLogType.INFO, "Spawning item " + lootSetItem.name);
-					EntityAI entity = target.GetInventory().CreateInInventory(lootSetItem.name);
+					//EntityAI entity = target.GetInventory().CreateInInventory(lootSetItem.name);
+					EntityAI entity = CreateInInventory(target, lootSetItem.name);
+					if (!entity)
+					{
+						g_RTBase.Log(RTLogType.DEBUG, "No space for item " + lootSetItem.name);
+						continue;
+					}
+
 					ItemBase ingameItem = ItemBase.Cast(entity);
 					if (lootSetItem.quantity != -1)
 					{
@@ -582,13 +580,6 @@ class RTEvent
 		m_EventLocation = location; 
 	}
 	
-	/*
-	void SetEventProps(RTLocationProps locationProps)		
-	{ 
-		m_EventProps = locationProps; 
-	}
-	*/
-	
 	void SetEventType(RTEventType type)
 	{
 		m_EventType = type;
@@ -672,4 +663,36 @@ class RTEvent
 		return m_LBMapMarker;
 	}
 	#endif
+	/*
+    #ifdef EXPANSIONMODNAVIGATION
+    void CreateMissionMarker(string markerName, vector location, int timer)
+    {
+    	if (!m_MarkerModule)
+		{
+      		initMarkerModule();
+			
+      		if (!m_MarkerModule) 
+	 		{
+		        Print("MarkerModule error");
+		        return;
+      		}
+    	}
+        m_ServerMarker = m_MarkerModule.CreateServerMarker( markerName, "Territory", location, ARGB(255, 235, 59, 90), true);
+   		//GetGame().GetCallQueue( CALL_CATEGORY_SYSTEM ).CallLater( this.RemoveMissionMarker, timer, false, m_ServerMarker.GetUID());
+    }
+	
+  	void initMarkerModule()
+	{
+    	CF_Modules<ExpansionMarkerModule>.Get(m_MarkerModule);
+  	}
+
+    void RemoveMissionMarker(string uid)
+    {
+        if ( !m_ServerMarker )
+            return;
+		
+        m_MarkerModule.RemoveServerMarker( uid );
+    }
+    #endif
+	*/
 }

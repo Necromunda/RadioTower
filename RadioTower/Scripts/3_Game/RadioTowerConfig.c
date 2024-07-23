@@ -160,6 +160,7 @@ class RTSettings
 		kothEvent.enableConcurrentEvents 				= Math.Clamp(kothEvent.enableConcurrentEvents, 0, 1);
 		kothEvent.enableCaptureStatusSmoke 				= Math.Clamp(kothEvent.enableCaptureStatusSmoke, 0, 1);
 		kothEvent.depleteProgressWhenNoPlayersCapturing = Math.Clamp(kothEvent.depleteProgressWhenNoPlayersCapturing, 0, 1);
+		kothEvent.pauseLifetimeDepleteDuringCapturing   = Math.Clamp(kothEvent.pauseLifetimeDepleteDuringCapturing, 0, 1);
 		logging.enableLogging 							= Math.Clamp(logging.enableLogging, 0, 1);
 		notifications.enableNotifications 				= Math.Clamp(notifications.enableNotifications, 0, 1);
 		notifications.enableEventCreateNotification 	= Math.Clamp(notifications.enableEventCreateNotification, 0, 1);
@@ -231,6 +232,7 @@ class RTSettingsEvent
 	bool enableConcurrentEvents;
 	bool enableCaptureStatusSmoke;
 	bool depleteProgressWhenNoPlayersCapturing;
+	bool pauseLifetimeDepleteDuringCapturing;
 	
 	void Defaults()
 	{	
@@ -248,6 +250,7 @@ class RTSettingsEvent
 		enableConcurrentEvents = false;
 		enableCaptureStatusSmoke = true;
 		depleteProgressWhenNoPlayersCapturing = false;
+		pauseLifetimeDepleteDuringCapturing = true;
 	}
 }
 
@@ -302,101 +305,6 @@ class RTSettingsUI
 		showPlayerCount = true;
 	}
 }
-
-/*
-class RTSettings
-{
-	int version;
-	int eventSpawnInterval;
-	int eventLifetime;
-	int eventCapturetime;
-	int eventHacktime;
-	string eventDefaultLootcrate;
-	bool enableLogging;
-	bool allowSameEventSpawnInARow;
-	bool enableConcurrentEvents;
-	bool enableNotifications;
-	bool enableEventCreateNotification;
-	bool enableEventCaptureNotification;
-	bool enableEventEndNotification;
-	bool prioritizeOldEvent;
-	bool spawnZombies;
-	bool showCaptureStatusSmoke;
-	bool enableLBMapMarker;
-	int minimumPlayerCount;
-	string mapMarkerText;
-	bool useLootSets;
-	
-	void Defaults()
-	{	
-		version = RT_VERSION;
-		eventSpawnInterval = 2700;
-		eventLifetime = 1800;
-		eventCapturetime = 900;
-		eventHacktime = 5;
-		eventDefaultLootcrate = "RTLootcrate_White";
-		enableLogging = false;
-		allowSameEventSpawnInARow = false;
-		enableConcurrentEvents = false;
-		enableNotifications = true;
-		enableEventCreateNotification = true;
-		enableEventCaptureNotification = true;
-		enableEventEndNotification = false;
-		prioritizeOldEvent = true;
-		spawnZombies = true;
-		showCaptureStatusSmoke = true;
-		enableLBMapMarker = false;
-		minimumPlayerCount = 0;
-		mapMarkerText = RTConstants.RT_MAP_MARKER_TEXT;
-		useLootSets = 0;
-	}
-	
-	static ref RTSettings Load()
-	{
-		ref RTSettings m_Settings = new RTSettings();
-		
-		// Check if RadioTower/RadioTowerSettings.json file exists in Profiles
-		if (FileExist(RTConstants.RT_SETTINGS_CONFIGPATH))
-		{
-			// Load it
-			JsonFileLoader<RTSettings>.JsonLoadFile(RTConstants.RT_SETTINGS_CONFIGPATH, m_Settings);
-			// Compare versions and update settings
-			RTSettings.CheckVersion(m_Settings);
-			Print("[RadioTower] RTSettings.json loaded");
-		}
-		else
-		{
-			// Create default settings
-			m_Settings.Defaults();
-			// Log the folders & settings creation
-			Print("[RadioTower] RTSettings.json created & defaults loaded.");
-		}
-		JsonFileLoader<RTSettings>.JsonSaveFile(RTConstants.RT_SETTINGS_CONFIGPATH, m_Settings);
-		
-		return m_Settings;
-	}
-	
-	static protected void CheckVersion(RTSettings settings)
-	{
-		if (settings.version != RT_VERSION)
-		{
-			string backupFileName = "v_" + settings.version.ToString() + "_RTSettings.json";
-			string backupFilePath = RTConstants.RT_BACKUPPATH_SETTINGS + backupFileName;
-			
-			if (!FileExist(RTConstants.RT_BACKUPPATH_SETTINGS))
-			{
-				MakeDirectory(RTConstants.RT_BACKUPPATH_SETTINGS);
-				Print("[RadioTower] RTSettings backup folder created");
-			}
-			
-			JsonFileLoader<RTSettings>.JsonSaveFile(backupFilePath, settings);
-			
-			Print("[RadioTower] RTSetings.json update version " + settings.version + " -> " + RT_VERSION);
-			settings.version = RT_VERSION;
-		}
-	}
-}
-*/
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~RTProps.json~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
@@ -517,7 +425,8 @@ class RTLocations
 				int uuid[4];
 				UUIDApi.Generate(uuid);
 				loc.id = UUIDApi.FormatString(uuid);
-				Print("Generated id: " + loc.id + " for " + loc.locationTitle);
+				//RTLogger.GetInstance().LogMessage(RTLogType.DEBUG, "Generated id: " + loc.id + " for " + loc.locationTitle);
+				//Print("Generated id: " + loc.id + " for " + loc.locationTitle);
 			}
 		}
 	}
