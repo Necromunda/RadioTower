@@ -1,10 +1,11 @@
-const int RT_VERSION_NEEDS_CONVERSION = 115022024;
+//const int RT_VERSION_NEEDS_CONVERSION = 115022024;
 const int RT_VERSION = 104052024;
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~RTSettings.json~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 // Left because old settings need to be converted to the new format
+/*
 class RTSettingsOld
 {
 	int version;
@@ -109,6 +110,7 @@ class RTSettingsOld
 		JsonFileLoader<RTSettings>.JsonSaveFile(RTConstants.RT_SETTINGS_CONFIGPATH, settings);
 	}
 }
+*/
 
 class RTSettings
 {
@@ -155,7 +157,7 @@ class RTSettings
 			kothEvent.minPlayerCountToStartCapture = 1;
 		kothEvent.prioritizeOldEvent 					= Math.Clamp(kothEvent.prioritizeOldEvent, 0, 1);
 		kothEvent.spawnZombies 							= Math.Clamp(kothEvent.spawnZombies, 0, 1);
-		kothEvent.useLootSets 							= Math.Clamp(kothEvent.useLootSets, 0, 1);
+		//kothEvent.useLootSets 							= Math.Clamp(kothEvent.useLootSets, 0, 1);
 		kothEvent.enableSameEventSpawnInARow 			= Math.Clamp(kothEvent.enableSameEventSpawnInARow, 0, 1);
 		kothEvent.enableConcurrentEvents 				= Math.Clamp(kothEvent.enableConcurrentEvents, 0, 1);
 		kothEvent.enableCaptureStatusSmoke 				= Math.Clamp(kothEvent.enableCaptureStatusSmoke, 0, 1);
@@ -171,6 +173,7 @@ class RTSettings
 		mapMarkers.enableLBMapMarker 					= Math.Clamp(mapMarkers.enableLBMapMarker, 0, 1);
 		mapMarkers.enableVPPMapMarker 					= Math.Clamp(mapMarkers.enableVPPMapMarker, 0, 1);
 		mapMarkers.enableBasicMapMarker 				= Math.Clamp(mapMarkers.enableBasicMapMarker, 0, 1);
+		mapMarkers.enableExpansionMapMarker 			= Math.Clamp(mapMarkers.enableExpansionMapMarker, 0, 1);
 		ui.showPlayerCount 								= Math.Clamp(ui.showPlayerCount, 0, 1);
 	}
 	
@@ -227,7 +230,7 @@ class RTSettingsEvent
 	int hackTime;
 	bool prioritizeOldEvent;
 	bool spawnZombies;
-	bool useLootSets;
+	//bool useLootSets;
 	bool enableSameEventSpawnInARow;
 	bool enableConcurrentEvents;
 	bool enableCaptureStatusSmoke;
@@ -245,7 +248,7 @@ class RTSettingsEvent
 		hackTime = 5;
 		prioritizeOldEvent = true;
 		spawnZombies = true;
-		useLootSets = false;
+		//useLootSets = false;
 		enableSameEventSpawnInARow = false;
 		enableConcurrentEvents = false;
 		enableCaptureStatusSmoke = true;
@@ -270,6 +273,8 @@ class RTSettingsNotifications
 	bool enableEventCreateNotification;
 	bool enableEventCaptureNotification;
 	bool enableEventEndNotification;
+	bool enablePlayerEnterCaptureAreaNotification;
+	bool enablePlayerLeaveCaptureAreaNotification;
 	
 	void Defaults()
 	{
@@ -277,6 +282,8 @@ class RTSettingsNotifications
 		enableEventCreateNotification = true;
 		enableEventCaptureNotification = true;
 		enableEventEndNotification = false;
+		enablePlayerEnterCaptureAreaNotification = false;
+		enablePlayerLeaveCaptureAreaNotification = false;
 	}
 }
 
@@ -286,6 +293,7 @@ class RTSettingsMapMarkers
 	bool enableLBMapMarker;
 	bool enableVPPMapMarker;
 	bool enableBasicMapMarker;
+	bool enableExpansionMapMarker;
 	
 	void Defaults()
 	{
@@ -293,6 +301,7 @@ class RTSettingsMapMarkers
 		enableLBMapMarker = false;
 		enableVPPMapMarker = false;
 		enableBasicMapMarker = false;
+		enableExpansionMapMarker = false;
 	}
 }
 
@@ -323,7 +332,6 @@ class RTProps
 	static ref RTProps Load()
 	{
 		ref RTProps props = new RTProps();
-		//props.Defaults();
 		
 		if (FileExist(RTConstants.RT_PROPS_CONFIGPATH))
 		{
@@ -359,6 +367,19 @@ class RTProps
 			Print("[RadioTower] RTProps.json update version " + version + " -> " + RT_VERSION);
 			version = RT_VERSION;
 		}
+	}
+	
+	RTLocationProps GetPropsByLocationId(string id)
+	{
+		for (int i = 0; i < eventProps.Count(); i++)
+		{
+			if (id == eventProps[i].locationId)
+			{
+				return eventProps[i];
+			}
+		}
+		
+		return null;
 	}
 }
 
@@ -496,7 +517,7 @@ class RTLocation
 	string endedNotificationTitle;
 	ref TStringArray vehicleAttachments;
 	ref RTLoot loot;
-	ref TStringArray lootSets;
+	//ref TStringArray lootSets;
 	ref TStringArray zombies;
 	
 	string GetRandomZombieClassname()
@@ -512,6 +533,7 @@ class RTLoot
 {
 	int lootCount;
 	ref array<ref RTLootCategory> lootCategories;
+	ref RTLootLootSet lootSets;
 	
 	float GetTotalCategoriesProbability()
 	{
@@ -621,6 +643,18 @@ class RTLootItemAttachment
 {
 	string attachmentClassName;
 	float probability;
+}
+
+class RTLootLootSet
+{
+	int setCount;
+	ref array<ref RTLootSetMap> sets;
+}
+
+class RTLootSetMap
+{
+	string name;
+	bool isGuaranteed;
 }
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//

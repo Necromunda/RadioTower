@@ -16,7 +16,9 @@ enum RTNotificationType
 {
 	CREATE,
 	CAPTURE,
-	END
+	END,
+	PLAYER_ENTER,
+	PLAYER_LEAVE
 }
 
 enum RTEventType

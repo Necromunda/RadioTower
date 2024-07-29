@@ -16,39 +16,85 @@ class RTEvent
 	protected ref LBServerMarker m_LBMapMarker;
 	#endif
 	
-	/*
 	#ifdef EXPANSIONMODNAVIGATION
     private ExpansionMarkerModule m_MarkerModule;
-    private ExpansionMarkerData m_ServerMarker;
+    private ExpansionMarkerData m_ExpansionMapMarker;
 	#endif
-	*/
-	
-	void ~RTEvent()
-	{
-	}
 	
 	void RTEvent(RTLocation _location, bool _isGasEvent = false)
 	{
 		m_State = RTEventState.DELETED;
-		//m_Server = null;
-		//m_CaptureArea = null;
-		//m_CaptureAreaGas = null;
 		m_EventLocation = _location;
 		m_IsGasEvent = _isGasEvent;
-		//m_EventProps = null;
 		m_PropObjects = new array<Object>();
 		m_Zombies = new array<EntityAI>();
-		//m_Lootcrate = null;
-		/*
-		#ifdef LBmaster_Groups
-		m_LBMapMarker = null;
-		#endif
-		*/
-	}
+		
+		vector position = _location.locationCoordinatesXYZ;
+		vector orientation = _location.locationOrientationYPR;
+		float yOffset = _location.captureAreaYAxisOffset;
+		vector offset = vector.Zero;
+		offset[1] = yOffset;
+		
+		CleanUpAll();
+		
+		RTServer item;
+		if (RTServer.CastTo(item, GetGame().CreateObjectEx("RTServer", position, ECE_KEEPHEIGHT)))
+		{
+			item.SetAllowDamage(false);
+			item.SetPosition(position);
+			item.SetOrientation(orientation);
+			item.SetFlags(EntityFlags.STATIC, false);
+			item.Update();
+
+			m_Server = item;
+		}
+		
+		CaptureArea trigger;
+		if (CaptureArea.CastTo(trigger, GetGame().CreateObject("CaptureArea", position)))
+		{
+			trigger.SetPosition(position + offset);
+			trigger.SetCollisionCylinder(_location.captureAreaRadius, _location.captureAreaHeight);
+						
+			m_CaptureArea = trigger;
+		}
 	
-	void SpawnGas()
-	{
-		//m_CaptureAreaGas = CaptureAreaGas.Cast(GetGame().CreateObject("CaptureAreaGas", m_EventLocation.locationCoordinatesXYZ));
+		/*
+		CaptureAreaGas gasArea;
+		if (CaptureArea.CastTo(trigger, GetGame().CreateObject("CaptureAreaGas", position)))
+		{
+			m_RTEvent.SetEventGasArea(gasArea);
+		}
+		*/
+		
+		SpawnProps(g_RTBase.m_Props.GetPropsByLocationId(_location.id));
+
+		if (g_RTBase.m_Settings.kothEvent.spawnZombies)
+		{
+			int zombieCount = _location.zombieCount;
+			float radius = Math.AbsFloat(_location.captureAreaRadius);
+			SpawnZombies(zombieCount, position, radius);
+		}
+		
+		string mapMarkerText = g_RTBase.m_Settings.mapMarkers.mapMarkerText;
+		if (mapMarkerText.Contains("%1"))
+		{
+			mapMarkerText = string.Format(mapMarkerText, _location.locationTitle);
+		}
+		#ifdef LBmaster_Groups
+		if (g_RTBase.m_Settings.mapMarkers.enableLBMapMarker)
+		{
+			CreateLBMapMarker(mapMarkerText, position, "LBmaster_Groups/gui/icons/skull.paa", ARGB(255, 200, 0, 0), false, true, true, true);
+		}
+		#endif
+		
+		#ifdef EXPANSIONMODNAVIGATION
+		if (g_RTBase.m_Settings.mapMarkers.enableExpansionMapMArker)
+		{
+			CreateMissionMarker(mapMarkerText, position, 0);
+		}
+		#endif
+		
+		SetState(RTEventState.ACTIVE);
 	}
 	
 	// Delete all event objects except lootbox and car
@@ -84,6 +130,11 @@ class RTEvent
 		RemoveLBMapMarker();
 		m_LBMapMarker = null;
 		#endif
+		#ifdef EXPANSIONMODNAVIGATION
+		if (m_ExpansionMapMarker)
+			RemoveMissionMarker(m_ExpansionMapMarker.GetUID());
+		m_ExpansionMapMarker = null;
+		#endif
 	}
 	
 	// Delete all event objects
@@ -102,14 +153,10 @@ class RTEvent
 			GetGame().GetObjectsAtPosition(lootcratePosition, 1, objects, null);
 			foreach(Object crateObj: objects)
 			{
-				//if (crateObj.IsKindOf("RTLootcrate_Base"))
 				if (crateObj.IsKindOf("Container_Base"))
 					GetGame().ObjectDelete(crateObj);
 			}
 			objects.Clear();
-			
-			//if (m_Lootcrate)
-				//GetGame().ObjectDelete(m_Lootcrate);
 			
 			GetGame().GetObjectsAtPosition(vehiclePosition, 1, objects, null);
 			foreach(Object vehicleObj: objects)
@@ -129,7 +176,7 @@ class RTEvent
 			// Prevent infinite loop
 			if (tries > 10000)
 			{
-				g_RTBase.Log(RTLogType.WARNING, "Not enough space for spawning zombies, increase capture radius or reduce zombie count!");
+				g_RTBase.Log(RTLogType.WARNING, "Not enough space, " + spawnedZombies + "/" + count + " zombies spawned");
 				break;			
 			}
 			
@@ -240,11 +287,15 @@ class RTEvent
 	
 	void SpawnLoot(EntityAI target)
 	{
+		/*
 		if (g_RTBase.m_Settings.kothEvent.useLootSets)
 		{
 			SpawnLootSets(target);
 			return;
 		}
+		*/
+		
+		SpawnLootSets(target);
 			
 		TStringIntMap lootedCountCategoryMap = new TStringIntMap();
 		
@@ -416,6 +467,74 @@ class RTEvent
 		}
 	}
 	
+	void CreateLootSetItemsInContainer(EntityAI target, RTLootSet lootSet)
+	{
+		foreach (RTLootSetItem lootSetItem : lootSet.items)
+		{
+			//EntityAI entity = target.GetInventory().CreateEntityInCargo(lootSetItem.name);
+			g_RTBase.Log(RTLogType.INFO, "Spawning lootset item " + lootSetItem.name);
+			//EntityAI entity = target.GetInventory().CreateInInventory(lootSetItem.name);
+			EntityAI entity = CreateInInventory(target, lootSetItem.name);
+			if (!entity)
+			{
+				g_RTBase.Log(RTLogType.DEBUG, "No space for lootset item " + lootSetItem.name);
+				continue;
+			}
+
+			ItemBase ingameItem = ItemBase.Cast(entity);
+			if (lootSetItem.quantity != -1)
+			{
+				if (ingameItem.IsMagazine() || ingameItem.IsAmmoPile())
+				{
+					Magazine_Base ammo = Magazine_Base.Cast(entity);
+					ammo.ServerSetAmmoCount(lootSetItem.quantity);
+				}
+				else
+				{
+					if (ingameItem.HasEnergyManager())
+					{
+						ingameItem.GetCompEM().SetEnergy(lootSetItem.quantity);
+					}
+					else
+					{
+						ingameItem.SetQuantity(lootSetItem.quantity);
+					}
+				}
+			}
+
+			SpawnLootSetItemAttachments(entity, lootSetItem);
+			SpawnLootSetItemCargo(entity, lootSetItem);
+		}
+	}
+	
+	void SpawnLootSets(EntityAI target)
+	{
+		// First spawn guaranteed sets, regardless of setCount
+		foreach (RTLootSetMap lootSetMap : m_EventLocation.loot.lootSets.sets)
+		{
+			RTLootSet lootSet = g_RTBase.GetRTLootSet(lootSetMap.name);
+			if (lootSet && lootSetMap.isGuaranteed)
+			{
+				CreateLootSetItemsInContainer(target, lootSet);
+			}
+		}
+		
+		// After guaranteed sets, spawn setCount amount of lootSets
+		if (m_EventLocation.loot.lootSets.sets.Count() > 0)
+		{
+			for (int i = 0; i < m_EventLocation.loot.lootSets.setCount; i++)
+			{
+				RTLootSetMap lsMap = m_EventLocation.loot.lootSets.sets.GetRandomElement();
+				RTLootSet ls = g_RTBase.GetRTLootSet(lsMap.name);
+				if (ls)
+				{
+					CreateLootSetItemsInContainer(target, ls);
+				}
+			}
+		}
+	}
+	
+	/*
 	void SpawnLootSets(EntityAI target)
 	{
 		foreach (string lootSetName : m_EventLocation.lootSets)
@@ -462,6 +581,7 @@ class RTEvent
 			}
 		}
 	}
+	*/
 	
 	void SpawnLootSetItemAttachments(EntityAI target, RTLootSetItem lootSetItem)
 	{		
@@ -529,6 +649,9 @@ class RTEvent
 	
 	void SpawnProps(RTLocationProps props)
 	{
+		if (!props)
+			return;
+		
 		for (int i = 0; i < props.locationProps.Count(); i++)
 		{
 			RTProp prop;
@@ -575,6 +698,11 @@ class RTEvent
 		m_CaptureArea = trigger; 
 	}
 	
+	void SetEventGasArea(CaptureAreaGas gasArea)		
+	{ 
+		m_CaptureAreaGas = gasArea; 
+	}
+	
 	void SetEventLocation(RTLocation location)		
 	{ 
 		m_EventLocation = location; 
@@ -618,6 +746,11 @@ class RTEvent
 		return m_CaptureArea;
 	}
 	
+	CaptureAreaGas GetEventGasArea() 					
+	{ 
+		return m_CaptureAreaGas;
+	}
+	
 	RTLocation GetEventLocation()
 	{ 
 		return m_EventLocation; 
@@ -629,6 +762,7 @@ class RTEvent
 	}
 	
 	#ifdef LBmaster_Groups
+	/*
 	LBServerMarker CreateLBMapMarker(string name, vector position, string icon, int argb, bool toSurface, bool display3D, bool displayMap, bool displayGPS)
 	{
 		if (g_RTBase.m_Settings.mapMarkers.enableLBMapMarker)
@@ -640,30 +774,36 @@ class RTEvent
 		}
 		return null;
 	}
+	*/
+	
+	void CreateLBMapMarker(string name, vector position, string icon, int argb, bool toSurface, bool display3D, bool displayMap, bool displayGPS)
+	{
+		m_LBMapMarker = LBStaticMarkerManager.Get.AddTempServerMarker(name, position, icon, argb, toSurface, display3D, displayMap, displayGPS);
+		m_LBMapMarker.SetRadius(Math.AbsFloat(m_EventLocation.captureAreaRadius), 255,200,0,0, false);
+	}
 	
 	bool RemoveLBMapMarker()
 	{	
-		if (g_RTBase.m_Settings.mapMarkers.enableLBMapMarker)
-		{
-			bool success = LBStaticMarkerManager.Get.RemoveServerMarker(m_LBMapMarker);
-	
-			return success;
-		}
+		if (m_LBMapMarker)
+			return LBStaticMarkerManager.Get.RemoveServerMarker(m_LBMapMarker);
+		
 		return false;
 	}
 	
+	/*
 	void SetLBMapMarker(LBServerMarker markerObject)
 	{
 		m_LBMapMarker = markerObject;
 		markerObject.SetRadius(Math.AbsFloat(m_EventLocation.captureAreaRadius), 255,200,0,0, false);
 	}
+	*/
 	
 	LBServerMarker GetLBMapMarker()
 	{
 		return m_LBMapMarker;
 	}
 	#endif
-	/*
+	
     #ifdef EXPANSIONMODNAVIGATION
     void CreateMissionMarker(string markerName, vector location, int timer)
     {
@@ -677,8 +817,8 @@ class RTEvent
 		        return;
       		}
     	}
-        m_ServerMarker = m_MarkerModule.CreateServerMarker( markerName, "Territory", location, ARGB(255, 235, 59, 90), true);
-   		//GetGame().GetCallQueue( CALL_CATEGORY_SYSTEM ).CallLater( this.RemoveMissionMarker, timer, false, m_ServerMarker.GetUID());
+        m_ExpansionMapMarker = m_MarkerModule.CreateServerMarker(markerName, "Territory", location, ARGB(255, 235, 59, 90), true);
+   		//GetGame().GetCallQueue( CALL_CATEGORY_SYSTEM ).CallLater( this.RemoveMissionMarker, timer, false, m_ExpansionMapMarker.GetUID());
     }
 	
   	void initMarkerModule()
@@ -688,11 +828,15 @@ class RTEvent
 
     void RemoveMissionMarker(string uid)
     {
-        if ( !m_ServerMarker )
+        if (!m_ExpansionMapMarker)
             return;
 		
-        m_MarkerModule.RemoveServerMarker( uid );
+        m_MarkerModule.RemoveServerMarker(uid);
     }
+	
+	ExpansionMarkerData GetMissionMarker()
+	{
+		return m_ExpansionMapMarker;
+	}
     #endif
-	*/
 }

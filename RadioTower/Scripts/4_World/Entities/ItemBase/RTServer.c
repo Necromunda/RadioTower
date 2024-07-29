@@ -20,6 +20,7 @@ class RTServer extends Container_Base
 	protected Particle m_ParDefaultFire;
 	protected Particle m_ParCapturingFire;
 	protected Particle m_ParCapturedFire;
+	protected Particle m_GasFX;
 	
 	static protected int PARTICLE_DEFAULT_FIRE = ParticleList.RT_SMOKE_RED;
 	static protected int PARTICLE_CAPTURING_FIRE = ParticleList.RT_SMOKE_YELLOW;
@@ -37,11 +38,21 @@ class RTServer extends Container_Base
 		
 		m_CaptureState = CaptureState.DEFAULT;
 		m_ParticlePlayPos = GetProgressPclPosition();
+		
+		/*
+		if (!GetGame().IsDedicatedServer())
+		{
+			m_GasFX = Particle.PlayOnObject(ParticleList.CONTAMINATED_AREA_GAS_BIGASS, this, vector.Zero);
+		}
+		*/
 	}
 	
 	void ~RTServer() 
 	{ 
-		//Print("[RadioTower] RTServer dtor");
+		if (m_GasFX)
+		{
+			m_GasFX.Stop();
+		}
 	}
 	
 	override void EEInit()
