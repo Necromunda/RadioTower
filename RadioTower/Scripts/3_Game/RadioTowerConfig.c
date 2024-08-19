@@ -1,116 +1,4 @@
-//const int RT_VERSION_NEEDS_CONVERSION = 115022024;
 const int RT_VERSION = 104052024;
-
-//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~RTSettings.json~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Left because old settings need to be converted to the new format
-/*
-class RTSettingsOld
-{
-	int version;
-	int eventSpawnInterval;
-	int eventLifetime;
-	int eventCapturetime;
-	int eventHacktime;
-	string eventDefaultLootcrate;
-	bool enableLogging;
-	bool allowSameEventSpawnInARow;
-	bool enableConcurrentEvents;
-	bool enableNotifications;
-	bool enableEventCreateNotification;
-	bool enableEventCaptureNotification;
-	bool enableEventEndNotification;
-	bool prioritizeOldEvent;
-	bool spawnZombies;
-	bool showCaptureStatusSmoke;
-	bool enableLBMapMarker;
-	bool enableVPPMapMarker;
-	int minimumPlayerCount;
-	string mapMarkerText;
-	bool useLootSets;
-	bool showPlayerCount;
-	int minPlayerCountToStartCapture;
-	bool depleteProgressWhenNoPlayersCapturing;
-	bool enableBasicMapMarker;
-	
-	void Defaults()
-	{	
-		version = RT_VERSION;
-		eventSpawnInterval = 2700;
-		eventLifetime = 1800;
-		eventCapturetime = 900;
-		eventHacktime = 5;
-		eventDefaultLootcrate = "RTLootcrate_White";
-		enableLogging = false;
-		allowSameEventSpawnInARow = false;
-		enableConcurrentEvents = false;
-		enableNotifications = true;
-		enableEventCreateNotification = true;
-		enableEventCaptureNotification = true;
-		enableEventEndNotification = true;
-		prioritizeOldEvent = true;
-		spawnZombies = true;
-		showCaptureStatusSmoke = true;
-		enableLBMapMarker = false;
-		enableVPPMapMarker = false;
-		minimumPlayerCount = 1;
-		mapMarkerText = RTConstants.RT_MAP_MARKER_TEXT;
-		useLootSets = 0;
-		showPlayerCount = true;
-		minPlayerCountToStartCapture = 1;
-		depleteProgressWhenNoPlayersCapturing = false;
-		enableBasicMapMarker = false;
-	}
-	
-	static ref RTSettingsOld Load()
-	{
-		ref RTSettingsOld settings = new RTSettingsOld();
-		
-		if (FileExist(RTConstants.RT_SETTINGS_CONFIGPATH))
-		{
-			JsonFileLoader<RTSettingsOld>.JsonLoadFile(RTConstants.RT_SETTINGS_CONFIGPATH, settings);
-		}
-		else
-		{
-			settings = null;
-		}
-		
-		return settings;
-	}
-	
-	void ConvertSettings(RTSettings settings) 
-	{
-		settings.Defaults();
-		settings.kothEvent.defaultLootcrate = eventDefaultLootcrate;
-		settings.kothEvent.minPlayerCountForSpawn = minimumPlayerCount;
-		settings.kothEvent.spawnInterval = eventSpawnInterval;
-		settings.kothEvent.lifeTime = eventLifetime;
-		settings.kothEvent.captureTime = eventCapturetime;
-		settings.kothEvent.hackTime = eventHacktime;
-		settings.kothEvent.prioritizeOldEvent = prioritizeOldEvent;
-		settings.kothEvent.spawnZombies = spawnZombies;
-		settings.kothEvent.useLootSets = useLootSets;
-		settings.kothEvent.enableSameEventSpawnInARow = allowSameEventSpawnInARow;
-		settings.kothEvent.enableConcurrentEvents = enableConcurrentEvents;
-		settings.kothEvent.enableCaptureStatusSmoke = showCaptureStatusSmoke;
-		settings.kothEvent.minPlayerCountToStartCapture = minPlayerCountToStartCapture;
-		settings.kothEvent.depleteProgressWhenNoPlayersCapturing = depleteProgressWhenNoPlayersCapturing;
-		settings.logging.enableLogging = enableLogging;
-		settings.notifications.enableNotifications = enableNotifications;
-		settings.notifications.enableEventCreateNotification = enableEventCreateNotification;
-		settings.notifications.enableEventCaptureNotification = enableEventCaptureNotification;
-		settings.notifications.enableEventEndNotification = enableEventEndNotification;
-		settings.mapMarkers.mapMarkerText = mapMarkerText;
-		settings.mapMarkers.enableLBMapMarker = enableLBMapMarker;
-		settings.mapMarkers.enableVPPMapMarker = enableVPPMapMarker;
-		settings.mapMarkers.enableBasicMapMarker = enableBasicMapMarker;
-		settings.ui.showPlayerCount = true;
-		settings.Validate();
-		JsonFileLoader<RTSettings>.JsonSaveFile(RTConstants.RT_SETTINGS_CONFIGPATH, settings);
-	}
-}
-*/
 
 class RTSettings
 {
@@ -145,19 +33,18 @@ class RTSettings
 			kothEvent.minPlayerCountForSpawn = 1;
 		if (kothEvent.minPlayerCountToStartCapture < 0)
 			kothEvent.minPlayerCountForSpawn = 1;
-		if (kothEvent.spawnInterval <= 0)
-			kothEvent.spawnInterval = RTConstants.RT_EVENT_SPAWN_INTERVAL_DEFAULT;
-		//if (kothEvent.lifeTime <= 0)
-		//	kothEvent.lifeTime = RTConstants.RT_EVENT_LIFETIME_DEFAULT;
 		if (kothEvent.captureTime <= 0)
 			kothEvent.captureTime = RTConstants.RT_EVENT_CAPTURETIME_DEFAULT;
 		if (kothEvent.hackTime < 0)
 			kothEvent.hackTime = RTConstants.RT_TIMETOHACK_DEFAULT;
 		if (kothEvent.minPlayerCountToStartCapture < 0)
 			kothEvent.minPlayerCountToStartCapture = 1;
+		if (kothEvent.minTimeBeforeSpawn <= 0)
+			kothEvent.minTimeBeforeSpawn = -1;
+		if (kothEvent.maxTimeBeforeSpawn <= 0)
+			kothEvent.maxTimeBeforeSpawn = -1;
 		kothEvent.prioritizeOldEvent 					= Math.Clamp(kothEvent.prioritizeOldEvent, 0, 1);
 		kothEvent.spawnZombies 							= Math.Clamp(kothEvent.spawnZombies, 0, 1);
-		//kothEvent.useLootSets 							= Math.Clamp(kothEvent.useLootSets, 0, 1);
 		kothEvent.enableSameEventSpawnInARow 			= Math.Clamp(kothEvent.enableSameEventSpawnInARow, 0, 1);
 		kothEvent.enableConcurrentEvents 				= Math.Clamp(kothEvent.enableConcurrentEvents, 0, 1);
 		kothEvent.enableCaptureStatusSmoke 				= Math.Clamp(kothEvent.enableCaptureStatusSmoke, 0, 1);
@@ -168,8 +55,6 @@ class RTSettings
 		notifications.enableEventCreateNotification 	= Math.Clamp(notifications.enableEventCreateNotification, 0, 1);
 		notifications.enableEventCaptureNotification 	= Math.Clamp(notifications.enableEventCaptureNotification, 0, 1);
 		notifications.enableEventEndNotification 		= Math.Clamp(notifications.enableEventEndNotification, 0, 1);
-		//if (!mapMarkers.mapMarkerText.Contains("%"))
-			//mapMarkers.mapMarkerText = RTConstants.RT_MAP_MARKER_TEXT;
 		mapMarkers.enableLBMapMarker 					= Math.Clamp(mapMarkers.enableLBMapMarker, 0, 1);
 		mapMarkers.enableVPPMapMarker 					= Math.Clamp(mapMarkers.enableVPPMapMarker, 0, 1);
 		mapMarkers.enableBasicMapMarker 				= Math.Clamp(mapMarkers.enableBasicMapMarker, 0, 1);
@@ -193,7 +78,7 @@ class RTSettings
 			Print("[RadioTower] RTSettings.json created & defaults loaded.");
 		}
 		settings.Validate();
-		JsonFileLoader<RTSettings>.JsonSaveFile(RTConstants.RT_SETTINGS_CONFIGPATH, settings);
+		//JsonFileLoader<RTSettings>.JsonSaveFile(RTConstants.RT_SETTINGS_CONFIGPATH, settings);
 		
 		return settings;
 	}
@@ -212,6 +97,7 @@ class RTSettings
 			}
 			
 			JsonFileLoader<RTSettings>.JsonSaveFile(backupFilePath, this);
+			JsonFileLoader<RTSettings>.JsonSaveFile(RTConstants.RT_SETTINGS_CONFIGPATH, this);
 			
 			Print("[RadioTower] RTSetings.json update version " + version + " -> " + RT_VERSION);
 			version = RT_VERSION;
@@ -224,13 +110,13 @@ class RTSettingsEvent
 	string defaultLootcrate;
 	int minPlayerCountForSpawn;
 	int minPlayerCountToStartCapture;
-	int spawnInterval;
 	int lifeTime;
 	int captureTime;
 	int hackTime;
+	int minTimeBeforeSpawn;
+	int maxTimeBeforeSpawn;
 	bool prioritizeOldEvent;
 	bool spawnZombies;
-	//bool useLootSets;
 	bool enableSameEventSpawnInARow;
 	bool enableConcurrentEvents;
 	bool enableCaptureStatusSmoke;
@@ -242,13 +128,13 @@ class RTSettingsEvent
 		defaultLootcrate = "RTLootcrate_White";
 		minPlayerCountForSpawn = 1;
 		minPlayerCountToStartCapture = 1;
-		spawnInterval = 2700;
 		lifeTime = 1800;
 		captureTime = 900;
 		hackTime = 5;
+		minTimeBeforeSpawn = 2700;
+		maxTimeBeforeSpawn = 3600;
 		prioritizeOldEvent = true;
 		spawnZombies = true;
-		//useLootSets = false;
 		enableSameEventSpawnInARow = false;
 		enableConcurrentEvents = false;
 		enableCaptureStatusSmoke = true;
@@ -344,7 +230,7 @@ class RTProps
 			props.Defaults();
 			Print("[RadioTower] RTProps.json created & defaults loaded.");
 		}
-		JsonFileLoader<RTProps>.JsonSaveFile(RTConstants.RT_PROPS_CONFIGPATH, props);
+		//JsonFileLoader<RTProps>.JsonSaveFile(RTConstants.RT_PROPS_CONFIGPATH, props);
 		
 		return props;
 	}
@@ -363,6 +249,7 @@ class RTProps
 			}
 			
 			JsonFileLoader<RTProps>.JsonSaveFile(backupFilePath, this);
+			JsonFileLoader<RTProps>.JsonSaveFile(RTConstants.RT_PROPS_CONFIGPATH, this);
 			
 			Print("[RadioTower] RTProps.json update version " + version + " -> " + RT_VERSION);
 			version = RT_VERSION;
@@ -469,7 +356,7 @@ class RTLocations
 		}
 		
 		locations.Validate();
-		JsonFileLoader<RTLocations>.JsonSaveFile(RTConstants.RT_LOCATIONS_CONFIGPATH, locations);
+		//JsonFileLoader<RTLocations>.JsonSaveFile(RTConstants.RT_LOCATIONS_CONFIGPATH, locations);
 		
 		return locations;
 	}
@@ -488,6 +375,7 @@ class RTLocations
 			}
 			
 			JsonFileLoader<RTLocations>.JsonSaveFile(backupFilePath, this);
+			JsonFileLoader<RTLocations>.JsonSaveFile(RTConstants.RT_LOCATIONS_CONFIGPATH, this);
 			
 			Print("[RadioTower] RTLocations.json update version " + version + " -> " + RT_VERSION);
 			version = RT_VERSION;
