@@ -3,7 +3,7 @@ class RTConstants
 	/* ACTION CONDITION DEFAULTS */
 	static const float RT_DISTANCE_DEFAULT = 2.0;
 	/* EVENT DEFAULTS */
-	static const float RT_EVENT_SPAWN_INTERVAL_DEFAULT = 60;
+	static const float RT_EVENT_SPAWN_INTERVAL_DEFAULT = 3600;
 	static const float RT_EVENT_CAPTURETIME_DEFAULT = 600;
 	static const float RT_EVENT_LIFETIME_DEFAULT = 1800;
 	static const float RT_EVENT_TOTAL_CAPTURE_PCT_DEFAULT = 100;
