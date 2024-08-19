@@ -1,6 +1,7 @@
 class RTBase
 {
-	//ref RTSettingsOld m_SettingsOld;
+	protected RTLogger m_Logger;
+	protected RTNotificationState m_NotificationState;
 	ref RTSettings m_Settings;
 	ref RTLocations m_Locations;
 	ref RTProps m_Props;
@@ -13,10 +14,7 @@ class RTBase
 	
 	protected string m_DefaultLootcrate;
 	protected bool m_AllowSameEventSpawnInARow;
-	
-	protected RTNotificationState m_NotificationState;
-	
-	protected RTLogger m_Logger;
+	protected int m_TimeSinceLastEvent;
 	
 	void ~RTBase()
 	{
@@ -43,19 +41,6 @@ class RTBase
 			Print("[RadioTower] Backup folder created");
 		}
 		
-		/*
-		m_SettingsOld = RTSettingsOld.Load();
-		if (m_SettingsOld && m_SettingsOld.version == RT_VERSION_NEEDS_CONVERSION)
-		{
-			m_Settings = new ref RTSettings();
-			m_SettingsOld.ConvertSettings(m_Settings);
-		}
-		else
-		{
-			m_Settings 	= RTSettings.Load();
-		}
-		*/
-		
 		m_Settings 	= RTSettings.Load();
 		m_Props 	= RTProps.Load();
 		m_Locations = RTLocations.Load();
@@ -64,22 +49,12 @@ class RTBase
 		m_RTEvent = null;
 		m_EventSpawnTimer = new Timer;
 		m_Events = new array<ref RTEvent>();
-		m_NotificationState = RTNotificationState.ENABLED;
+		m_NotificationState = m_Settings.notifications.enableNotifications;
 		
-		m_AllowSameEventSpawnInARow = RTConstants.RT_ALLOW_SAME_EVENT_SPAWN_IN_A_ROW;
-		bool enableLogging = RTConstants.RT_ENABLE_LOGGING;
-		float spawnInterval = RTConstants.RT_EVENT_SPAWN_INTERVAL_DEFAULT;
+		m_AllowSameEventSpawnInARow = m_Settings.kothEvent.enableSameEventSpawnInARow;
+		m_DefaultLootcrate = m_Settings.kothEvent.defaultLootcrate;
 		
-		if (m_Settings)
-		{
-			spawnInterval = m_Settings.kothEvent.spawnInterval;
-			m_AllowSameEventSpawnInARow = m_Settings.kothEvent.enableSameEventSpawnInARow;
-			enableLogging = m_Settings.logging.enableLogging;
-			m_DefaultLootcrate = m_Settings.kothEvent.defaultLootcrate;
-			m_NotificationState = m_Settings.notifications.enableNotifications;
-		}
-		
-		m_Logger = RTLogger.CreateInstance(enableLogging);
+		m_Logger = RTLogger.CreateInstance(m_Settings.logging.enableLogging);
 		
 		foreach (RTLocation loc : m_Locations.eventLocations)
 		{
@@ -96,7 +71,32 @@ class RTBase
 			}
 		}
 		
-		m_EventSpawnTimer.Run(spawnInterval, this, "CreateEvent", NULL, true);	
+		m_EventSpawnTimer.Run(1, this, "Tick", null, true);	
+	}
+	
+	void Tick()
+	{
+		int min = Math.Max(m_Settings.kothEvent.minTimeBeforeSpawn, 0);
+		int max = Math.Max(m_Settings.kothEvent.maxTimeBeforeSpawn, 1);
+		
+		m_TimeSinceLastEvent += 1;
+		
+		if (m_TimeSinceLastEvent < min)
+		{
+			PrintFormat("m_TimeSinceLastEvent = %1, min = %2, max = %3", m_TimeSinceLastEvent, min, max);
+			return;
+		}
+		
+		float rand = Math.RandomFloat01();
+		float timeElapsed = m_TimeSinceLastEvent - Math.Max(min, 0);
+		float minMaxRange = Math.Max(max - min, 1);
+		float spawnProbability = timeElapsed / minMaxRange;
+		PrintFormat("timeElapsed = %1, min = %2, max = %3, rand = %4, spawnProbability = %5", timeElapsed, min, max, rand, spawnProbability);
+		if (rand <= spawnProbability)
+		{
+			m_TimeSinceLastEvent = 0;
+			CreateEvent();
+		}
 	}
 	
 	void CleanupPastEvents()
@@ -172,7 +172,8 @@ class RTBase
 	    obj.SetOrientation( obj.GetOrientation() );
 	    obj.Update();
 	    obj.SetAffectPathgraph( true, false );
-	    if( obj.CanAffectPathgraph() ) GetGame().GetCallQueue( CALL_CATEGORY_SYSTEM ).CallLater( GetGame().UpdatePathgraphRegionByObject, 100, false, obj );
+	    if (obj.CanAffectPathgraph()) 
+			GetGame().GetCallQueue( CALL_CATEGORY_SYSTEM ).CallLater(GetGame().UpdatePathgraphRegionByObject, 100, false, obj);
 		return obj;
 	}
 	
@@ -320,7 +321,7 @@ class RTBase
 		int playerCount = GetPlayerCount();
 		if (playerCount < m_Settings.kothEvent.minPlayerCountForSpawn) 
 		{
-			Log(RTLogType.DEBUG, "Player count too low for event spawn. Current: " + playerCount + ", required: " + m_Settings.kothEvent.minPlayerCountForSpawn);
+			Log(RTLogType.DEBUG, "Playercount too low for event spawn. Current: " + playerCount + ", required: " + m_Settings.kothEvent.minPlayerCountForSpawn);
 			return;
 		}
 		
