@@ -83,7 +83,7 @@ class RTBase
 		
 		if (m_TimeSinceLastEvent < min)
 		{
-			PrintFormat("m_TimeSinceLastEvent = %1, min = %2, max = %3", m_TimeSinceLastEvent, min, max);
+			//PrintFormat("m_TimeSinceLastEvent = %1, min = %2, max = %3", m_TimeSinceLastEvent, min, max);
 			return;
 		}
 		
@@ -91,7 +91,7 @@ class RTBase
 		float timeElapsed = m_TimeSinceLastEvent - Math.Max(min, 0);
 		float minMaxRange = Math.Max(max - min, 1);
 		float spawnProbability = timeElapsed / minMaxRange;
-		PrintFormat("timeElapsed = %1, min = %2, max = %3, rand = %4, spawnProbability = %5", timeElapsed, min, max, rand, spawnProbability);
+		//PrintFormat("timeElapsed = %1, min = %2, max = %3, rand = %4, spawnProbability = %5", timeElapsed, min, max, rand, spawnProbability);
 		if (rand <= spawnProbability)
 		{
 			m_TimeSinceLastEvent = 0;
@@ -432,7 +432,7 @@ class RTBase
 		#endif
 		
 		#ifdef EXPANSIONMODNAVIGATION
-		if (m_Settings.mapMarkers.enableExpansionMapMArker)
+		if (m_Settings.mapMarkers.enableExpansionMapMarker)
 		{
 			m_RTEvent.CreateMissionMarker(mapMarkerText, position, 0);
 		}

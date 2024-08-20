@@ -88,7 +88,7 @@ class RTEvent
 		#endif
 		
 		#ifdef EXPANSIONMODNAVIGATION
-		if (g_RTBase.m_Settings.mapMarkers.enableExpansionMapMArker)
+		if (g_RTBase.m_Settings.mapMarkers.enableExpansionMapMarker)
 		{
 			CreateMissionMarker(mapMarkerText, position, 0);
 		}
