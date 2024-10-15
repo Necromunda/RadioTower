@@ -1,4 +1,4 @@
-const int RT_VERSION = 120082024;
+const int RT_VERSION = 126082024;
 
 class RTSettings
 {
@@ -75,6 +75,7 @@ class RTSettings
 		}
 		else
 		{
+			JsonFileLoader<RTSettings>.JsonSaveFile(RTConstants.RT_SETTINGS_CONFIGPATH, settings);
 			Print("[RadioTower] RTSettings.json created & defaults loaded.");
 		}
 		settings.Validate();
@@ -97,10 +98,10 @@ class RTSettings
 			}
 			
 			JsonFileLoader<RTSettings>.JsonSaveFile(backupFilePath, this);
-			JsonFileLoader<RTSettings>.JsonSaveFile(RTConstants.RT_SETTINGS_CONFIGPATH, this);
 			
 			Print("[RadioTower] RTSetings.json update version " + version + " -> " + RT_VERSION);
 			version = RT_VERSION;
+			JsonFileLoader<RTSettings>.JsonSaveFile(RTConstants.RT_SETTINGS_CONFIGPATH, this);
 		}
 	}
 }
@@ -228,6 +229,7 @@ class RTProps
 		else
 		{
 			props.Defaults();
+			JsonFileLoader<RTProps>.JsonSaveFile(RTConstants.RT_PROPS_CONFIGPATH, props);
 			Print("[RadioTower] RTProps.json created & defaults loaded.");
 		}
 		//JsonFileLoader<RTProps>.JsonSaveFile(RTConstants.RT_PROPS_CONFIGPATH, props);
@@ -249,10 +251,10 @@ class RTProps
 			}
 			
 			JsonFileLoader<RTProps>.JsonSaveFile(backupFilePath, this);
-			JsonFileLoader<RTProps>.JsonSaveFile(RTConstants.RT_PROPS_CONFIGPATH, this);
 			
 			Print("[RadioTower] RTProps.json update version " + version + " -> " + RT_VERSION);
 			version = RT_VERSION;
+			JsonFileLoader<RTProps>.JsonSaveFile(RTConstants.RT_PROPS_CONFIGPATH, this);
 		}
 	}
 	
@@ -352,6 +354,7 @@ class RTLocations
 		}
 		else
 		{
+			JsonFileLoader<RTLocations>.JsonLoadFile(RTConstants.RT_LOCATIONS_CONFIGPATH, locations);
 			Print("[RadioTower] RTLocations.json created & defaults loaded.");
 		}
 		
@@ -375,10 +378,10 @@ class RTLocations
 			}
 			
 			JsonFileLoader<RTLocations>.JsonSaveFile(backupFilePath, this);
-			JsonFileLoader<RTLocations>.JsonSaveFile(RTConstants.RT_LOCATIONS_CONFIGPATH, this);
 			
 			Print("[RadioTower] RTLocations.json update version " + version + " -> " + RT_VERSION);
 			version = RT_VERSION;
+			JsonFileLoader<RTLocations>.JsonSaveFile(RTConstants.RT_LOCATIONS_CONFIGPATH, this);
 		}
 	}
 }
@@ -405,7 +408,6 @@ class RTLocation
 	string endedNotificationTitle;
 	ref TStringArray vehicleAttachments;
 	ref RTLoot loot;
-	//ref TStringArray lootSets;
 	ref TStringArray zombies;
 	
 	string GetRandomZombieClassname()
@@ -572,9 +574,10 @@ class RTLootSets
 		else
 		{
 			_lootSets.Defaults();
+			JsonFileLoader<RTLootSets>.JsonSaveFile(RTConstants.RT_LOOTSETS_CONFIGPATH, _lootSets);
 			Print("[RadioTower] RTLootSets.json created & defaults loaded.");
 		}
-		JsonFileLoader<RTLootSets>.JsonSaveFile(RTConstants.RT_LOOTSETS_CONFIGPATH, _lootSets);
+		//JsonFileLoader<RTLootSets>.JsonSaveFile(RTConstants.RT_LOOTSETS_CONFIGPATH, _lootSets);
 		
 		return _lootSets;
 	}
@@ -596,6 +599,7 @@ class RTLootSets
 			
 			Print("[RadioTower] RTLootSets.json update version " + version + " -> " + RT_VERSION);
 			version = RT_VERSION;
+			JsonFileLoader<RTLootSets>.JsonSaveFile(RTConstants.RT_LOOTSETS_CONFIGPATH, this);
 		}
 	}
 }

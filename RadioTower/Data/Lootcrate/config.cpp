@@ -36,7 +36,7 @@ class CfgVehicles
 		physLayer="item_large";
 		class Cargo
 		{
-			itemsCargoSize[]={8,50};
+			itemsCargoSize[]={10,50};
 			openable=0;
 			allowOwnedCargoManipulation=1;
 		};
