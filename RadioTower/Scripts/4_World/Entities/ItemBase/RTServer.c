@@ -58,12 +58,16 @@ class RTServer extends Container_Base
 	override void EEInit()
 	{
 		super.EEInit();	
-		Close();	
+		//Close();	
+		
+		//if (NeedsSync())
+			//SetSynchDirty();
+		
 		//SetCaptureStateSynchronized(CaptureState.DEFAULT);
-        /*if(IsOpen())
+       	if (IsOpen())
 			Open();
 		else
-			Close();*/
+			Close();
 		
 		/*if (!m_Trigger)
 		{
@@ -246,6 +250,7 @@ class RTServer extends Container_Base
 		
 		if ( m_IsOpened != m_IsOpenedLocal )
 		{		
+			/*
 			if ( IsOpen() && IsSoundSynchRemote() && !IsBeingPlaced() )
 			{
 				SoundOpenPlay();
@@ -254,7 +259,8 @@ class RTServer extends Container_Base
 			if ( !IsOpen() && IsSoundSynchRemote() && !IsBeingPlaced() )
 			{
 				SoundClosePlay();
-			}	
+			}
+			*/	
 			m_IsOpenedLocal = m_IsOpened;
 		}
 		
